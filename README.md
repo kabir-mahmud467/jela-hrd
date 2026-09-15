@@ -282,8 +282,12 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
    Never add an unversioned `/css/style.css` or `/js/main.js` URL.
 7. **Secrets:** never commit `.env`; never log secrets; session password changes via `/admin/settings`.
 8. **PWA/offline:** new public pages MUST be added to `/offline-manifest.json` (`routes/index.js`)
-   or the "অফলাইন ডাউনলোড" pack misses them. SW caching logic changes → bump `CACHE`
+   or the in-app download pack misses them. SW caching logic changes → bump `CACHE`
    (`public/sw.js`). `/sw.js` is served `no-store` (see `app.js` setHeaders) — keep it that way.
+   `public/js/main.js` + `public/sw.js` MUST stay **ES5** (var/function/Promise chains —
+   no arrows, const/let, async/await, template literals, optional chaining,
+   includes/startsWith, classList.toggle-force) so old-Android Chrome can parse
+   them, otherwise install breaks on those devices.
 8. **Vercel:** `api/index.js` has no `app.listen` (`server.js` guards with `require.main`); routing
    via `vercel.json` rewrites; sessions need `connect-mongo` (already wired) on serverless.
 
