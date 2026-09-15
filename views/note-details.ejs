@@ -1,0 +1,10 @@
+<%- include('partials/header', { title: note.title }) %>
+<a href="/notes" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব নোট</a>
+<article class="detail reveal in">
+  <span class="badge"><%= note.subject %></span>
+  <h1><%= note.title %></h1>
+  <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= note.createdAt ? new Date(note.createdAt).toLocaleDateString('bn-BD') : '' %></small>
+  <p class="content pre"><%= note.content %></p>
+  <a href="/notes" class="btn"><svg class="icon"><use href="#i-note"/></svg> আরও নোট পড়ুন</a>
+</article>
+<%- include('partials/footer') %>

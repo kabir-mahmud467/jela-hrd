@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>নিরাপত্তা — IP ব্যান | Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<%- include('../partials/icons') %>
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav></div></header>
+<main class="container">
+<div class="sec-head">
+  <span class="sec-ico"><svg class="icon"><use href="#i-lock"/></svg></span>
+  <h2>IP ব্যান</h2>
+</div>
+<p class="muted">ব্যানড IP সঙ্গে সঙ্গে 403 পাবে (rate limit-এর আগেই ব্লক)। আপনার IP: <span class="share-row"><code><%= myIp %></code></span></p>
+<% if (error) { %><div class="alert error"><%= error %></div><% } %>
+<% if (success) { %><div class="alert success"><%= success %></div><% } %>
+<form method="POST" action="/admin/bans" class="form">
+  <label>IP ঠিকানা * (IPv4/IPv6)</label>
+  <input name="ip" required maxlength="100" placeholder="যেমন: 203.0.113.45" autocomplete="off">
+  <label>কারণ (ঐচ্ছিক)</label>
+  <input name="reason" maxlength="300" placeholder="যেমন: বারবার ভুল লগিন">
+  <button class="btn primary" type="submit">ব্যান করুন</button>
+</form>
+<div class="table-wrap mt-16"><table class="table"><tr><th>IP</th><th>কারণ</th><th>তারিখ</th><th>অ্যাকশন</th></tr>
+<% if (items.length === 0) { %><tr><td colspan="4" class="muted">কোনো IP ব্যান নেই।</td></tr><% } %>
+<% items.forEach(i => { %><tr><td><code><%= i.ip %></code></td><td><%= i.reason || '-' %></td><td><%= i.createdAt ? new Date(i.createdAt).toLocaleDateString('bn-BD') : '-' %></td>
+<td><form method="POST" action="/admin/bans/<%= i._id %>/delete" class="inline-form" data-confirm="এই IP মুক্ত করবেন?"><button class="btn small" type="submit">মুক্ত করুন</button></form></td></tr><% }) %>
+</table></div>
+</main>
+<button class="to-top" id="toTop" aria-label="উপরে যান"><svg class="icon"><use href="#i-top"/></svg></button>
+<script src="/js/main.js"></script>
+</body></html>

@@ -1,0 +1,10 @@
+<%- include('partials/header', { title: 'নিষিদ্ধ' }) %>
+<div class="center reveal in">
+  <svg class="icon big"><use href="#i-lock"/></svg>
+  <h1>৪০৩</h1>
+  <p>এই IP ঠিকানা থেকে প্রবেশ নিষিদ্ধ করা হয়েছে।</p>
+  <% if (typeof ip !== 'undefined' && ip) { %><p class="muted share-row">IP: <code><%= ip %></code></p><% } %>
+  <p class="muted">ভুল মনে হলে সাইট অ্যাডমিনের সাথে যোগাযোগ করুন।</p>
+  <a href="/" class="btn primary"><svg class="icon"><use href="#i-back"/></svg> হোমে ফিরুন</a>
+</div>
+<%- include('partials/footer') %>

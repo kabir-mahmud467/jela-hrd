@@ -1,0 +1,38 @@
+<%- include('partials/header', { title: 'হোম' }) %>
+
+<section class="hero reveal">
+  <span class="hero-badge"><svg class="icon sm"><use href="#i-spark"/></svg> সম্পূর্ণ বাংলায় প্রশ্নোত্তর</span>
+  <h1>গুরুত্বপূর্ণ <span class="grad">প্রশ্নোত্তর</span></h1>
+  <p>পরীক্ষার প্রস্তুতির জন্য বাছাই করা প্রশ্ন — ক্লিক করলেই উত্তর। মোট <b><%= qCount %></b>টি প্রশ্ন, <b><%= sCount %></b>টি বিষয়ে।</p>
+  <div class="hero-btns">
+    <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-help"/></svg> সব প্রশ্ন দেখুন</a>
+  </div>
+  <form method="GET" action="/questions" class="search hero-search">
+    <input type="text" name="q" placeholder="প্রশ্ন খুঁজুন..." maxlength="100">
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+</section>
+
+<section class="sec-qa">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-help"/></svg></span>
+    <h2>সাম্প্রতিক প্রশ্ন</h2>
+    <a href="/questions" class="more">সব দেখুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+
+  <% if (subjects && subjects.length) { %>
+  <div class="chips">
+    <% subjects.slice(0, 8).forEach(s => { %>
+      <a href="/questions/subject/<%= encodeURIComponent(s) %>" class="chip"><%= s %></a>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <%- include('partials/qa-list', { items: questions, prefix: 'home' }) %>
+
+  <div class="center-cta">
+    <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-layers"/></svg> সব <%= qCount %>টি প্রশ্ন দেখুন</a>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

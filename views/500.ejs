@@ -1,0 +1,9 @@
+<%- include('partials/header', { title: 'সার্ভার ত্রুটি' }) %>
+<div class="center reveal in">
+  <svg class="icon big"><use href="#i-alert"/></svg>
+  <h1>৫০০</h1>
+  <p>সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।</p>
+  <% if (typeof hint !== 'undefined' && hint) { %><p class="alert error"><%= hint %></p><% } %>
+  <a href="/" class="btn primary"><svg class="icon"><use href="#i-back"/></svg> হোমে ফিরুন</a>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>সেটিংস | Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../partials/icons') %>
+<header class="navbar admin-nav" id="navbar">
+  <div class="container nav-inner">
+    <a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin Panel</a>
+    <nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav>
+  </div>
+</header>
+<main class="container">
+  <h1><svg class="icon"><use href="#i-key"/></svg> লগিন পরিবর্তন (.env মান ওভাররাইড)</h1>
+  <p class="muted">বর্তমান ইউজার: <b><%= admin.username %></b> | শেষ আপডেট: <%= admin.updatedAt ? admin.updatedAt.toLocaleString('bn-BD') : '-' %></p>
+  <% if (error) { %><div class="alert error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert success"><%= success %></div><% } %>
+  <form method="POST" action="/admin/settings" class="form">
+    <label>নতুন ইউজারনেম</label>
+    <input type="text" name="username" value="<%= admin.username %>" required maxlength="100">
+    <label>বর্তমান পাসওয়ার্ড (নিশ্চিত করতে)</label>
+    <input type="password" name="currentPassword" required autocomplete="current-password">
+    <label>নতুন পাসওয়ার্ড (পরিবর্তন না চাইলে খালি রাখুন, min 6)</label>
+    <input type="password" name="newPassword" placeholder="নতুন পাসওয়ার্ড" autocomplete="new-password">
+    <button class="btn primary" type="submit">আপডেট করুন</button>
+  </form>
+</main>
+</body>
+</html>

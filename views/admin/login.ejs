@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>অ্যাডমিন লগিন | জেলা HRD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+<%- include('../partials/icons') %>
+<div class="login-box">
+  <h1><svg class="icon"><use href="#i-lock"/></svg> অ্যাডমিন লগিন</h1>
+  <p class="muted">.env থেকে প্রাথমিক লগিন, পরে প্যানেল থেকে পরিবর্তনযোগ্য</p>
+  <% if (error) { %><div class="alert error"><%= error %></div><% } %>
+  <form method="POST" action="/admin/login">
+    <label>ইউজারনেম</label>
+    <input type="text" name="username" required placeholder="admin" autocomplete="username" maxlength="100">
+    <label>পাসওয়ার্ড</label>
+    <input type="password" name="password" required placeholder="••••••" autocomplete="current-password" maxlength="200">
+    <button type="submit" class="btn primary full">লগিন</button>
+  </form>
+  <a href="/" class="login-back"><svg class="icon sm"><use href="#i-back"/></svg> সাইটে ফিরুন</a>
+</div>
+</body>
+</html>

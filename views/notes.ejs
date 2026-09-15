@@ -1,0 +1,24 @@
+<%- include('partials/header', { title: 'আলোচনা নোট' }) %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-note"/></svg></span>
+    <h2>আলোচনা নোট</h2>
+  </div>
+  <p class="page-sub">বিস্তারিত আলোচনা ও ব্যাখ্যাসহ নোট।</p>
+  <form method="GET" action="/notes" class="search">
+    <input type="text" name="q" placeholder="নোট খুঁজুন..." value="<%= q %>" maxlength="100">
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+  <div class="grid">
+    <% if (notes.length === 0) { %><p class="empty">কোনো নোট পাওয়া যায়নি। অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% notes.forEach(n => { %>
+      <div class="card reveal">
+        <span class="badge"><%= n.subject %></span>
+        <h3><a href="/notes/<%= n._id %>"><%= n.title %></a></h3>
+        <p><%= (n.content || '').substring(0, 150) %>...</p>
+        <a href="/notes/<%= n._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>

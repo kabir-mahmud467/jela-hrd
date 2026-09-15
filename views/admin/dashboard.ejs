@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ড্যাশবোর্ড | জেলা HRD Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../partials/icons') %>
+<header class="navbar admin-nav" id="navbar">
+  <div class="container nav-inner">
+    <a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin Panel</a>
+    <nav id="mainnav">
+      <a href="/admin/importants">গুরুত্বপূর্ণ</a>
+      <a href="/admin/books">বই</a>
+      <a href="/admin/notes">নোট</a>
+      <a href="/admin/questions">প্রশ্ন</a>
+      <a href="/admin/bans">নিরাপত্তা</a>
+      <a href="/admin/settings">সেটিংস</a>
+      <a href="/">সাইট দেখুন</a>
+      <a href="/admin/logout" class="admin-btn">লগআউট (<%= admin.username %>)</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-layers"/></svg></span>
+    <h2>স্বাগতম, <%= admin.username %>!</h2>
+  </div>
+  <div class="grid">
+    <div class="card a-amber stat reveal"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><a href="/admin/importants" class="btn small">পরিচালনা</a> <a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card a-emerald stat reveal"><h2><%= counts.book %></h2><p>বই লিংক</p><a href="/admin/books" class="btn small">পরিচালনা</a> <a href="/admin/books/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card a-sky stat reveal"><h2><%= counts.note %></h2><p>আলোচনা নোট</p><a href="/admin/notes" class="btn small">পরিচালনা</a> <a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card a-violet stat reveal"><h2><%= counts.question %></h2><p>প্রশ্নোত্তর</p><a href="/admin/questions" class="btn small">পরিচালনা</a> <a href="/admin/questions/new" class="btn small primary">+ নতুন প্রশ্ন</a></div>
+  </div>
+  <div class="card mt-16 reveal">
+    <h3><svg class="icon sm"><use href="#i-lock"/></svg> নিরাপত্তা <span class="badge"><%= counts.ban %> IP ব্যান</span></h3>
+    <p class="muted">সন্দেহজনক IP ব্যান/মুক্ত করুন, rate limit লঙ্ঘনকারী আটকান। <a href="/admin/bans" class="more">IP ব্যান পরিচালনা <svg class="icon sm"><use href="#i-arrow"/></svg></a></p>
+  </div>
+  <div class="card mt-16 reveal">
+    <h3><svg class="icon sm"><use href="#i-key"/></svg> লগিন পরিবর্তন</h3>
+    <p class="muted">.env-এর ইউজারনেম/পাসওয়ার্ড এখন ডাটাবেজে আছে। <a href="/admin/settings" class="more">এখানে ক্লিক করে পরিবর্তন করুন <svg class="icon sm"><use href="#i-arrow"/></svg></a></p>
+  </div>
+</main>
+<button class="to-top" id="toTop" aria-label="উপরে যান"><svg class="icon"><use href="#i-top"/></svg></button>
+<script src="/js/main.js"></script>
+</body>
+</html>

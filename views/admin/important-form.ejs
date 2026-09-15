@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>গুরুত্বপূর্ণ ফর্ম | Admin</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<%- include('../partials/icons') %>
+
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin/importants">তালিকা</a></nav></div></header>
+<main class="container">
+<h1><%= item && item._id ? 'এডিট' : 'নতুন' %> গুরুত্বপূর্ণ তথ্য</h1>
+<% if (error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="POST" action="<%= item && item._id ? '/admin/importants/' + item._id : '/admin/importants' %>" class="form">
+<label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
+<label>ক্যাটাগরি</label><input name="category" value="<%= item.category || 'সাধারণ' %>">
+<label>বিবরণ</label><textarea name="description" rows="5" required><%= item.description || '' %></textarea>
+<label><input type="checkbox" name="isPinned" <%= item.isPinned ? 'checked' : '' %>> পিন করে রাখুন (উপরে দেখাবে)</label>
+<button class="btn primary" type="submit">সেভ করুন</button>
+</form></main><script src="/js/main.js"></script>
+</body></html>

@@ -1,0 +1,27 @@
+<%- include('partials/header', { title: 'বই লিংক' }) %>
+<section class="sec-book">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>বই লিংক</h2>
+  </div>
+  <p class="page-sub">পড়ুন ও ডাউনলোড করুন — সব বই এক জায়গায়।</p>
+  <form method="GET" action="/books" class="search">
+    <input type="text" name="q" placeholder="বই / লেখক খুঁজুন..." value="<%= q %>" maxlength="100">
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+  <div class="grid">
+    <% if (books.length === 0) { %><p class="empty">কোনো বই পাওয়া যায়নি। অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% books.forEach(b => { %>
+      <div class="card reveal">
+        <span class="badge"><%= b.category %></span>
+        <h3><%= b.title %></h3>
+        <p class="muted"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'অজানা' %></p>
+        <p><%= b.description || '' %></p>
+        <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
+        <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন / ডাউনলোড</a>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>
