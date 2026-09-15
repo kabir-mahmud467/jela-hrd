@@ -3,11 +3,11 @@
 <section class="hero reveal">
   <span class="hero-badge"><svg class="icon sm"><use href="#i-book"/></svg> সম্পূর্ণ বাংলায় পড়াশোনা</span>
   <h1>পরীক্ষার প্রস্তুতি <span class="hl">সহজ ভাষায়</span></h1>
-  <p>প্রশ্নোত্তর, বই, আলোচনা নোট, দারস ও গুরুত্বপূর্ণ তথ্য — সব এক জায়গায়। মোট <b><%= qCount %></b>টি প্রশ্ন, <b><%= bookCount %></b>টি বই, <b><%= noteCount %></b>টি আলোচনা নোট, <b><%= darsCount %></b>টি দারস।</p>
+  <p>প্রশ্নোত্তর, বই, আলোচনা নোট, দারস, মাসনুন দুআ ও গুরুত্বপূর্ণ তথ্য — সব এক জায়গায়। মোট <b><%= qCount %></b>টি প্রশ্ন, <b><%= bookCount %></b>টি বই, <b><%= noteCount %></b>টি আলোচনা নোট, <b><%= darsCount %></b>টি দারস, <b><%= duaCount %></b>টি দুআ।</p>
   <div class="hero-btns">
     <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-help"/></svg> প্রশ্নোত্তর পড়ুন</a>
     <a href="/dars" class="btn"><svg class="icon"><use href="#i-book"/></svg> দারস পড়ুন</a>
-    <a href="/notes" class="btn"><svg class="icon"><use href="#i-note"/></svg> আলোচনা নোট</a>
+    <a href="/dua" class="btn"><svg class="icon"><use href="#i-star"/></svg> মাসনুন দুআ</a>
   </div>
   <form method="GET" action="/questions" class="search hero-search">
     <input type="text" name="q" placeholder="প্রশ্ন খুঁজুন... যেমন: শপথ" maxlength="100">
@@ -18,6 +18,7 @@
     <a class="hstat" href="/books"><b><%= bookCount %></b><span>বই</span></a>
     <a class="hstat" href="/notes"><b><%= noteCount %></b><span>আলোচনা নোট</span></a>
     <a class="hstat" href="/dars"><b><%= darsCount %></b><span>দারস</span></a>
+    <a class="hstat" href="/dua"><b><%= duaCount %></b><span>মাসনুন দুআ</span></a>
     <a class="hstat" href="/gurutto"><b><%= impCount %></b><span>গুরুত্বপূর্ণ তথ্য</span></a>
   </div>
 </section>
@@ -141,12 +142,6 @@
       <p>হাদিসভিত্তিক দারস ও শিক্ষা।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
-    <a href="/dars/dhara/masnun-dua" class="phase-card p3 reveal">
-      <span class="p-num">ধারা ৩</span>
-      <h3>মাসনুন দুআ</h3>
-      <p>দৈনন্দিন জীবনের মাসনুন দুআসমূহ।</p>
-      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
-    </a>
   </div>
   <div class="grid">
     <% if (!lessons || lessons.length === 0) { %><p class="empty">এখনো কোনো দারস যোগ হয়নি।</p><% } %>
@@ -156,6 +151,45 @@
         <h3><a href="/dars/<%= l._id %>"><%= l.title %></a></h3>
         <% if (l.reference) { %><p class="muted"><%= l.reference %></p><% } %>
         <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
+    <h2>মাসনুন দুআ</h2>
+    <a href="/dua" class="more">সব দুআ <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="phase-grid">
+    <a href="/dua/dhara/sokal-sondha" class="phase-card p1 reveal">
+      <span class="p-num">ভাগ ১</span>
+      <h3>সকাল-সন্ধ্যার দুআ</h3>
+      <p>সকাল ও সন্ধ্যায় পড়ার মাসনুন দুআ।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/dua/dhara/doinondin" class="phase-card p2 reveal">
+      <span class="p-num">ভাগ ২</span>
+      <h3>দৈনন্দিন কাজের দুআ</h3>
+      <p>খাওয়া, ঘুম, পোশাকসহ দৈনন্দিন দুআ।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/dua/dhara/bipod-sofor" class="phase-card p3 reveal">
+      <span class="p-num">ভাগ ৩</span>
+      <h3>বিপদ ও সফরের দুআ</h3>
+      <p>বিপদ, অসুস্থতা ও সফরের দুআ।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+  </div>
+  <div class="grid">
+    <% if (!duas || duas.length === 0) { %><p class="empty">এখনো কোনো দুআ যোগ হয়নি।</p><% } %>
+    <% (duas || []).forEach(d => { %>
+      <div class="card reveal">
+        <span class="badge"><%= duaCats[d.cat] || 'দুআ' %></span>
+        <h3><a href="/dua/<%= d._id %>"><%= d.title %></a></h3>
+        <% if (d.reference) { %><p class="muted"><%= d.reference %></p><% } %>
+        <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
       </div>
     <% }) %>
   </div>

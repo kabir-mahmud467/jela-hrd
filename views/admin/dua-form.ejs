@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>দুআ ফর্ম | Admin</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<%- include('../partials/icons') %>
+
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin/duas">তালিকা</a></nav></div></header>
+<main class="container">
+<h1><%= item && item._id ? 'এডিট' : 'নতুন' %> মাসনুন দুআ</h1>
+<% if (error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="POST" action="<%= item && item._id ? '/admin/duas/' + item._id : '/admin/duas' %>" class="form">
+<label>ভাগ *</label><select name="cat">
+  <option value="sokal-sondha" <%= item.cat === 'sokal-sondha' ? 'selected' : '' %>>সকাল-সন্ধ্যার দুআ</option>
+  <option value="doinondin" <%= (!item.cat || item.cat === 'doinondin') ? 'selected' : '' %>>দৈনন্দিন কাজের দুআ</option>
+  <option value="bipod-sofor" <%= item.cat === 'bipod-sofor' ? 'selected' : '' %>>বিপদ ও সফরের দুআ</option>
+</select>
+<label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
+<label>আরবি পাঠ</label><textarea name="arabic" rows="3" dir="auto"><%= item.arabic || '' %></textarea>
+<label>অর্থ / ব্যাখ্যা</label><textarea name="content" rows="6" required><%= item.content || '' %></textarea>
+<label>রেফারেন্স (যেমন: সহিহ বুখারি)</label><input name="reference" value="<%= item.reference || '' %>">
+<button class="btn primary" type="submit">সেভ করুন</button>
+</form></main><script src="/js/main.js"></script>
+</body></html>

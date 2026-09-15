@@ -5,6 +5,7 @@ const Book = require('./models/Book');
 const Note = require('./models/Note');
 const Question = require('./models/Question');
 const Dars = require('./models/Dars');
+const Dua = require('./models/Dua');
 
 async function seed() {
   const uri = process.env.MONGODB_URI;
@@ -35,8 +36,14 @@ async function seed() {
   if ((await Dars.countDocuments()) === 0) {
     await Dars.insertMany([
       { title: 'দারসুল কুরআন: সূরা ফাতিহা', content: 'সূরা ফাতিহার সংক্ষিপ্ত তাফসির ও শিক্ষা...', kind: 'darsul-quran', reference: 'সূরা ফাতিহা: ১-৭' },
-      { title: 'দারসুল হাদিস: নিয়ত', content: 'কাজের ফলাফল নিয়তের ওপর নির্ভরশীল — এই হাদিসের ব্যাখ্যা...', kind: 'darsul-hadis', reference: 'সহিহ বুখারি: ১' },
-      { title: 'ঘুম থেকে ওঠার দুআ', content: 'আলহামদু লিল্লাহিল্লাজি আহইয়ানা বা’দা মা আমাতানা ওয়া ইলাইহিন নুশুর।', kind: 'masnun-dua', reference: 'সহিহ বুখারি' }
+      { title: 'দারসুল হাদিস: নিয়ত', content: 'কাজের ফলাফল নিয়তের ওপর নির্ভরশীল — এই হাদিসের ব্যাখ্যা...', kind: 'darsul-hadis', reference: 'সহিহ বুখারি: ১' }
+    ]);
+  }
+  if ((await Dua.countDocuments()) === 0) {
+    await Dua.insertMany([
+      { title: 'সকালে পড়ার দুআ', arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا', content: 'হে আল্লাহ! আপনার অনুগ্রহে আমরা সকালে উপনীত হই...', cat: 'sokal-sondha', reference: 'তিরমিজি' },
+      { title: 'ঘুম থেকে ওঠার দুআ', arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا', content: 'সমস্ত প্রশংসা আল্লাহর, যিনি আমাদের মৃত্যুর পর জীবিত করেছেন...', cat: 'doinondin', reference: 'সহিহ বুখারি' },
+      { title: 'সফরের দুআ', arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا', content: 'পবিত্র সেই সত্তা যিনি আমাদের জন্য এটিকে বশীভূত করেছেন...', cat: 'bipod-sofor', reference: 'সহিহ মুসলিম' }
     ]);
   }
   if ((await Question.countDocuments()) === 0) {

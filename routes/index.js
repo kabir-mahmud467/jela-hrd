@@ -6,6 +6,7 @@ const Book = require('../models/Book');
 const Note = require('../models/Note');
 const Question = require('../models/Question');
 const Dars = require('../models/Dars');
+const Dua = require('../models/Dua');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
@@ -14,7 +15,7 @@ function escapeRegex(s) {
 // হোমপেজ — প্রশ্ন + ৩ পর্ব + বই + আলোচনা নোট + গুরুত্বপূর্ণ তথ্য (সব হালকা, limit সহ)
 router.get('/', async (req, res, next) => {
   try {
-    const [questions, subjects, books, notes, importants, lessons, phaseAgg, qCount, bookCount, noteCount, impCount, darsCount] =
+    const [questions, subjects, books, notes, importants, lessons, duas, phaseAgg, qCount, bookCount, noteCount, impCount, darsCount, duaCount] =
       await Promise.all([
         Question.find()
           .select('question answer subject chapter phase slug')
@@ -26,12 +27,14 @@ router.get('/', async (req, res, next) => {
         Note.find().select('title subject content phase createdAt').sort({ createdAt: -1 }).limit(6).lean(),
         Important.find().sort({ isPinned: -1, createdAt: -1 }).limit(6).lean(),
         Dars.find().select('title kind reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
+        Dua.find().select('title cat reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
         Question.aggregate([{ $group: { _id: '$phase', count: { $sum: 1 } } }]),
         Question.estimatedDocumentCount().catch(() => 0),
         Book.estimatedDocumentCount().catch(() => 0),
         Note.estimatedDocumentCount().catch(() => 0),
         Important.estimatedDocumentCount().catch(() => 0),
-        Dars.estimatedDocumentCount().catch(() => 0)
+        Dars.estimatedDocumentCount().catch(() => 0),
+        Dua.estimatedDocumentCount().catch(() => 0)
       ]);
     const phaseCounts = {};
     (phaseAgg || []).forEach((p) => {
@@ -44,7 +47,9 @@ router.get('/', async (req, res, next) => {
       notes,
       importants,
       lessons,
+      duas,
       darsMap: Dars.DARS,
+      duaCats: Dua.DUA_CATS,
       phases: Question.PHASES,
       phaseCounts,
       qCount,
@@ -52,6 +57,7 @@ router.get('/', async (req, res, next) => {
       noteCount,
       impCount,
       darsCount,
+      duaCount,
       sCount: subjects.length
     });
   } catch (err) {

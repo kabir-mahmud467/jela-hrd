@@ -11,6 +11,7 @@ const Admin = require('./models/Admin');
 const indexRoutes = require('./routes/index');
 const questionsRoutes = require('./routes/questions');
 const darsRoutes = require('./routes/dars');
+const duaRoutes = require('./routes/dua');
 const adminRoutes = require('./routes/admin');
 const { securityMiddleware, globalLimiter } = require('./middleware/security');
 const { ipBanCheck } = require('./middleware/ipBan');
@@ -176,6 +177,7 @@ app.use((req, res, next) => {
 app.use('/', indexRoutes);
 app.use('/questions', questionsRoutes);
 app.use('/dars', darsRoutes);
+app.use('/dua', duaRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 / 500

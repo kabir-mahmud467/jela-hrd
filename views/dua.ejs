@@ -1,0 +1,34 @@
+<%- include('partials/header', { title: 'মাসনুন দুআ' }) %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
+    <h2>মাসনুন দুআ</h2>
+  </div>
+  <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — আরবি পাঠ, অর্থ ও রেফারেন্সসহ।</p>
+
+  <div class="phase-tabs">
+    <a href="/dua" class="phase-tab <%= !cat ? 'active' : '' %>">সব ভাগ<small>সব দুআ একসাথে</small></a>
+    <a href="/dua/dhara/sokal-sondha" class="phase-tab <%= cat === 'sokal-sondha' ? 'active' : '' %>">সকাল-সন্ধ্যার দুআ<small>ভাগ ১</small></a>
+    <a href="/dua/dhara/doinondin" class="phase-tab <%= cat === 'doinondin' ? 'active' : '' %>">দৈনন্দিন কাজের দুআ<small>ভাগ ২</small></a>
+    <a href="/dua/dhara/bipod-sofor" class="phase-tab <%= cat === 'bipod-sofor' ? 'active' : '' %>">বিপদ ও সফরের দুআ<small>ভাগ ৩</small></a>
+  </div>
+
+  <form method="GET" action="/dua" class="search">
+    <input type="text" name="q" placeholder="দুআ খুঁজুন..." value="<%= q %>" maxlength="100">
+    <% if (cat) { %><input type="hidden" name="cat" value="<%= cat %>"><% } %>
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+  <div class="grid">
+    <% if (duas.length === 0) { %><p class="empty">কোনো দুআ পাওয়া যায়নি। অন্য ভাগ বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% duas.forEach(d => { %>
+      <div class="card reveal">
+        <span class="badge"><%= duaCats[d.cat] || 'দুআ' %></span>
+        <h3><a href="/dua/<%= d._id %>"><%= d.title %></a></h3>
+        <% if (d.arabic) { %><p class="arabic"><%= d.arabic %></p><% } %>
+        <% if (d.reference) { %><p class="muted"><%= d.reference %></p><% } %>
+        <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>

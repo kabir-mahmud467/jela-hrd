@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
-// দারস — ৩ ধারা: দারসুল কুরআন / দারসুল হাদিস / মাসনুন দুআ
+// দারস — ২ ধারা: দারসুল কুরআন / দারসুল হাদিস (মাসনুন দুআ এখন আলাদা /dua রুটে)
 const DARS = {
   'darsul-quran': 'দারসুল কুরআন',
-  'darsul-hadis': 'দারসুল হাদিস',
-  'masnun-dua': 'মাসনুন দুআ'
+  'darsul-hadis': 'দারসুল হাদিস'
 };
 const DARS_VALUES = Object.keys(DARS);
 

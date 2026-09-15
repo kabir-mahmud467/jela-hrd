@@ -10,6 +10,7 @@ const Book = require('../models/Book');
 const Note = require('../models/Note');
 const Question = require('../models/Question');
 const Dars = require('../models/Dars');
+const Dua = require('../models/Dua');
 const { requireAdmin } = require('../middleware/auth');
 const { loginLimiter, adminWriteLimiter } = require('../middleware/security');
 const { clearBanCache, normIp } = require('../middleware/ipBan');
@@ -77,17 +78,18 @@ router.get('/logout', (req, res) => {
 // ---------- Dashboard ----------
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
-    const [cImportant, cBook, cNote, cQuestion, cDars, cBan] = await Promise.all([
+    const [cImportant, cBook, cNote, cQuestion, cDars, cDua, cBan] = await Promise.all([
       Important.countDocuments(),
       Book.countDocuments(),
       Note.countDocuments(),
       Question.countDocuments(),
       Dars.countDocuments(),
+      Dua.countDocuments(),
       Ban.countDocuments()
     ]);
     res.render('admin/dashboard', {
       admin: req.session.admin,
-      counts: { important: cImportant, book: cBook, note: cNote, question: cQuestion, dars: cDars, ban: cBan }
+      counts: { important: cImportant, book: cBook, note: cNote, question: cQuestion, dars: cDars, dua: cDua, ban: cBan }
     });
   } catch (err) {
     next(err);
@@ -163,6 +165,7 @@ crudRoutes({ path: 'importants', Model: Important, viewPrefix: 'important', kind
 crudRoutes({ path: 'books', Model: Book, viewPrefix: 'book', kind: 'book' });
 crudRoutes({ path: 'notes', Model: Note, viewPrefix: 'note', kind: 'note' });
 crudRoutes({ path: 'dars', Model: Dars, viewPrefix: 'dars', kind: 'dars' });
+crudRoutes({ path: 'duas', Model: Dua, viewPrefix: 'dua', kind: 'dua' });
 
 // ---------- Questions CRUD (প্রশ্ন + উত্তর যোগ/এডিট/ডিলিট — slug-safe) ----------
 router.get('/questions', requireAdmin, async (req, res, next) => {

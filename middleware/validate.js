@@ -46,7 +46,7 @@ function validateBody(kind, body) {
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('নোটের বিস্তারিত আবশ্যক।');
   } else if (kind === 'dars') {
-    const DARS_VALUES = ['darsul-quran', 'darsul-hadis', 'masnun-dua'];
+    const DARS_VALUES = ['darsul-quran', 'darsul-hadis'];
     data.title = str(body.title, 300);
     data.content = str(body.content, 10000);
     data.kind = str(body.kind, 50) || 'darsul-quran';
@@ -54,6 +54,16 @@ function validateBody(kind, body) {
     data.reference = str(body.reference, 300);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('বিস্তারিত আবশ্যক।');
+  } else if (kind === 'dua') {
+    const DUA_VALUES = ['sokal-sondha', 'doinondin', 'bipod-sofor'];
+    data.title = str(body.title, 300);
+    data.arabic = str(body.arabic, 2000);
+    data.content = str(body.content, 10000);
+    data.cat = str(body.cat, 50) || 'doinondin';
+    if (!DUA_VALUES.includes(data.cat)) data.cat = 'doinondin';
+    data.reference = str(body.reference, 300);
+    if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
+    if (data.content.length < 3) errors.push('অর্থ/ব্যাখ্যা আবশ্যক।');
   } else if (kind === 'important') {
     data.title = str(body.title, 300);
     data.description = str(body.description, 5000);

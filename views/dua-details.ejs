@@ -1,0 +1,31 @@
+<%- include('partials/header', { title: dua.title }) %>
+<a href="/dua" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দুআ</a>
+<article class="detail reveal in">
+  <span class="badge"><%= duaCats[dua.cat] || 'দুআ' %></span>
+  <h1><%= dua.title %></h1>
+  <% if (dua.arabic) { %><p class="arabic big"><%= dua.arabic %></p><% } %>
+  <div class="answer-box">
+    <strong><svg class="icon sm"><use href="#i-check"/></svg> অর্থ:</strong>
+    <p><%= dua.content %></p>
+  </div>
+  <% if (dua.reference) { %><p class="muted">রেফারেন্স: <%= dua.reference %></p><% } %>
+  <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= dua.createdAt ? new Date(dua.createdAt).toLocaleDateString('bn-BD') : '' %></small>
+  <p><a href="/dua/dhara/<%= dua.cat %>" class="btn"><svg class="icon"><use href="#i-star"/></svg> এই ভাগের আরও দুআ</a></p>
+</article>
+
+<% if (typeof related !== 'undefined' && related && related.length) { %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
+    <h2>সম্পর্কিত দুআ</h2>
+  </div>
+  <div class="qa-list">
+    <% related.forEach(r => { %>
+      <div class="qa-item">
+        <a class="qa-q link" href="/dua/<%= r._id %>"><span><%= r.title %></span><svg class="icon chev-right"><use href="#i-chev"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+<%- include('partials/footer') %>

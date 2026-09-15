@@ -4,13 +4,12 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
     <h2>দারস</h2>
   </div>
-  <p class="page-sub">দারসুল কুরআন, দারসুল হাদিস ও মাসনুন দুআ — ধারা অনুযায়ী।</p>
+  <p class="page-sub">দারসুল কুরআন ও দারসুল হাদিস — ধারা অনুযায়ী। মাসনুন দুআ পড়ুন <a href="/dua">আলাদা বিভাগে</a>।</p>
 
   <div class="phase-tabs">
     <a href="/dars" class="phase-tab <%= !kind ? 'active' : '' %>">সব ধারা<small>সব দারস একসাথে</small></a>
-    <a href="/dars/dhara/darsul-quran" class="phase-tab <%= kind === 'darsul-quran' ? 'active' : '' %>">দারসুল কুরআন<small>কুরআনের দারস</small></a>
-    <a href="/dars/dhara/darsul-hadis" class="phase-tab <%= kind === 'darsul-hadis' ? 'active' : '' %>">দারসুল হাদিস<small>হাদিসের দারস</small></a>
-    <a href="/dars/dhara/masnun-dua" class="phase-tab <%= kind === 'masnun-dua' ? 'active' : '' %>">মাসনুন দুআ<small>দৈনন্দিন দুআ</small></a>
+    <a href="/dars/dhara/darsul-quran" class="phase-tab <%= kind === 'darsul-quran' ? 'active' : '' %>">দারসুল কুরআন<small>ধারা ১</small></a>
+    <a href="/dars/dhara/darsul-hadis" class="phase-tab <%= kind === 'darsul-hadis' ? 'active' : '' %>">দারসুল হাদিস<small>ধারা ২</small></a>
   </div>
 
   <form method="GET" action="/dars" class="search">
