@@ -38,8 +38,22 @@ function securityMiddleware(app) {
   // (app.js এ express.json({limit}) ব্যবহার হবে)
 }
 
-// Rate limit ভাঙলে plain text নয় — সুন্দর 429 পেজ
+// Rate limit ভাঙলে plain text নয় — সুন্দর 429 পেজ (+ DB-তে attack log)
 function tooMany(req, res) {
+  try {
+    const { flagEvent } = require('./traffic');
+    const ip = ((req.clientIp || req.ip || '') + '').replace(/^::ffff:/i, '');
+    flagEvent({
+      ip,
+      kind: 'ratelimit',
+      path: req.originalUrl || req.path,
+      method: req.method,
+      userAgent: req.get('user-agent') || '',
+      status: 429
+    });
+  } catch {
+    // logging ব্যর্থ হলেও 429 দেখাও
+  }
   res.status(429).render('429');
 }
 

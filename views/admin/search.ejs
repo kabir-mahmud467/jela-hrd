@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title>সার্চ: <%= q %> | Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('partials/nav', { active: 'dashboard', admin }) %>
+<main class="container">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-search"/></svg></span>
+    <h2>সার্চ: “<%= q %>”</h2>
+    <a href="/admin" class="btn small">ড্যাশবোর্ড</a>
+  </div>
+  <div class="toolbar">
+    <form method="GET" action="/admin/search" class="search" role="search">
+      <input name="q" value="<%= q %>" maxlength="100" placeholder="আবার খুঁজুন…" aria-label="সার্চ">
+      <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+    </form>
+  </div>
+  <% const sections = [
+    ['প্রশ্নোত্তর', results.questions, '/admin/questions', r => r.question],
+    ['বই', results.books, '/admin/books', r => r.title],
+    ['আলোচনা নোট', results.notes, '/admin/notes', r => r.title],
+    ['দারস', results.dars, '/admin/dars', r => r.title],
+    ['মাসনুন দুআ', results.duas, '/admin/duas', r => r.title],
+    ['গুরুত্বপূর্ণ তথ্য', results.importants, '/admin/importants', r => r.title],
+  ]; %>
+  <% let total = 0; sections.forEach(s => total += s[1].length); %>
+  <% if (total === 0) { %><div class="empty">কিছু পাওয়া যায়নি। অন্য শব্দে চেষ্টা করুন।</div><% } %>
+  <% sections.forEach(([label, arr, base, pick]) => { %>
+    <% if (arr.length) { %>
+      <div class="panel mt-16">
+        <h3><%= label %> <span class="badge"><%= arr.length %></span></h3>
+        <ul class="recent-list">
+          <% arr.forEach(r => { %>
+            <li>
+              <a class="title" href="<%= base %>/<%= r._id %>/edit"><%= (pick(r) || '').substring(0, 80) %></a>
+              <a href="<%= base %>/<%= r._id %>/edit" class="btn small">এডিট</a>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+  <% }) %>
+</main>
+<%- include('partials/foot') %>

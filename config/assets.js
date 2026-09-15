@@ -1,0 +1,41 @@
+const fs = require('fs');
+const path = require('path');
+
+// CSS/JS cache-busting version: file mtimes + package version.
+// Query string ?v= changes whenever CSS or JS changes, so browsers fetch fresh files
+// even though express.static sends `Cache-Control: max-age=1d`.
+let cached = { at: 0, ver: '1' };
+const TTL = 5000;
+
+function compute() {
+  try {
+    const css = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const js = path.join(__dirname, '..', 'public', 'js', 'main.js');
+    const pkg = path.join(__dirname, '..', 'package.json');
+    const mt = (p) => {
+      try {
+        return Math.floor(fs.statSync(p).mtimeMs / 1000);
+      } catch {
+        return 0;
+      }
+    };
+    let pkgVer = '1';
+    try {
+      pkgVer = require('../package.json').version || '1';
+    } catch {
+      // ignore
+    }
+    return `${pkgVer}.${mt(css)}.${mt(js)}`;
+  } catch {
+    return String(Date.now());
+  }
+}
+
+function getAssetVer() {
+  const now = Date.now();
+  if (now - cached.at < TTL) return cached.ver;
+  cached = { at: now, ver: compute() };
+  return cached.ver;
+}
+
+module.exports = { getAssetVer };

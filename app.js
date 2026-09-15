@@ -15,6 +15,8 @@ const duaRoutes = require('./routes/dua');
 const adminRoutes = require('./routes/admin');
 const { securityMiddleware, globalLimiter } = require('./middleware/security');
 const { ipBanCheck } = require('./middleware/ipBan');
+const { trafficMiddleware, flagEvent } = require('./middleware/traffic');
+const { getAssetVer } = require('./config/assets');
 
 const app = express();
 
@@ -89,6 +91,13 @@ app.use(compression());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Asset version (?v=) — সব EJS-এ <%= assetVer %> হিসেবে পাওয়া যাবে।
+// CSS/JS বদলালে version বদলায়, তাই browser পুরনো cache দেখায় না।
+app.use((req, res, next) => {
+  res.locals.assetVer = getAssetVer();
+  next();
+});
+
 // Favicon: file নেই — 204 (404 render + DB hit বাঁচে)
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
@@ -98,10 +107,25 @@ app.get('/healthz', (req, res) =>
 );
 
 // Static assets — rate limit-এর আগেই serve করো (প্রতি পেজে CSS/JS গণনায় আসবে না)
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
+// maxAge 1d + ?v= version query: version বদলালে browser নতুন ফাইল আনে, পুরনো cache সমস্যা হয় না।
+// ?v= ছাড়া সরাসরি /css/style.css হিট করলে dev-এ no-cache যাতে এডিট সঙ্গে সঙ্গে দেখা যায়।
+app.use(
+  express.static(path.join(__dirname, 'public'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      if (/\.(css|js)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      }
+    }
+  })
+);
 
 // IP ban check (DB + BANNED_IPS) — rate limit-এর আগেই ব্যানড IP বিদায়
 app.use(ipBanCheck);
+// Live traffic counter (in-memory, per-IP) — attacker IP দেখার জন্য
+app.use(trafficMiddleware);
 app.use(globalLimiter);
 
 // Body parsers (size limit সহ)
@@ -181,7 +205,26 @@ app.use('/dua', duaRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 / 500
-app.use((req, res) => res.status(404).render('404'));
+app.use((req, res) => {
+  // 404 flood (scanner/bot) শনাক্ত করতে flag করো — throttle: একই IP থেকে ঘন ঘন 404 এলেই DB লেখো
+  try {
+    const { getTopIps } = require('./middleware/traffic');
+    const top = getTopIps(200).find(t => t.ip === (req.clientIp || '').replace(/^::ffff:/i, ''));
+    if (top && top.count >= 30) {
+      flagEvent({
+        ip: req.clientIp,
+        kind: 'notfound',
+        path: req.originalUrl || req.path,
+        method: req.method,
+        userAgent: req.get('user-agent') || '',
+        status: 404
+      });
+    }
+  } catch {
+    // ignore
+  }
+  res.status(404).render('404');
+});
 app.use((err, req, res, next) => {
   // DB buffering stack trace spam প্রতিরোধ: এক লাইনে সংক্ষেপে
   if (/buffering|timed out|ECONNREFUSED|ENOTFOUND|Mongo/i.test(err.message || '')) {

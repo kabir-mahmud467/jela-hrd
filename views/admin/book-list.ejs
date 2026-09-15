@@ -3,11 +3,11 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>বই | Admin</title><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css"></head>
+<link rel="stylesheet" href="/css/style.css?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></head>
 <body>
 <%- include('../partials/icons') %>
 
-<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav></div></header>
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><button class="nav-toggle" id="navToggle" aria-label="menu" aria-expanded="false"><span></span><span></span><span></span></button><nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav></div></header>
 <main class="container">
 <h1><svg class="icon"><use href="#i-book"/></svg> বই তালিকা <a href="/admin/books/new" class="btn primary small">+ নতুন</a></h1>
 <div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>লেখক</th><th>পর্ব</th><th>লিংক</th><th>অ্যাকশন</th></tr>
@@ -17,4 +17,4 @@
 </table></div>
 </main>
 <button class="to-top" id="toTop" aria-label="উপরে যান"><svg class="icon"><use href="#i-top"/></svg></button>
-<script src="/js/main.js"></script></body></html>
+<script src="/js/main.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script></body></html>

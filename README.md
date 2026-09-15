@@ -25,14 +25,21 @@ server.js              Entry point. Listens on PORT (default 3000). Exports app 
 app.js                 ALL app wiring: DB bootstrap+retry, security, session, routes, error handlers.
 config/db.js           Cached mongoose connect (serverless-safe). bufferTimeoutMS=3000,
                        serverSelectionTimeoutMS=5000. Single shared promise.
+config/assets.js       Asset version (?v=) from CSS/JS mtimes + package version. Exposed as
+                       `assetVer` to ALL EJS — edit CSS/JS and version changes automatically.
 routes/index.js        Public: /, /gurutto, /books (+/phase/:phase), /notes (+/phase/:phase, :id detail).
 routes/dars.js         Public দারস: /dars, /dhara/:kind (2 ধারা), /:id detail.
 routes/dua.js          Public দুআ (SEPARATE): /dua, /dhara/:cat (3 ভাগ), /:id detail.
 routes/questions.js    Public Q&A: /questions, /subject/:subject, /phase/:phase, /id/:id, /:slugOrId.
 routes/admin.js        Admin: login/logout, dashboard, CRUD (importants/books/notes/questions/dars/duas),
-                       bans, settings. All mutating routes use adminWriteLimiter.
+                       bans, security center, global search, JSON export, settings.
+                       All mutating routes use adminWriteLimiter.
 middleware/security.js helmet CSP, mongo-sanitize, hpp, 3 rate limiters (global/login/adminWrite).
+                       429 handler auto-logs attacker IP to SecurityEvent.
 middleware/ipBan.js    IP ban check (BANNED_IPS env + Ban collection, 60s cache). Sets req.clientIp.
+                       Banned-hit auto-logged to SecurityEvent.
+middleware/traffic.js  In-memory 15-min per-IP counters (live top talkers) + flagEvent() logger.
+                       Only suspicious events hit Mongo — normal views never do.
 middleware/auth.js     requireAdmin guard (redirects to /admin/login).
 middleware/validate.js validateBody(kind, body) — single place for all admin form validation.
 models/Question.js     question/answer/subject/chapter/phase/slug/views. Auto-slug hooks. PHASES enum.
@@ -41,10 +48,13 @@ models/Book.js         title/author/link(description)/category. link MUST be htt
 models/Note.js         title/subject/content (discussion notes).
 models/Admin.js        username + bcrypt hash. ensureDefaultAdmin() seeds from .env on first boot.
 models/Ban.js          Banned IPs (unique).
+models/SecurityEvent.js Attack log: ip/kind/path/method/ua/status. TTL 30 days (auto-delete).
 seed.js                Demo data. Idempotent (only fills empty collections). Always disconnects (finally).
 api/index.js           Vercel serverless entry (requires ../app). No app.listen here.
-views/                 EJS. partials/{header,footer,icons,qa-list}. Error pages: 403/404/429/500.
+views/                 EJS. partials/{header,footer,icons,qa-list}. admin/partials/{head,nav,foot}
+                       shared admin shell. admin/{dashboard,security,search,ban-list}. Error: 403/404/429/500.
 public/css|js          Static (served BEFORE rate limiter). main.js = accordion + data-confirm + nav.
+                       Loaded with ?v=<%= assetVer %> — CSS/JS edits show up without hard-refresh.
 .env / .env.example    Secrets/config. .env is gitignored — NEVER commit it.
 ```
 
@@ -146,8 +156,12 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/admin` | Dashboard counts (5 parallel `countDocuments`). |
 | CRUD | `/admin/importants`, `/books`, `/notes`, `/dars`, `/duas` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. |
 | CRUD | `/admin/questions` | Same shape; create/update go through `validateBody('question')`; updates use `doc.save()` so slug hooks run. |
-| GET/POST | `/admin/bans` | `net.isIP`-validated. Cannot ban own IP (`req.clientIp`). Duplicate → friendly error. Clears ban cache. |
+| GET/POST | `/admin/bans` | `net.isIP`-validated. Cannot ban own IP (`req.clientIp`). Duplicate → friendly error. Clears ban cache. POST from `/admin/security` redirects back there. `?ip=` prefills the form. |
 | POST | `/admin/bans/:id/delete` | Unban + clear cache. |
+| GET | `/admin/security` | **Security center:** live top-IPs (15-min in-memory), 24h offenders + recent events (DB), one-click ban per IP, export, clear logs. |
+| POST | `/admin/security/clear` | Delete all SecurityEvents. |
+| GET | `/admin/search?q=` | Global admin search across questions/books/notes/dars/duas/importants (max 20 each). |
+| GET | `/admin/export/:type` | `all` = full JSON backup download; `security` = SecurityEvent log download. |
 | GET/POST | `/admin/settings` | Requires current password. Duplicate username (11000) → friendly error, not 500. |
 
 ---
@@ -252,8 +266,11 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
 4. **Phases:** follow the 7-file chain in §7.
 5. **Ordering:** in `routes/questions.js`, `/new`, `/subject/*`, `/phase/*`, `/id/*` must stay BEFORE
    `/:slugOrId`.
-6. **Middleware order in `app.js` is load-bearing:** compression → favicon/healthz → static →
-   ipBan → limiter → parsers → session → dbGuard → routes. Don't reorder without reason.
+6. **Middleware order in `app.js` is load-bearing:** compression → favicon/healthz → assetVer locals → static →
+   ipBan → traffic → limiter → parsers → session → dbGuard → routes. Don't reorder without reason.
+7. **Assets:** every `<link>`/`<script>` for `/css|/js` MUST carry `?v=<%= assetVer %>` (see `views/partials/header.ejs`).
+   New admin pages MUST use `views/admin/partials/{head,nav,foot}` (shared shell, versioned, mobile toggle included).
+   Never add an unversioned `/css/style.css` or `/js/main.js` URL.
 7. **Secrets:** never commit `.env`; never log secrets; session password changes via `/admin/settings`.
 8. **Vercel:** `api/index.js` has no `app.listen` (`server.js` guards with `require.main`); routing
    via `vercel.json` rewrites; sessions need `connect-mongo` (already wired) on serverless.
@@ -268,7 +285,8 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
 | Dynamic pages 500, `/healthz` says `db:down` | Same as above; static + healthz still work by design. |
 | Login 302s then back to login | Secure cookie on HTTP → ensure `COOKIE_SECURE=false` in this env (§8). |
 | 403 on own IP | Self-ban blocked in UI; check `BANNED_IPS` / `Ban` collection. |
-| 429 page | Rate limit hit; wait or tune `middleware/security.js`. |
+| CSS বদলে সাইটে দেখা যায় না | পুরনো cache ছিল — এখন সব CSS/JS `?v=<%= assetVer %>` সহ লোড হয় (`config/assets.js`: CSS/JS mtime বদলালে version বদলায়)। তবুও না দেখালে hard-refresh (Ctrl+Shift+R) বা `systemctl --user restart jela-hrd.service`। সরাসরি `/css/style.css` (v ছাড়া) খুলে দেখো না — browser 1d cache দেখাবে। |
+| 429 page | Rate limit hit (+ auto-logged in Security center); wait or tune `middleware/security.js`. |
 | `MemoryStore is not designed for production` | `connect-mongo` didn't load (needs `MONGODB_URI`); `npm install` then restart. |
 | System `mongod.service` fails (kernel check) | Known — use `jela-mongo.service`, never the system unit. |
 | `MONGODB_URI missing` at boot | `.env` absent/misread — `dotenv` loads from project root; service sets `WorkingDirectory` + `EnvironmentFile`, keep both. |

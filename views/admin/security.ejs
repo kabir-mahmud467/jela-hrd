@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title>সিকিউরিটি সেন্টার | Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('partials/nav', { active: 'security', admin }) %>
+<main class="container">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-lock"/></svg></span>
+    <h2>সিকিউরিটি সেন্টার</h2>
+    <span class="badge light"><%= bannedIps.length %> ব্যানড</span>
+    <a href="/admin/bans" class="btn small">ব্যান তালিকা</a>
+  </div>
+  <p class="muted">আপনার IP: <span class="ip-pill"><%= myIp %></span> · নিজের IP ব্যান করা যায় না। সন্দেহজনক IP-এর পাশের <b>ব্যান</b> বোতামে এক ক্লিকে ব্যান করুন।</p>
+  <% if (error) { %><div class="alert error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert success"><%= success %></div><% } %>
+
+  <div class="panel">
+    <h3><svg class="icon sm"><use href="#i-clock"/></svg> লাইভ ট্রাফিক — শেষ ১৫ মিনিট (<%= live.length %> IP)</h3>
+    <% if (live.length === 0) { %><p class="muted">এই মুহূর্তে কোনো ট্রাফিক রেকর্ড নেই।</p><% } else { %>
+    <div class="table-wrap"><table class="table">
+      <tr><th>IP</th><th class="num">রিকোয়েস্ট</th><th>ভলিউম</th><th>রিস্ক</th><th>সবচেয়ে বেশি হিট</th><th>অ্যাকশন</th></tr>
+      <% live.forEach(t => {
+           const isBanned = bannedSet.has(t.ip);
+           const isMe = t.ip === myIp;
+           const lvl = t.count >= 150 ? 'high' : t.count >= 40 ? 'med' : 'low';
+           const lbl = t.count >= 150 ? 'উচ্চ' : t.count >= 40 ? 'মাঝারি' : 'স্বাভাবিক';
+           const pct = Math.min(100, Math.round(t.count / Math.max(1, live[0].count) * 100));
+      %>
+        <tr>
+          <td><span class="ip-pill"><%= t.ip %></span><% if (isMe) { %> <span class="badge">আপনি</span><% } %><% if (isBanned) { %> <span class="badge pin">ব্যানড</span><% } %></td>
+          <td class="num"><b><%= t.count %></b></td>
+          <td><div class="bar <%= lvl === 'high' ? 'hot' : lvl === 'med' ? 'warm' : '' %>"><i style="width:<%= pct %>%"></i></div></td>
+          <td><span class="risk risk-<%= lvl %>"><%= lbl %></span></td>
+          <td class="muted"><%= t.topPath %></td>
+          <td>
+            <% if (!isBanned && !isMe) { %>
+              <form method="POST" action="/admin/bans" class="inline-form" data-confirm="<%= t.ip %> ব্যান করবেন? (<%= t.count %> req/15min)">
+                <input type="hidden" name="ip" value="<%= t.ip %>">
+                <input type="hidden" name="reason" value="অস্বাভাবিক ট্রাফিক: <%= t.count %> req/15min, top: <%= t.topPath %>">
+                <button class="btn small danger" type="submit">ব্যান</button>
+              </form>
+            <% } else { %><span class="muted">—</span><% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </table></div>
+    <% } %>
+  </div>
+
+  <div class="panel mt-16">
+    <h3><svg class="icon sm"><use href="#i-alert"/></svg> সন্দেহজনক IP — শেষ ২৪ ঘণ্টা (DB log, <%= offenders.length %>)</h3>
+    <p class="muted">rate-limit (429), ভুল লগিন, ব্যানড IP-এর পুনঃচেষ্টা, 404-flood — শুধু সন্দেহজনক ঘটনাই DB-তে থাকে (৩০ দিন পর auto-delete)।</p>
+    <% if (offenders.length === 0) { %><p class="muted">গত ২৪ ঘণ্টায় সন্দেহজনক ঘটনা নেই। ভালো খবর!</p><% } else { %>
+    <div class="table-wrap"><table class="table">
+      <tr><th>IP</th><th class="num">ঘটনা</th><th>ধরন</th><th>শেষ দেখা</th><th>অ্যাকশন</th></tr>
+      <% offenders.forEach(o => {
+           const isBanned = bannedSet.has(o.ip);
+           const isMe = o.ip === myIp;
+      %>
+        <tr>
+          <td><span class="ip-pill"><%= o.ip %></span><% if (isMe) { %> <span class="badge">আপনি</span><% } %><% if (isBanned) { %> <span class="badge pin">ব্যানড</span><% } %></td>
+          <td class="num"><b><%= o.count %></b></td>
+          <td class="muted"><%= (o.kinds || []).join(', ') %></td>
+          <td class="muted"><%= o.lastSeen ? new Date(o.lastSeen).toLocaleString('bn-BD') : '-' %></td>
+          <td>
+            <% if (!isBanned && !isMe) { %>
+              <form method="POST" action="/admin/bans" class="inline-form" data-confirm="<%= o.ip %> ব্যান করবেন? (<%= o.count %> সন্দেহজনক ঘটনা)">
+                <input type="hidden" name="ip" value="<%= o.ip %>">
+                <input type="hidden" name="reason" value="সন্দেহজনক আচরণ: <%= (o.kinds || []).join(', ') %> (<%= o.count %> বার)">
+                <button class="btn small danger" type="submit">ব্যান</button>
+              </form>
+            <% } else { %><span class="muted">—</span><% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </table></div>
+    <% } %>
+  </div>
+
+  <div class="panel mt-16">
+    <h3><svg class="icon sm"><use href="#i-layers"/></svg> সাম্প্রতিক ঘটনা (সর্বশেষ <%= events.length %>)</h3>
+    <% if (events.length === 0) { %><p class="muted">কোনো ঘটনা লগ হয়নি।</p><% } else { %>
+    <div class="table-wrap"><table class="table">
+      <tr><th>সময়</th><th>IP</th><th>ধরন</th><th>রিকোয়েস্ট</th><th>স্ট্যাটাস</th></tr>
+      <% events.forEach(e => { %>
+        <tr>
+          <td class="muted"><%= e.createdAt ? new Date(e.createdAt).toLocaleString('bn-BD') : '-' %></td>
+          <td><span class="ip-pill"><%= e.ip %></span></td>
+          <td><span class="risk <%= e.kind === 'ratelimit' || e.kind === 'banned-hit' ? 'risk-high' : e.kind === 'login-fail' ? 'risk-med' : 'risk-low' %>"><%= e.kind %></span></td>
+          <td class="muted"><%= e.method %> <%= (e.path || '').substring(0, 80) %></td>
+          <td class="num"><%= e.status || '-' %></td>
+        </tr>
+      <% }) %>
+    </table></div>
+    <% } %>
+    <div class="toolbar">
+      <a href="/admin/export/security" class="btn small">লগ এক্সপোর্ট (JSON)</a>
+      <form method="POST" action="/admin/security/clear" class="inline-form" data-confirm="৩০ দিনের আগের নয় — সব সিকিউরিটি লগ মুছবেন?">
+        <button class="btn small danger" type="submit">পুরনো লগ সাফ করুন</button>
+      </form>
+    </div>
+  </div>
+</main>
+<%- include('partials/foot') %>

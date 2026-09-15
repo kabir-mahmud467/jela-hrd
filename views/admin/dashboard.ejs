@@ -1,56 +1,90 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ড্যাশবোর্ড | জেলা HRD Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+<%- include('partials/head') %>
 </head>
 <body>
-<%- include('../partials/icons') %>
-<header class="navbar admin-nav" id="navbar">
-  <div class="container nav-inner">
-    <a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin Panel</a>
-    <nav id="mainnav">
-      <a href="/admin/importants">গুরুত্বপূর্ণ</a>
-      <a href="/admin/books">বই</a>
-      <a href="/admin/notes">নোট</a>
-      <a href="/admin/questions">প্রশ্ন</a>
-      <a href="/admin/dars">দারস</a>
-      <a href="/admin/duas">দুআ</a>
-      <a href="/admin/bans">নিরাপত্তা</a>
-      <a href="/admin/settings">সেটিংস</a>
-      <a href="/">সাইট দেখুন</a>
-      <a href="/admin/logout" class="admin-btn">লগআউট (<%= admin.username %>)</a>
-    </nav>
-  </div>
-</header>
+<%- include('partials/nav', { active: 'dashboard', admin }) %>
 <main class="container">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-layers"/></svg></span>
     <h2>স্বাগতম, <%= admin.username %>!</h2>
+    <span class="badge light">DB: <%= sys.db %></span>
+    <a href="/admin/security" class="btn small">সিকিউরিটি সেন্টার</a>
   </div>
-  <div class="grid">
-    <div class="card a-amber stat reveal"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><a href="/admin/importants" class="btn small">পরিচালনা</a> <a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card a-emerald stat reveal"><h2><%= counts.book %></h2><p>বই লিংক</p><a href="/admin/books" class="btn small">পরিচালনা</a> <a href="/admin/books/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card a-sky stat reveal"><h2><%= counts.note %></h2><p>আলোচনা নোট</p><a href="/admin/notes" class="btn small">পরিচালনা</a> <a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card a-violet stat reveal"><h2><%= counts.question %></h2><p>প্রশ্নোত্তর</p><a href="/admin/questions" class="btn small">পরিচালনা</a> <a href="/admin/questions/new" class="btn small primary">+ নতুন প্রশ্ন</a></div>
-    <div class="card a-emerald stat reveal"><h2><%= counts.dars %></h2><p>দারস</p><a href="/admin/dars" class="btn small">পরিচালনা</a> <a href="/admin/dars/new" class="btn small primary">+ নতুন দারস</a></div>
-    <div class="card a-sky stat reveal"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><a href="/admin/duas" class="btn small">পরিচালনা</a> <a href="/admin/duas/new" class="btn small primary">+ নতুন দুআ</a></div>
+
+  <div class="toolbar">
+    <form method="GET" action="/admin/search" class="search" role="search">
+      <input name="q" value="" maxlength="100" placeholder="সব কনটেন্টে খুঁজুন (প্রশ্ন/বই/নোট/দারস/দুআ)…" aria-label="সার্চ">
+      <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+    </form>
+    <span class="count badge light">মোট কনটেন্ট: <%= counts.important + counts.book + counts.note + counts.question + counts.dars + counts.dua %></span>
   </div>
-  <div class="card mt-16 reveal">
-    <h3><svg class="icon sm"><use href="#i-lock"/></svg> নিরাপত্তা <span class="badge"><%= counts.ban %> IP ব্যান</span></h3>
-    <p class="muted">সন্দেহজনক IP ব্যান/মুক্ত করুন, rate limit লঙ্ঘনকারী আটকান। <a href="/admin/bans" class="more">IP ব্যান পরিচালনা <svg class="icon sm"><use href="#i-arrow"/></svg></a></p>
+
+  <div class="admin-grid">
+    <div class="card stat a-amber"><h2><%= counts.question %></h2><p>প্রশ্নোত্তর</p><a href="/admin/questions" class="btn small">পরিচালনা</a><a href="/admin/questions/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat a-emerald"><h2><%= counts.book %></h2><p>বই লিংক</p><a href="/admin/books" class="btn small">পরিচালনা</a><a href="/admin/books/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat a-sky"><h2><%= counts.note %></h2><p>আলোচনা নোট</p><a href="/admin/notes" class="btn small">পরিচালনা</a><a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat a-violet"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><a href="/admin/importants" class="btn small">পরিচালনা</a><a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat a-emerald"><h2><%= counts.dars %></h2><p>দারস</p><a href="/admin/dars" class="btn small">পরিচালনা</a><a href="/admin/dars/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat a-sky"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><a href="/admin/duas" class="btn small">পরিচালনা</a><a href="/admin/duas/new" class="btn small primary">+ নতুন</a></div>
+    <div class="card stat"><h2><%= counts.ban %></h2><p>ব্যানড IP</p><a href="/admin/bans" class="btn small">পরিচালনা</a><a href="/admin/security" class="btn small primary">আক্রমণ দেখুন</a></div>
+    <div class="card stat"><h2><%= events24h %></h2><p>সন্দেহজনক ঘটনা (২৪ঘ)</p><a href="/admin/security" class="btn small">বিস্তারিত</a><a href="/admin/export/security" class="btn small primary">এক্সপোর্ট</a></div>
   </div>
-  <div class="card mt-16 reveal">
-    <h3><svg class="icon sm"><use href="#i-key"/></svg> লগিন পরিবর্তন</h3>
-    <p class="muted">.env-এর ইউজারনেম/পাসওয়ার্ড এখন ডাটাবেজে আছে। <a href="/admin/settings" class="more">এখানে ক্লিক করে পরিবর্তন করুন <svg class="icon sm"><use href="#i-arrow"/></svg></a></p>
+
+  <div class="admin-panels mt-16">
+    <div class="panel">
+      <h3><svg class="icon sm"><use href="#i-clock"/></svg> সাম্প্রতিক কনটেন্ট</h3>
+      <% if ((recent || []).length === 0) { %><p class="muted">এখনো কোনো কনটেন্ট নেই — উপরের “+ নতুন” থেকে যোগ করুন।</p><% } %>
+      <ul class="recent-list">
+        <% (recent || []).forEach(r => { %>
+          <li>
+            <span class="badge light"><%= r.type %></span>
+            <a class="title" href="<%= r.adminUrl %>"><%= (r.title || '').substring(0, 70) %></a>
+            <span class="muted"><%= r.when ? new Date(r.when).toLocaleDateString('bn-BD') : '' %></span>
+          </li>
+        <% }) %>
+      </ul>
+      <div class="quick-actions mt-16">
+        <a href="/admin/questions/new" class="btn small primary">+ প্রশ্ন</a>
+        <a href="/admin/books/new" class="btn small">+ বই</a>
+        <a href="/admin/notes/new" class="btn small">+ নোট</a>
+        <a href="/admin/dars/new" class="btn small">+ দারস</a>
+        <a href="/admin/duas/new" class="btn small">+ দুআ</a>
+        <a href="/admin/importants/new" class="btn small">+ তথ্য</a>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3><svg class="icon sm"><use href="#i-lock"/></svg> লাইভ আক্রমণ (১৫ মিনিট) <span class="badge"><%= (topIps || []).length %> IP</span></h3>
+        <% if ((topIps || []).length === 0) { %><p class="muted">এই মুহূর্তে অস্বাভাবিক ট্রাফিক নেই।</p><% } %>
+        <ul class="recent-list">
+          <% (topIps || []).slice(0, 5).forEach(t => { %>
+            <li>
+              <span class="ip-pill"><%= t.ip %></span>
+              <span class="badge light"><%= t.count %> req</span>
+              <form method="POST" action="/admin/bans" class="inline-form" data-confirm="<%= t.ip %> ব্যান করবেন?">
+                <input type="hidden" name="ip" value="<%= t.ip %>">
+                <input type="hidden" name="reason" value="সিকিউরিটি সেন্টার থেকে — অস্বাভাবিক রিকোয়েস্ট">
+                <button class="btn small danger" type="submit">ব্যান</button>
+              </form>
+            </li>
+          <% }) %>
+        </ul>
+        <p><a href="/admin/security" class="more">সব IP দেখুন <svg class="icon sm"><use href="#i-arrow"/></svg></a></p>
+      </div>
+      <div class="panel mt-16">
+        <h3><svg class="icon sm"><use href="#i-gear"/></svg> সিস্টেম</h3>
+        <p class="muted">আপটাইম: <b><%= sys.uptime %></b> · মেমরি: <b><%= sys.mem %></b><br>Node: <b><%= sys.node %></b> · Asset: <code>v<%= String(assetVer).slice(0, 24) %>…</code></p>
+        <p class="muted">CSS বদলে দেখা না গেলে: hard-refresh (Ctrl+Shift+R) করুন — সব CSS/JS এখন <code>?v=</code> সহ লোড হয়।</p>
+        <div class="quick-actions">
+          <a href="/admin/export/all" class="btn small">ব্যাকআপ (JSON)</a>
+          <a href="/admin/settings" class="btn small">লগিন পরিবর্তন</a>
+          <a href="/" class="btn small">সাইট দেখুন</a>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
-<button class="to-top" id="toTop" aria-label="উপরে যান"><svg class="icon"><use href="#i-top"/></svg></button>
-<script src="/js/main.js"></script>
-</body>
-</html>
+<%- include('partials/foot') %>

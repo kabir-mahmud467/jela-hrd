@@ -43,6 +43,19 @@ async function ipBanCheck(req, res, next) {
   try {
     const set = await bannedSet();
     if (set.has(req.clientIp)) {
+      try {
+        const { flagEvent } = require('./traffic');
+        flagEvent({
+          ip: req.clientIp,
+          kind: 'banned-hit',
+          path: req.originalUrl || req.path,
+          method: req.method,
+          userAgent: req.get('user-agent') || '',
+          status: 403
+        });
+      } catch {
+        // ignore
+      }
       return res.status(403).render('403', { ip: req.clientIp });
     }
   } catch {

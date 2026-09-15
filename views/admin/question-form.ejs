@@ -4,10 +4,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css"></head>
+<link rel="stylesheet" href="/css/style.css?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></head>
 <body>
 <%- include('../partials/icons') %>
-<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin/questions">তালিকা</a></nav></div></header>
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><button class="nav-toggle" id="navToggle" aria-label="menu" aria-expanded="false"><span></span><span></span><span></span></button><nav id="mainnav"><a href="/admin/questions">তালিকা</a></nav></div></header>
 <main class="container">
 <h1 class="page-title"><svg class="icon"><use href="#i-help"/></svg> <%= item && item._id ? 'এডিট' : 'নতুন' %> প্রশ্ন</h1>
 <p class="page-sub">উত্তর পাবলিক পেজে ক্লিক করলে দেখাবে।</p>
@@ -24,5 +24,5 @@
 </select>
 <button class="btn primary" type="submit">সেভ করুন</button>
 </form></main>
-<script src="/js/main.js"></script>
+<script src="/js/main.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script>
 </body></html>

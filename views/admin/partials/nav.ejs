@@ -1,0 +1,24 @@
+<% /* Shared admin top nav — সব admin পেজে একই নেভিগেশন। active সার্ভার থেকে আসে। */ %>
+<%- include('../../partials/icons') %>
+<header class="navbar admin-nav" id="navbar">
+  <div class="container nav-inner">
+    <a href="/admin" class="logo"><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg> Admin Panel</a>
+    <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="mainnav">
+      <a href="/admin" class="<%= typeof active !== 'undefined' && active === 'dashboard' ? 'active' : '' %>">ড্যাশবোর্ড</a>
+      <a href="/admin/questions" class="<%= typeof active !== 'undefined' && active === 'questions' ? 'active' : '' %>">প্রশ্ন</a>
+      <a href="/admin/importants" class="<%= typeof active !== 'undefined' && active === 'importants' ? 'active' : '' %>">গুরুত্বপূর্ণ</a>
+      <a href="/admin/books" class="<%= typeof active !== 'undefined' && active === 'books' ? 'active' : '' %>">বই</a>
+      <a href="/admin/notes" class="<%= typeof active !== 'undefined' && active === 'notes' ? 'active' : '' %>">নোট</a>
+      <a href="/admin/dars" class="<%= typeof active !== 'undefined' && active === 'dars' ? 'active' : '' %>">দারস</a>
+      <a href="/admin/duas" class="<%= typeof active !== 'undefined' && active === 'duas' ? 'active' : '' %>">দুআ</a>
+      <a href="/admin/security" class="<%= typeof active !== 'undefined' && active === 'security' ? 'active' : '' %>">সিকিউরিটি</a>
+      <a href="/admin/bans" class="<%= typeof active !== 'undefined' && active === 'bans' ? 'active' : '' %>">ব্যান</a>
+      <a href="/admin/settings" class="<%= typeof active !== 'undefined' && active === 'settings' ? 'active' : '' %>">সেটিংস</a>
+      <a href="/">সাইট</a>
+      <a href="/admin/logout" class="admin-btn">লগআউট<% if (typeof admin !== 'undefined' && admin && admin.username) { %> (<%= admin.username %>)<% } %></a>
+    </nav>
+  </div>
+</header>
