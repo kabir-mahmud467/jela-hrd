@@ -10,11 +10,7 @@
     <a href="/questions" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব প্রশ্ন একসাথে</small></a>
     <a href="/questions/phase/abedonpotrer-purbe" class="phase-tab <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে<small>পর্ব ১</small></a>
     <a href="/questions/phase/proshnopotrer-purbe" class="phase-tab <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে<small>পর্ব ২</small></a>
-  </div>
-  <div class="phase-tabs">
     <a href="/questions/phase/shopother-purbe" class="phase-tab <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে<small>পর্ব ৩</small></a>
-    <a href="/books" class="phase-tab">বই<small>পড়ুন ও ডাউনলোড</small></a>
-    <a href="/notes" class="phase-tab">আলোচনা নোট<small>ব্যাখ্যাসহ নোট</small></a>
   </div>
 
   <% if (typeof subjects !== 'undefined' && subjects && subjects.length) { %>
