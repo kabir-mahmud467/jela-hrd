@@ -25,9 +25,10 @@ server.js              Entry point. Listens on PORT (default 3000). Exports app 
 app.js                 ALL app wiring: DB bootstrap+retry, security, session, routes, error handlers.
 config/db.js           Cached mongoose connect (serverless-safe). bufferTimeoutMS=3000,
                        serverSelectionTimeoutMS=5000. Single shared promise.
-routes/index.js        Public: /, /gurutto, /books, /notes (+ :id detail pages).
+routes/index.js        Public: /, /gurutto, /books (+/phase/:phase), /notes (+/phase/:phase, :id detail).
+routes/dars.js         Public দারস: /dars, /dhara/:kind (3 ধারা), /:id detail.
 routes/questions.js    Public Q&A: /questions, /subject/:subject, /phase/:phase, /id/:id, /:slugOrId.
-routes/admin.js        Admin: login/logout, dashboard, CRUD (importants/books/notes/questions),
+routes/admin.js        Admin: login/logout, dashboard, CRUD (importants/books/notes/questions/dars),
                        bans, settings. All mutating routes use adminWriteLimiter.
 middleware/security.js helmet CSP, mongo-sanitize, hpp, 3 rate limiters (global/login/adminWrite).
 middleware/ipBan.js    IP ban check (BANNED_IPS env + Ban collection, 60s cache). Sets req.clientIp.
@@ -127,8 +128,10 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/questions/new` | Redirects to `/questions` (prevents clash with `/:slugOrId`). Order matters: keep BEFORE `/:slugOrId`. |
 | GET | `/questions/:slugOrId` | Detail: slug first, then ObjectId fallback. Increments `views` best-effort. Id-URL → 301 slug. |
 | GET | `/gurutto`, `/gurutto/:id` | Notices (pinned first). `:id` validates ObjectId. |
-| GET | `/books?q=`, `/notes?q=` | Search uses escaped regex (§10). Max 200. |
+| GET | `/books?q=&phase=`, `/books/phase/:phase` | Books, ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)। Max 200. |
+| GET | `/notes?q=&phase=`, `/notes/phase/:phase` | আলোচনা নোট — ONE route, পর্ব ফিল্টারসহ। Max 200. |
 | GET | `/notes/:id` | ObjectId validated. |
+| GET | `/dars?q=&kind=`, `/dars/dhara/:kind`, `/dars/:id` | দারস — ৩ ধারা: `darsul-quran` (দারসুল কুরআন), `darsul-hadis` (দারসুল হাদিস), `masnun-dua` (মাসনুন দুআ). Max 200. |
 | GET | `/healthz` | No auth/ban/limit. `{"ok":true,"db":"up\|down"}`. |
 | GET | `/favicon.ico` | `204` (avoids 404-render + DB hit). |
 
@@ -139,7 +142,7 @@ mongorestore ~/backups/jela-<date>/
 | GET/POST | `/admin/login` | `loginLimiter` (10/15min, skips successful). Regenerates session on success. Falls back to `.env` creds only when DB has no such user. |
 | GET | `/admin/logout` | Destroys session. |
 | GET | `/admin` | Dashboard counts (5 parallel `countDocuments`). |
-| CRUD | `/admin/importants`, `/books`, `/notes` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. |
+| CRUD | `/admin/importants`, `/books`, `/notes`, `/dars` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. |
 | CRUD | `/admin/questions` | Same shape; create/update go through `validateBody('question')`; updates use `doc.save()` so slug hooks run. |
 | GET/POST | `/admin/bans` | `net.isIP`-validated. Cannot ban own IP (`req.clientIp`). Duplicate → friendly error. Clears ban cache. |
 | POST | `/admin/bans/:id/delete` | Unban + clear cache. |
@@ -162,6 +165,20 @@ shopother-purbe     = শপথের পূর্বে
 `views/admin/question-form.ejs` (`<select>`) → `routes/admin.js` (save `doc.phase`) →
 `routes/questions.js` (`buildFilter` + `/phase/:phase` + `select`) → `views/questions.ejs`
 (chips) + `views/partials/qa-list.ejs` + `views/question-details.ejs` (badges) → `seed.js`.
+
+**Books + আলোচনা নোট share the same 3 phases** (single source: `PHASE_VALUES` in
+`models/Question.js`, imported by `models/Book.js` + `models/Note.js`):
+`routes/index.js` (`/books`, `/books/phase/:phase`, `/notes`, `/notes/phase/:phase`) →
+`views/books.ejs` + `views/notes.ejs` (phase tabs) + `views/admin/book-form.ejs` +
+`views/admin/note-form.ejs` (`<select>`) → `middleware/validate.js` (kind `book`/`note`).
+
+**Dars kinds** (defined ONCE in `models/Dars.js` as `DARS`/`DARS_VALUES`):
+`darsul-quran` = দারসুল কুরআন, `darsul-hadis` = দারসুল হাদিস, `masnun-dua` = মাসনুন দুআ.
+Chain: `models/Dars.js` → `middleware/validate.js` (kind `dars`) → `routes/dars.js`
+(`/`, `/dhara/:kind`, `/:id` — order matters: `/dhara/*` BEFORE `/:id`) → `app.js`
+(`app.use('/dars', ...)`) → `views/dars.ejs` + `views/dars-details.ejs` →
+`views/admin/dars-form.ejs` + `dars-list.ejs` → `routes/admin.js` (crudRoutes dars +
+dashboard count) → `seed.js`.
 
 **Slug rules** (`models/Question.js`): Bengali range `0980–09FF` preserved, lowercased, spaces→`-`,
 max 80 chars, fallback `proshno`. Uniqueness loop (≤5 tries, random suffix). `pre('save')` skips

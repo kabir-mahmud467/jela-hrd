@@ -28,10 +28,12 @@ function toggleAnswer(id) {
   if (btn) btn.classList.toggle('open', !el.classList.contains('hidden'));
 }
 
-// Navbar shadow + active link + back-to-top
+// Navbar shadow + active link + back-to-top + mobile menu (CSP-safe, no inline handlers)
 (function () {
   const nav = document.getElementById('navbar');
   const toTop = document.getElementById('toTop');
+  const navToggle = document.getElementById('navToggle');
+  const mainnav = document.getElementById('mainnav');
   const path = window.location.pathname;
   document.querySelectorAll('#mainnav a').forEach((a) => {
     const href = a.getAttribute('href');
@@ -47,6 +49,21 @@ function toggleAnswer(id) {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
   if (toTop) toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  // Mobile menu toggle
+  if (navToggle && mainnav) {
+    navToggle.addEventListener('click', () => {
+      const open = mainnav.classList.toggle('open');
+      navToggle.classList.toggle('open', open);
+      navToggle.setAttribute('aria-expanded', String(open));
+    });
+    mainnav.addEventListener('click', (e) => {
+      if (e.target.closest('a')) {
+        mainnav.classList.remove('open');
+        navToggle.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 })();
 
 // Reveal on scroll

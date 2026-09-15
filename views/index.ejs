@@ -1,16 +1,56 @@
 <%- include('partials/header', { title: 'হোম' }) %>
 
 <section class="hero reveal">
-  <span class="hero-badge"><svg class="icon sm"><use href="#i-spark"/></svg> সম্পূর্ণ বাংলায় প্রশ্নোত্তর</span>
-  <h1>গুরুত্বপূর্ণ <span class="grad">প্রশ্নোত্তর</span></h1>
-  <p>পরীক্ষার প্রস্তুতির জন্য বাছাই করা প্রশ্ন — ক্লিক করলেই উত্তর। মোট <b><%= qCount %></b>টি প্রশ্ন, <b><%= sCount %></b>টি বিষয়ে।</p>
+  <span class="hero-badge"><svg class="icon sm"><use href="#i-book"/></svg> সম্পূর্ণ বাংলায় পড়াশোনা</span>
+  <h1>পরীক্ষার প্রস্তুতি <span class="hl">সহজ ভাষায়</span></h1>
+  <p>প্রশ্নোত্তর, বই, আলোচনা নোট, দারস ও গুরুত্বপূর্ণ তথ্য — সব এক জায়গায়। মোট <b><%= qCount %></b>টি প্রশ্ন, <b><%= bookCount %></b>টি বই, <b><%= noteCount %></b>টি আলোচনা নোট, <b><%= darsCount %></b>টি দারস।</p>
   <div class="hero-btns">
-    <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-help"/></svg> সব প্রশ্ন দেখুন</a>
+    <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-help"/></svg> প্রশ্নোত্তর পড়ুন</a>
+    <a href="/dars" class="btn"><svg class="icon"><use href="#i-book"/></svg> দারস পড়ুন</a>
+    <a href="/notes" class="btn"><svg class="icon"><use href="#i-note"/></svg> আলোচনা নোট</a>
   </div>
   <form method="GET" action="/questions" class="search hero-search">
-    <input type="text" name="q" placeholder="প্রশ্ন খুঁজুন..." maxlength="100">
+    <input type="text" name="q" placeholder="প্রশ্ন খুঁজুন... যেমন: শপথ" maxlength="100">
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
+  <div class="hero-stats">
+    <a class="hstat" href="/questions"><b><%= qCount %></b><span>প্রশ্নোত্তর</span></a>
+    <a class="hstat" href="/books"><b><%= bookCount %></b><span>বই</span></a>
+    <a class="hstat" href="/notes"><b><%= noteCount %></b><span>আলোচনা নোট</span></a>
+    <a class="hstat" href="/dars"><b><%= darsCount %></b><span>দারস</span></a>
+    <a class="hstat" href="/gurutto"><b><%= impCount %></b><span>গুরুত্বপূর্ণ তথ্য</span></a>
+  </div>
+</section>
+
+<section class="sec-qa">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-layers"/></svg></span>
+    <h2>প্রশ্নের ৩টি পর্ব</h2>
+    <a href="/questions" class="more">সব প্রশ্ন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="phase-grid">
+    <a href="/questions/phase/abedonpotrer-purbe" class="phase-card p1 reveal">
+      <span class="p-num">পর্ব ১</span>
+      <h3>আবেদনপত্রের পূর্বে</h3>
+      <p>শুরু থেকে প্রস্তুতির ভিত্তি — প্রাথমিক প্রশ্নোত্তর।</p>
+      <span class="p-count"><%= (phaseCounts && phaseCounts['abedonpotrer-purbe']) || 0 %>টি প্রশ্ন</span>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/questions/phase/proshnopotrer-purbe" class="phase-card p2 reveal">
+      <span class="p-num">পর্ব ২</span>
+      <h3>প্রশ্নপত্রের পূর্বে</h3>
+      <p>মূল পরীক্ষার প্রশ্নপত্র কেন্দ্রিক চর্চা।</p>
+      <span class="p-count"><%= (phaseCounts && phaseCounts['proshnopotrer-purbe']) || 0 %>টি প্রশ্ন</span>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/questions/phase/shopother-purbe" class="phase-card p3 reveal">
+      <span class="p-num">পর্ব ৩</span>
+      <h3>শপথের পূর্বে</h3>
+      <p>শেষ মুহূর্তের ঝালাই — শপথের আগের প্রস্তুতি।</p>
+      <span class="p-count"><%= (phaseCounts && phaseCounts['shopother-purbe']) || 0 %>টি প্রশ্ন</span>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+  </div>
 </section>
 
 <section class="sec-qa">
@@ -32,6 +72,111 @@
 
   <div class="center-cta">
     <a href="/questions" class="btn primary"><svg class="icon"><use href="#i-layers"/></svg> সব <%= qCount %>টি প্রশ্ন দেখুন</a>
+  </div>
+</section>
+
+<section class="sec-book">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>বই</h2>
+    <a href="/books" class="more">সব বই <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="grid">
+    <% if (!books || books.length === 0) { %><p class="empty">এখনো কোনো বই যোগ হয়নি।</p><% } %>
+    <% (books || []).forEach(b => { %>
+      <div class="card reveal">
+        <span class="badge"><%= b.category || 'বই' %></span>
+        <% if (b.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+        <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+        <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+        <h3><%= b.title %></h3>
+        <p class="muted"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'লেখক অজানা' %></p>
+        <p><%= (b.description || '').substring(0, 120) %></p>
+        <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
+        <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন</a>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-note"/></svg></span>
+    <h2>আলোচনা নোট</h2>
+    <a href="/notes" class="more">সব নোট <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="grid">
+    <% if (!notes || notes.length === 0) { %><p class="empty">এখনো কোনো আলোচনা নোট যোগ হয়নি।</p><% } %>
+    <% (notes || []).forEach(n => { %>
+      <div class="card reveal">
+        <span class="badge"><%= n.subject || 'নোট' %></span>
+        <% if (n.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+        <% if (n.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+        <% if (n.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+        <h3><a href="/notes/<%= n._id %>"><%= n.title %></a></h3>
+        <p><%= (n.content || '').substring(0, 130) %>...</p>
+        <a href="/notes/<%= n._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>দারস</h2>
+    <a href="/dars" class="more">সব দারস <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="phase-grid">
+    <a href="/dars/dhara/darsul-quran" class="phase-card p1 reveal">
+      <span class="p-num">ধারা ১</span>
+      <h3>দারসুল কুরআন</h3>
+      <p>কুরআনের আয়াতভিত্তিক দারস ও ব্যাখ্যা।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/dars/dhara/darsul-hadis" class="phase-card p2 reveal">
+      <span class="p-num">ধারা ২</span>
+      <h3>দারসুল হাদিস</h3>
+      <p>হাদিসভিত্তিক দারস ও শিক্ষা।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/dars/dhara/masnun-dua" class="phase-card p3 reveal">
+      <span class="p-num">ধারা ৩</span>
+      <h3>মাসনুন দুআ</h3>
+      <p>দৈনন্দিন জীবনের মাসনুন দুআসমূহ।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+  </div>
+  <div class="grid">
+    <% if (!lessons || lessons.length === 0) { %><p class="empty">এখনো কোনো দারস যোগ হয়নি।</p><% } %>
+    <% (lessons || []).forEach(l => { %>
+      <div class="card reveal">
+        <span class="badge"><%= darsMap[l.kind] || 'দারস' %></span>
+        <h3><a href="/dars/<%= l._id %>"><%= l.title %></a></h3>
+        <% if (l.reference) { %><p class="muted"><%= l.reference %></p><% } %>
+        <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="sec-star">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
+    <h2>গুরুত্বপূর্ণ তথ্য</h2>
+    <a href="/gurutto" class="more">সব তথ্য <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+  </div>
+  <div class="grid">
+    <% if (!importants || importants.length === 0) { %><p class="empty">এখনো কোনো তথ্য যোগ হয়নি।</p><% } %>
+    <% (importants || []).forEach(i => { %>
+      <div class="card reveal <%= i.isPinned ? 'pinned' : '' %>">
+        <% if (i.isPinned) { %><span class="badge pin"><svg class="icon sm"><use href="#i-pin"/></svg> পিনড</span><% } %>
+        <span class="badge"><%= i.category || 'তথ্য' %></span>
+        <h3><a href="/gurutto/<%= i._id %>"><%= i.title %></a></h3>
+        <p><%= (i.description || '').substring(0, 140) %></p>
+      </div>
+    <% }) %>
   </div>
 </section>
 

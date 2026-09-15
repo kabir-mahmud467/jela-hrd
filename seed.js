@@ -4,6 +4,7 @@ const Important = require('./models/Important');
 const Book = require('./models/Book');
 const Note = require('./models/Note');
 const Question = require('./models/Question');
+const Dars = require('./models/Dars');
 
 async function seed() {
   const uri = process.env.MONGODB_URI;
@@ -21,14 +22,21 @@ async function seed() {
   }
   if ((await Book.countDocuments()) === 0) {
     await Book.insertMany([
-      { title: 'বাংলা ব্যাকরণ বই', author: 'ড. সুনীতিকুমার', link: 'https://example.com/book1.pdf', description: 'ব্যাকরণ শেখার সেরা বই', category: 'বাংলা' },
-      { title: 'সাধারণ জ্ঞান', author: 'সম্পাদনা পরিষদ', link: 'https://example.com/book2.pdf', description: 'চাকরি পরীক্ষার জন্য', category: 'GK' }
+      { title: 'বাংলা ব্যাকরণ বই', author: 'ড. সুনীতিকুমার', link: 'https://example.com/book1.pdf', description: 'ব্যাকরণ শেখার সেরা বই', category: 'বাংলা', phase: 'abedonpotrer-purbe' },
+      { title: 'সাধারণ জ্ঞান', author: 'সম্পাদনা পরিষদ', link: 'https://example.com/book2.pdf', description: 'চাকরি পরীক্ষার জন্য', category: 'GK', phase: 'proshnopotrer-purbe' }
     ]);
   }
   if ((await Note.countDocuments()) === 0) {
     await Note.insertMany([
-      { title: 'আলোচনা নোট: ভাষা আন্দোলন', subject: 'বাংলাদেশ', content: '১৯৫২ সালের ভাষা আন্দোলন সম্পর্কে বিস্তারিত আলোচনা...\n\n১. পটভূমি\n২. গুরুত্ব\n৩. ফলাফল' },
-      { title: 'আলোচনা নোট: মুক্তিযুদ্ধ', subject: 'ইতিহাস', content: '১৯৭১ সালের মুক্তিযুদ্ধের ১১টি সেক্টর সম্পর্কে আলোচনা...' }
+      { title: 'আলোচনা নোট: ভাষা আন্দোলন', subject: 'বাংলাদেশ', content: '১৯৫২ সালের ভাষা আন্দোলন সম্পর্কে বিস্তারিত আলোচনা...\n\n১. পটভূমি\n২. গুরুত্ব\n৩. ফলাফল', phase: 'abedonpotrer-purbe' },
+      { title: 'আলোচনা নোট: মুক্তিযুদ্ধ', subject: 'ইতিহাস', content: '১৯৭১ সালের মুক্তিযুদ্ধের ১১টি সেক্টর সম্পর্কে আলোচনা...', phase: 'proshnopotrer-purbe' }
+    ]);
+  }
+  if ((await Dars.countDocuments()) === 0) {
+    await Dars.insertMany([
+      { title: 'দারসুল কুরআন: সূরা ফাতিহা', content: 'সূরা ফাতিহার সংক্ষিপ্ত তাফসির ও শিক্ষা...', kind: 'darsul-quran', reference: 'সূরা ফাতিহা: ১-৭' },
+      { title: 'দারসুল হাদিস: নিয়ত', content: 'কাজের ফলাফল নিয়তের ওপর নির্ভরশীল — এই হাদিসের ব্যাখ্যা...', kind: 'darsul-hadis', reference: 'সহিহ বুখারি: ১' },
+      { title: 'ঘুম থেকে ওঠার দুআ', content: 'আলহামদু লিল্লাহিল্লাজি আহইয়ানা বা’দা মা আমাতানা ওয়া ইলাইহিন নুশুর।', kind: 'masnun-dua', reference: 'সহিহ বুখারি' }
     ]);
   }
   if ((await Question.countDocuments()) === 0) {

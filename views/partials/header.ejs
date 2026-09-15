@@ -14,10 +14,17 @@
 <%- include('icons') %>
 <header class="navbar" id="navbar">
   <div class="container nav-inner">
-    <a href="/" class="logo"><svg class="icon"><use href="#i-layers"/></svg> জেলা HRD</a>
+    <a href="/" class="logo"><span class="logo-mark"><svg class="icon"><use href="#i-layers"/></svg></span> জেলা এইচআরডি</a>
+    <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <nav id="mainnav">
       <a href="/">হোম</a>
       <a href="/questions">প্রশ্নোত্তর</a>
+      <a href="/books">বই</a>
+      <a href="/notes">আলোচনা নোট</a>
+      <a href="/dars">দারস</a>
+      <a href="/gurutto">গুরুত্বপূর্ণ তথ্য</a>
       <a href="/admin" class="admin-btn">অ্যাডমিন</a>
     </nav>
   </div>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>দারস ফর্ম | Admin</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<%- include('../partials/icons') %>
+
+<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin/dars">তালিকা</a></nav></div></header>
+<main class="container">
+<h1><%= item && item._id ? 'এডিট' : 'নতুন' %> দারস</h1>
+<% if (error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="POST" action="<%= item && item._id ? '/admin/dars/' + item._id : '/admin/dars' %>" class="form">
+<label>ধারা *</label><select name="kind">
+  <option value="darsul-quran" <%= (!item.kind || item.kind === 'darsul-quran') ? 'selected' : '' %>>দারসুল কুরআন</option>
+  <option value="darsul-hadis" <%= item.kind === 'darsul-hadis' ? 'selected' : '' %>>দারসুল হাদিস</option>
+  <option value="masnun-dua" <%= item.kind === 'masnun-dua' ? 'selected' : '' %>>মাসনুন দুআ</option>
+</select>
+<label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
+<label>রেফারেন্স (যেমন: সূরা/হাদিস নম্বর)</label><input name="reference" value="<%= item.reference || '' %>">
+<label>বিস্তারিত</label><textarea name="content" rows="8" required><%= item.content || '' %></textarea>
+<button class="btn primary" type="submit">সেভ করুন</button>
+</form></main><script src="/js/main.js"></script>
+</body></html>

@@ -16,6 +16,11 @@
 <label>লেখক</label><input name="author" value="<%= item.author || '' %>">
 <label>লিংক (PDF/Drive)</label><input name="link" value="<%= item.link || '' %>" required placeholder="https://...">
 <label>ক্যাটাগরি</label><input name="category" value="<%= item.category || 'সাধারণ' %>">
+<label>পর্ব *</label><select name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
 <label>বিবরণ</label><textarea name="description" rows="3"><%= item.description || '' %></textarea>
 <button class="btn primary" type="submit">সেভ করুন</button>
 </form></main><script src="/js/main.js"></script>

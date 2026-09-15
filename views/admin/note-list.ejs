@@ -10,8 +10,8 @@
 <header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav></div></header>
 <main class="container">
 <h1><svg class="icon"><use href="#i-note"/></svg> নোট তালিকা <a href="/admin/notes/new" class="btn primary small">+ নতুন</a></h1>
-<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>বিষয়</th><th>অ্যাকশন</th></tr>
-<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.subject %></td>
+<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>বিষয়</th><th>পর্ব</th><th>অ্যাকশন</th></tr>
+<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.subject %></td><td><%= i.phase === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : i.phase === 'shopother-purbe' ? 'শপথের পূর্বে' : 'আবেদনপত্রের পূর্বে' %></td>
 <td><a href="/admin/notes/<%= i._id %>/edit" class="btn small">এডিট</a>
 <form method="POST" action="/admin/notes/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form></td></tr><% }) %>
 </table></div>

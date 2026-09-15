@@ -1,0 +1,27 @@
+<%- include('partials/header', { title: lesson.title }) %>
+<a href="/dars" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দারস</a>
+<article class="detail reveal in">
+  <span class="badge"><%= darsMap[lesson.kind] || 'দারস' %></span>
+  <h1><%= lesson.title %></h1>
+  <% if (lesson.reference) { %><p class="muted"><%= lesson.reference %></p><% } %>
+  <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= lesson.createdAt ? new Date(lesson.createdAt).toLocaleDateString('bn-BD') : '' %></small>
+  <p class="content pre"><%= lesson.content %></p>
+  <a href="/dars/dhara/<%= lesson.kind %>" class="btn"><svg class="icon"><use href="#i-book"/></svg> এই ধারার আরও দারস</a>
+</article>
+
+<% if (typeof related !== 'undefined' && related && related.length) { %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>সম্পর্কিত দারস</h2>
+  </div>
+  <div class="qa-list">
+    <% related.forEach(r => { %>
+      <div class="qa-item">
+        <a class="qa-q link" href="/dars/<%= r._id %>"><span><%= r.title %></span><svg class="icon chev-right"><use href="#i-chev"/></svg></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+<%- include('partials/footer') %>

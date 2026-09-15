@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { PHASE_VALUES } = require('./Question');
 
 // বই লিংক
 function isHttpUrl(v) {
@@ -22,7 +23,10 @@ const bookSchema = new mongoose.Schema({
   }, // PDF / Drive / বাইরের লিংক
   description: { type: String, default: '', trim: true, maxlength: 2000 },
   category: { type: String, default: 'সাধারণ', trim: true, maxlength: 100 },
+  phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   createdAt: { type: Date, default: Date.now }
 });
+
+bookSchema.index({ phase: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Book', bookSchema);

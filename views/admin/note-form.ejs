@@ -14,6 +14,11 @@
 <form method="POST" action="<%= item && item._id ? '/admin/notes/' + item._id : '/admin/notes' %>" class="form">
 <label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
 <label>বিষয়</label><input name="subject" value="<%= item.subject || 'সাধারণ' %>">
+<label>পর্ব *</label><select name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
 <label>বিস্তারিত</label><textarea name="content" rows="8" required><%= item.content || '' %></textarea>
 <button class="btn primary" type="submit">সেভ করুন</button>
 </form></main><script src="/js/main.js"></script>

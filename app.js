@@ -10,6 +10,7 @@ const Admin = require('./models/Admin');
 
 const indexRoutes = require('./routes/index');
 const questionsRoutes = require('./routes/questions');
+const darsRoutes = require('./routes/dars');
 const adminRoutes = require('./routes/admin');
 const { securityMiddleware, globalLimiter } = require('./middleware/security');
 const { ipBanCheck } = require('./middleware/ipBan');
@@ -174,6 +175,7 @@ app.use((req, res, next) => {
 // Routes — প্রতিটি প্রশ্নের আলাদা route সহ
 app.use('/', indexRoutes);
 app.use('/questions', questionsRoutes);
+app.use('/dars', darsRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 / 500

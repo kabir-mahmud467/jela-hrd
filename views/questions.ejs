@@ -4,20 +4,22 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-help"/></svg></span>
     <h2>গুরুত্বপূর্ণ প্রশ্ন</h2>
   </div>
-  <p class="hint">যেকোনো প্রশ্নে ক্লিক করলেই নিচে উত্তর খুলে যাবে। প্রতিটি প্রশ্নের আলাদা শেয়ারযোগ্য পেজ আছে।</p>
+  <p class="hint">যেকোনো প্রশ্নে চাপ দিলেই নিচে উত্তর খুলে যাবে। প্রতিটি প্রশ্নের আলাদা লিংক আছে।</p>
 
-  <% if (typeof phases !== 'undefined' && phases) { %>
-  <div class="chips">
-    <a href="/questions" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
-    <% Object.entries(phases).forEach(([val, label]) => { %>
-      <a href="/questions/phase/<%= val %>" class="chip <%= phase === val ? 'active' : '' %>"><%= label %></a>
-    <% }) %>
+  <div class="phase-tabs">
+    <a href="/questions" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব প্রশ্ন একসাথে</small></a>
+    <a href="/questions/phase/abedonpotrer-purbe" class="phase-tab <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে<small>পর্ব ১</small></a>
+    <a href="/questions/phase/proshnopotrer-purbe" class="phase-tab <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে<small>পর্ব ২</small></a>
   </div>
-  <% } %>
+  <div class="phase-tabs">
+    <a href="/questions/phase/shopother-purbe" class="phase-tab <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে<small>পর্ব ৩</small></a>
+    <a href="/books" class="phase-tab">বই<small>পড়ুন ও ডাউনলোড</small></a>
+    <a href="/notes" class="phase-tab">আলোচনা নোট<small>ব্যাখ্যাসহ নোট</small></a>
+  </div>
 
   <% if (typeof subjects !== 'undefined' && subjects && subjects.length) { %>
   <div class="chips">
-    <a href="/questions" class="chip <%= !subject ? 'active' : '' %>">সব</a>
+    <a href="/questions" class="chip <%= !subject ? 'active' : '' %>">সব বিষয়</a>
     <% subjects.forEach(s => { %>
       <a href="/questions/subject/<%= encodeURIComponent(s) %>" class="chip <%= subject === s ? 'active' : '' %>"><%= s %></a>
     <% }) %>
