@@ -191,12 +191,17 @@ if ('serviceWorker' in navigator) {
 (function () {
   const btn = document.getElementById('installBtn');
   const pageBtn = document.getElementById('installPageBtn');
-  if (!btn && !pageBtn) return;
+  const pop = document.getElementById('installPop');
+  const popGo = document.getElementById('installPopGo');
+  const popLater = document.getElementById('installPopLater');
+  if (!btn && !pageBtn && !pop) return;
   const doneNote = document.getElementById('installDone');
   const isStandalone = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  const POP_KEY = 'jelaInstallPop';
+  const POP_DAYS = 7;
   let deferred = null;
 
   const hideAll = () => {
@@ -206,24 +211,35 @@ if ('serviceWorker' in navigator) {
   };
   if (isStandalone()) {
     hideAll();
+    if (pop) pop.hidden = true;
     return;
   }
-  // iOS: manual নির্দেশনা পেজেই মূল ভরসা — nav বাটন দেখাও
-  if (isIOS && btn) btn.hidden = false;
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferred = e;
-    if (btn) btn.hidden = false;
-    if (pageBtn) pageBtn.hidden = false;
-  });
-  window.addEventListener('appinstalled', () => {
-    deferred = null;
-    hideAll();
-  });
+  const popSnoozed = () => {
+    try {
+      return Date.now() - (+(localStorage.getItem(POP_KEY) || 0)) < POP_DAYS * 86400000;
+    } catch {
+      return true;
+    }
+  };
+  const popSnooze = () => {
+    try {
+      localStorage.setItem(POP_KEY, String(Date.now()));
+    } catch {
+      // ignore
+    }
+  };
+  const showPop = () => {
+    if (pop && !popSnoozed()) pop.hidden = false;
+  };
+  const hidePop = () => {
+    if (pop) pop.hidden = true;
+  };
 
-  async function doInstall() {
+  async function doInstall(fromPop) {
     if (deferred) {
+      if (fromPop) hidePop();
+      popSnooze();
       deferred.prompt();
       try {
         await deferred.userChoice;
@@ -237,8 +253,37 @@ if ('serviceWorker' in navigator) {
       window.location.href = '/install';
     }
   }
-  if (btn) btn.addEventListener('click', doInstall);
-  if (pageBtn) pageBtn.addEventListener('click', doInstall);
+
+  // iOS: manual নির্দেশনা পেজেই মূল ভরসা — nav বাটন + auto popup দেখাও
+  if (isIOS) {
+    if (btn) btn.hidden = false;
+    window.addEventListener('load', () => {
+      setTimeout(showPop, 2500);
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+    if (btn) btn.hidden = false;
+    if (pageBtn) pageBtn.hidden = false;
+    // auto popup: prompt তৈরি হলেই একবার দেখাও (snooze সম্মান করে)
+    setTimeout(showPop, 2500);
+  });
+  window.addEventListener('appinstalled', () => {
+    deferred = null;
+    popSnooze();
+    hidePop();
+    hideAll();
+  });
+
+  if (btn) btn.addEventListener('click', () => doInstall(false));
+  if (pageBtn) pageBtn.addEventListener('click', () => doInstall(false));
+  if (popGo) popGo.addEventListener('click', () => doInstall(true));
+  if (popLater) popLater.addEventListener('click', () => {
+    hidePop();
+    popSnooze();
+  });
 })();
 
 // CSP-friendly accordion: data-toggle-target ব্যবহার করে, smooth animation CSS-এ
