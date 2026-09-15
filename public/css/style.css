@@ -296,14 +296,21 @@ a:hover .icon.chev-right { color: var(--sky); }
 .qa-q.link { text-decoration: none; color: inherit; }
 h1 .icon, h2 .icon { vertical-align: -0.15em; }
 
-/* ===== PWA nav buttons (light navbar) ===== */
-.offline-btn { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--blue-dark); border: 1px solid #b9d2e5; font: inherit; font-size: 13.5px; font-weight: 700; padding: 8px 13px; border-radius: 999px; white-space: nowrap; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-.offline-btn:hover { background: var(--blue-soft); border-color: var(--blue); }
-.offline-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.offline-btn .icon { width: 15px; height: 15px; }
-.offline-btn.busy { opacity: 0.7; cursor: wait; }
-.offline-btn.done { color: #0f6b46; border-color: #a9dcc2; background: var(--green-soft); }
-.offline-btn.update { color: #fff; background: linear-gradient(180deg, #166095, var(--blue-dark)); border-color: var(--blue-dark); }
+/* ===== PWA: in-app download card (standalone only, JS shows it) ===== */
+.dl-banner { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--sky); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 14px 16px; margin-top: 14px; }
+.dl-banner[hidden] { display: none; }
+.dl-top { display: flex; align-items: center; gap: 11px; }
+.dl-ico { width: 40px; height: 40px; border-radius: 13px; background: var(--blue-soft); color: var(--blue-dark); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dl-ico .icon { width: 20px; height: 20px; }
+.dl-text { flex: 1; min-width: 0; }
+.dl-text strong { display: block; color: var(--navy); font-size: 15px; }
+.dl-text .muted { font-size: 12.5px; }
+.dl-bar { height: 10px; border-radius: 999px; background: var(--line-soft); overflow: hidden; margin-top: 12px; }
+.dl-bar[hidden] { display: none; }
+.dl-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--sky), var(--blue)); border-radius: 999px; transition: width 0.2s ease; }
+.dl-pct { font-size: 12.5px; margin-top: 6px; }
+.dl-pct[hidden] { display: none; }
+/* ===== PWA: install button (browser only, JS shows it) ===== */
 .install-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: #fff; border: 1px solid var(--navy); font: inherit; font-size: 13.5px; font-weight: 700; padding: 8px 14px; border-radius: 999px; white-space: nowrap; cursor: pointer; transition: background 0.15s; }
 .install-btn:hover { background: var(--blue); border-color: var(--blue); }
 .install-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -330,7 +337,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .search button { border-radius: 999px; justify-content: center; }
   .sec-head .more { margin-left: 0; }
   .foot-grid { flex-direction: column; text-align: center; justify-content: center; }
-  .offline-btn, .install-btn { justify-content: center; padding: 11px 13px; }
+  .install-btn { justify-content: center; padding: 11px 13px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

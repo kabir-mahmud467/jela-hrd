@@ -56,9 +56,11 @@ views/                 EJS. partials/{header,footer,icons,qa-list}. admin/partia
 public/css|js          Static (served BEFORE rate limiter). main.js = accordion + data-confirm + nav.
                         Loaded with ?v=<%= assetVer %> — CSS/JS edits show up without hard-refresh.
                         PWA: public/manifest.webmanifest + public/icons/*.png (installable),
-                        public/sw.js (offline: network-first pages, SWR static, JELA_PREFETCH
-                        full-pack), public/offline.html (fallback). SW registration + "অফলাইন
-                        ডাউনলোড" button logic live in public/js/main.js (#offlineBtn in header).
+                        public/sw.js (shell precache on install, network-first pages,
+                        SWR static, JELA_PREFETCH full-pack), public/offline.html (fallback).
+                        SW registration + install button (#installBtn) in public/js/main.js.
+                        Full-content download lives ONLY in the installed app: #dlBanner/#dlBtn
+                        card in header (standalone-only, progress bar, resume, "অ্যাপ আপডেট").
                         /offline-manifest.json (routes/index.js) lists every public URL for the pack.
 .env / .env.example    Secrets/config. .env is gitignored — NEVER commit it.
 ```

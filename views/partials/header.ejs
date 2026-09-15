@@ -30,9 +30,22 @@
       <a href="/dua">মাসনুন দুআ</a>
       <a href="/gurutto">গুরুত্বপূর্ণ তথ্য</a>
       <a href="/admin" class="admin-btn">অ্যাডমিন</a>
-      <button class="offline-btn" id="offlineBtn" type="button" aria-live="polite"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span data-label>অফলাইন ডাউনলোড</span></button>
       <button class="install-btn" id="installBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg><span>অ্যাপ ইনস্টল</span></button>
     </nav>
   </div>
 </header>
+<div class="container"><div class="dl-banner" id="dlBanner" hidden>
+  <div class="dl-top">
+    <span class="dl-ico"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></span>
+    <div class="dl-text">
+      <strong data-dl-title>সম্পূর্ণ কনটেন্ট ডাউনলোড করুন</strong>
+      <span class="muted" data-dl-sub>একবার ডাউনলোড করলে ইন্টারনেট ছাড়াই সব পড়া যাবে</span>
+    </div>
+    <button class="btn primary small" id="dlBtn" type="button">ডাউনলোড</button>
+  </div>
+  <div class="dl-bar" role="progressbar" aria-label="ডাউনলোড অগ্রগতি" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-dl-barwrap hidden>
+    <i data-dl-fill></i>
+  </div>
+  <div class="dl-pct muted" data-dl-pct hidden></div>
+</div></div>
 <main class="container">

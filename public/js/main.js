@@ -7,20 +7,26 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// PWA full-offline pack: "অফলাইন ডাউনলোড" বাটন — /offline-manifest.json থেকে
-// সব public পেজের URL এনে service worker দিয়ে cache-এ ভরে। নেট থাকলে
-// অসমাপ্ত ডাউনলোড resume হয় ও নতুন কনটেন্ট এলে (দিনে একবার চেক) আপডেট হয়।
+// PWA content download — শুধু ইনস্টল করা অ্যাপের ভেতরে (standalone) দেখায়।
+// ইনস্টলে শুধু basic shell (home + css/js + icons) আসে; এই কার্ড থেকে
+// "ডাউনলোড" চাপলে /offline-manifest.json-এর সব URL প্রগ্রেস বারসহ নামে।
+// নেট থাকলে অসমাপ্ত ডাউনলোড resume হয়; নতুন কনটেন্ট এলে "অ্যাপ আপডেট" আসে।
 (function () {
-  const btn = document.getElementById('offlineBtn');
-  if (!btn) return;
-  if (!('serviceWorker' in navigator)) {
-    btn.hidden = true;
-    return;
-  }
-  const label = btn.querySelector('[data-label]');
-  const setLabel = (t) => {
-    if (label) label.textContent = t;
-  };
+  const banner = document.getElementById('dlBanner');
+  if (!banner) return;
+  const isStandalone = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+  if (!isStandalone() || !('serviceWorker' in navigator)) return;
+
+  const btn = document.getElementById('dlBtn');
+  const title = banner.querySelector('[data-dl-title]');
+  const sub = banner.querySelector('[data-dl-sub]');
+  const barWrap = banner.querySelector('[data-dl-barwrap]');
+  const fill = banner.querySelector('[data-dl-fill]');
+  const pct = banner.querySelector('[data-dl-pct]');
+  if (!btn || !title || !barWrap || !fill || !pct) return;
+
   const LS = 'jelaOffline';
   const CHECK_KEY = 'jelaOfflineCheck';
   const DAY = 86400000;
@@ -40,36 +46,59 @@ if ('serviceWorker' in navigator) {
   };
   let busy = false;
 
+  const show = () => {
+    banner.hidden = false;
+  };
+  const hide = () => {
+    banner.hidden = true;
+  };
+  function setProgress(done, total) {
+    const p = total ? Math.round((done / total) * 100) : 0;
+    barWrap.hidden = false;
+    pct.hidden = false;
+    fill.style.width = p + '%';
+    barWrap.setAttribute('aria-valuenow', String(p));
+    pct.textContent = 'ডাউনলোড হচ্ছে… ' + done + '/' + total + ' (' + p + '%)';
+  }
+  function resetBar() {
+    barWrap.hidden = true;
+    pct.hidden = true;
+    fill.style.width = '0%';
+    barWrap.setAttribute('aria-valuenow', '0');
+  }
+
   function download(manifest) {
     if (busy) return;
     busy = true;
-    btn.classList.add('busy');
-    btn.classList.remove('done');
-    btn.classList.remove('update');
+    show();
+    btn.hidden = true;
+    title.textContent = 'ডাউনলোড হচ্ছে…';
+    if (sub) sub.textContent = 'অ্যাপ বন্ধ করবেন না';
+    setProgress(0, manifest.urls.length);
     write({ started: true, done: false, at: Date.now() });
-    setLabel('ডাউনলোড হচ্ছে… 0/' + manifest.urls.length);
     navigator.serviceWorker.ready.then((reg) => {
       const sw = reg.active;
       if (!sw) {
         busy = false;
-        btn.classList.remove('busy');
+        btn.hidden = false;
         return;
       }
       const onMsg = (e) => {
         const d = (e && e.data) || {};
         if (d.type === 'JELA_PROGRESS') {
-          setLabel('ডাউনলোড হচ্ছে… ' + d.done + '/' + d.total);
+          setProgress(d.done, d.total);
         } else if (d.type === 'JELA_DONE') {
           navigator.serviceWorker.removeEventListener('message', onMsg);
           busy = false;
-          btn.classList.remove('busy');
           if (d.failed === 0) {
             write({ started: true, done: true, version: manifest.version, total: d.total, at: Date.now() });
-            btn.classList.add('done');
-            setLabel('অফলাইন রেডি');
+            hide(); // সব নেমেছে — কার্ড লুকাও; আপডেট এলে আবার আসবে
           } else {
-            // কিছু বাকি থাকলে started-ই থাকে — নেট ফিরলে resume হবে
-            setLabel('অফলাইন ডাউনলোড');
+            // কিছু বাকি — নেট ফিরলে resume হবে
+            btn.hidden = false;
+            btn.textContent = 'আবার চেষ্টা করুন';
+            title.textContent = 'কিছু কনটেন্ট বাকি রয়ে গেছে';
+            if (sub) sub.textContent = 'ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন';
           }
         }
       };
@@ -77,7 +106,7 @@ if ('serviceWorker' in navigator) {
       sw.postMessage({ type: 'JELA_PREFETCH', urls: manifest.urls });
     }).catch(() => {
       busy = false;
-      btn.classList.remove('busy');
+      btn.hidden = false;
     });
   }
 
@@ -87,7 +116,7 @@ if ('serviceWorker' in navigator) {
     return res.json();
   }
 
-  // auto=true: শুধু resume / নতুন-কনটেন্ট আপডেট; auto=false (ক্লিক): সবসময় চেষ্টা
+  // auto=true: শুধু resume / আপডেট-নোটিশ; auto=false (ক্লিক): সবসময় ডাউনলোড
   async function checkAndDownload(auto) {
     if (busy || !navigator.onLine) return;
     let manifest;
@@ -99,24 +128,31 @@ if ('serviceWorker' in navigator) {
     if (!manifest || !Array.isArray(manifest.urls)) return;
     const st = read();
     if (st.done && st.version === manifest.version) {
-      btn.classList.add('done');
-      setLabel('অফলাইন রেডি');
+      hide();
       return;
     }
-    // নতুন কনটেন্ট এসেছে: আসল অ্যাপের মতো "আপডেট" দেখাও, চাপ দিলে ডাউনলোড হবে
     if (st.done && st.version !== manifest.version) {
-      if (auto) {
-        write({ ...st, updateAvailable: true });
-        btn.classList.remove('done');
-        btn.classList.add('update');
-        setLabel('অ্যাপ আপডেট');
-        return;
-      }
-      download(manifest);
+      // নতুন কনটেন্ট: আসল অ্যাপের মতো "অ্যাপ আপডেট" কার্ড
+      write({ ...st, updateAvailable: true });
+      show();
+      resetBar();
+      title.textContent = 'নতুন কনটেন্ট এসেছে';
+      if (sub) sub.textContent = 'আপডেট করলে অফলাইনেও নতুন সব পাবেন';
+      btn.hidden = false;
+      btn.textContent = 'অ্যাপ আপডেট';
+      if (!auto) download(manifest);
       return;
     }
-    if (auto && !(st.started && !st.done)) return;
-    download(manifest);
+    const needsResume = st.started && !st.done;
+    if (auto && !needsResume) return;
+    // প্রথমবার বা resume: কার্ড দেখিয়ে ডাউনলোড
+    show();
+    resetBar();
+    title.textContent = 'সম্পূর্ণ কনটেন্ট ডাউনলোড করুন';
+    if (sub) sub.textContent = 'একবার ডাউনলোড করলে ইন্টারনেট ছাড়াই সব পড়া যাবে';
+    btn.hidden = false;
+    btn.textContent = st.started ? 'ডাউনলোড চালিয়ে যান' : 'ডাউনলোড';
+    if (!auto || needsResume) download(manifest);
   }
 
   btn.addEventListener('click', () => checkAndDownload(false));
@@ -124,11 +160,14 @@ if ('serviceWorker' in navigator) {
 
   const st = read();
   if (st.done && st.updateAvailable) {
-    btn.classList.add('update');
-    setLabel('অ্যাপ আপডেট');
-  } else if (st.done) {
-    btn.classList.add('done');
-    setLabel('অফলাইন রেডি');
+    checkAndDownload(true);
+  } else if (!st.done && navigator.onLine) {
+    // ডাউনলোড হয়নি / অসমাপ্ত — কার্ড দেখাও (ডাউনলোড বাটনসহ)
+    show();
+    resetBar();
+    title.textContent = 'সম্পূর্ণ কনটেন্ট ডাউনলোড করুন';
+    btn.hidden = false;
+    btn.textContent = st.started ? 'ডাউনলোড চালিয়ে যান' : 'ডাউনলোড';
   }
   let lastCheck = 0;
   try {
@@ -136,14 +175,12 @@ if ('serviceWorker' in navigator) {
   } catch {
     // ignore
   }
-  if (Date.now() - lastCheck > DAY) {
+  if (Date.now() - lastCheck > DAY && navigator.onLine) {
     try {
       localStorage.setItem(CHECK_KEY, String(Date.now()));
     } catch {
       // ignore
     }
-    if (navigator.onLine) checkAndDownload(true);
-  } else if (st.started && !st.done && navigator.onLine) {
     checkAndDownload(true);
   }
 })();

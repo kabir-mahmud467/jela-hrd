@@ -1,11 +1,13 @@
 /* Jela HRD service worker — offline support for the PWA.
+ * Install = basic shell only (home + offline page + icons); full content
+ * comes later via the in-app download card (JELA_PREFETCH).
  * Navigations: network-first, then cache, then offline page.
  * Static (css/js/icons): stale-while-revalidate.
  * Admin pages, healthz and non-GET requests are never cached.
  */
-const CACHE = 'jela-hrd-v2';
+const CACHE = 'jela-hrd-v3';
 const OFFLINE_URL = '/offline.html';
-const PRECACHE = [OFFLINE_URL, '/icons/icon-192.png', '/icons/icon-512.png'];
+const PRECACHE = ['/', OFFLINE_URL, '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
