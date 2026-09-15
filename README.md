@@ -54,7 +54,12 @@ api/index.js           Vercel serverless entry (requires ../app). No app.listen 
 views/                 EJS. partials/{header,footer,icons,qa-list}. admin/partials/{head,nav,foot}
                        shared admin shell. admin/{dashboard,security,search,ban-list}. Error: 403/404/429/500.
 public/css|js          Static (served BEFORE rate limiter). main.js = accordion + data-confirm + nav.
-                       Loaded with ?v=<%= assetVer %> — CSS/JS edits show up without hard-refresh.
+                        Loaded with ?v=<%= assetVer %> — CSS/JS edits show up without hard-refresh.
+                        PWA: public/manifest.webmanifest + public/icons/*.png (installable),
+                        public/sw.js (offline: network-first pages, SWR static, JELA_PREFETCH
+                        full-pack), public/offline.html (fallback). SW registration + "অফলাইন
+                        ডাউনলোড" button logic live in public/js/main.js (#offlineBtn in header).
+                        /offline-manifest.json (routes/index.js) lists every public URL for the pack.
 .env / .env.example    Secrets/config. .env is gitignored — NEVER commit it.
 ```
 
@@ -210,7 +215,9 @@ Chain: `models/Dua.js` → `middleware/validate.js` (kind `dua`) → `routes/dua
 **UI tokens** (`public/css/style.css` `:root`): SolaimanLipi-first font stack,
 radius `15/12/10px`, focus ring `rgb(0,179,241) 0 0 0 2px` on ALL interactive
 elements (keyboard users — never remove). Palette: navy `#0a2c48`, blue `#114575`,
-sky `#00a9e0`, paper `#dfe9f2`, red `#e93e3f` (accents only).
+sky `#00a9e0`, paper `#f2f6fa`, red `#e93e3f` (accents only). Light theme:
+frosted-white sticky navbar (admin keeps navy `.admin-nav`), white cards with
+soft shadows, navy section headings (no full-navy bars on public pages).
 Content lists use SOCIAL cards (`.feed` + `.card.social`: avatar + title + meta +
 tags + excerpt + footer action) — NOT plain boxes. Buttons must stay visually
 distinct: `.btn.primary` (ভরাট নীল) vs `.btn` (আউটলাইন) vs `.search button`
@@ -272,6 +279,9 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
    New admin pages MUST use `views/admin/partials/{head,nav,foot}` (shared shell, versioned, mobile toggle included).
    Never add an unversioned `/css/style.css` or `/js/main.js` URL.
 7. **Secrets:** never commit `.env`; never log secrets; session password changes via `/admin/settings`.
+8. **PWA/offline:** new public pages MUST be added to `/offline-manifest.json` (`routes/index.js`)
+   or the "অফলাইন ডাউনলোড" pack misses them. SW caching logic changes → bump `CACHE`
+   (`public/sw.js`). `/sw.js` is served `no-store` (see `app.js` setHeaders) — keep it that way.
 8. **Vercel:** `api/index.js` has no `app.listen` (`server.js` guards with `require.main`); routing
    via `vercel.json` rewrites; sessions need `connect-mongo` (already wired) on serverless.
 

@@ -1,0 +1,32 @@
+{
+  "name": "জেলা HRD — পড়াশোনা সহজ ভাষায়",
+  "short_name": "জেলা HRD",
+  "description": "গুরুত্বপূর্ণ প্রশ্নোত্তর, বই, আলোচনা নোট, দারস ও মাসনুন দুআ — সব বাংলায়।",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "lang": "bn",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#dfe9f2",
+  "theme_color": "#0a2c48",
+  "categories": ["education", "books", "reference"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

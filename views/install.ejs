@@ -1,0 +1,31 @@
+<%- include('partials/header', { title: 'অ্যাপ ইনস্টল' }) %>
+<section class="detail reveal in">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-home"/></svg></span>
+    <h2>অ্যাপ ইনস্টল করুন</h2>
+  </div>
+  <p class="muted">জেলা HRD ফোনে অ্যাপের মতো ইনস্টল করা যায় — হোম স্ক্রিন থেকে এক ট্যাপে খুলবে, আর "অফলাইন ডাউনলোড" দিয়ে ইন্টারনেট ছাড়াই পড়া যাবে।</p>
+
+  <p id="installDone" hidden><strong>অ্যাপ ইতিমধ্যে ইনস্টল করা আছে।</strong> হোম স্ক্রিন থেকে খুলুন।</p>
+  <p><button class="btn primary" id="installPageBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg> ইনস্টল করুন</button></p>
+
+  <h3>অ্যান্ড্রয়েড (Chrome)</h3>
+  <ol>
+    <li>উপরের <strong>ইনস্টল করুন</strong> বাটনে চাপ দিন (দেখা গেলে), অথবা মেনু (⋮) → <strong>অ্যাপ ইনস্টল করুন / হোম স্ক্রিনে যোগ করুন</strong>।</li>
+    <li>নিশ্চিত করুন — আইকন হোম স্ক্রিনে চলে আসবে।</li>
+  </ol>
+
+  <h3>আইফোন (Safari)</h3>
+  <ol>
+    <li>নিচের <strong>Share</strong> বাটনে চাপ দিন।</li>
+    <li><strong>Add to Home Screen</strong> → <strong>Add</strong>।</li>
+  </ol>
+
+  <h3>কম্পিউটার (Chrome/Edge)</h3>
+  <ol>
+    <li>ঠিকানা বারের ডান পাশের <strong>ইনস্টল</strong> আইকনে ক্লিক করুন।</li>
+  </ol>
+
+  <p class="muted">ইনস্টলের পর অ্যাপ খুলে উপরের <strong>অফলাইন ডাউনলোড</strong> বাটনে চাপ দিলে পুরো সাইট অফলাইনে সেভ হবে।</p>
+</section>
+<%- include('partials/footer') %>

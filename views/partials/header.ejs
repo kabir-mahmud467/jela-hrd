@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="জেলা HRD — গুরুত্বপূর্ণ প্রশ্নোত্তর, সব বাংলায়। ক্লিক করলেই উত্তর।">
+<meta name="theme-color" content="#0a2c48">
+<link rel="manifest" href="/manifest.webmanifest?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title><%= typeof title !== 'undefined' ? title + ' | জেলা HRD' : 'জেলা HRD' %></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +30,8 @@
       <a href="/dua">মাসনুন দুআ</a>
       <a href="/gurutto">গুরুত্বপূর্ণ তথ্য</a>
       <a href="/admin" class="admin-btn">অ্যাডমিন</a>
+      <button class="offline-btn" id="offlineBtn" type="button" aria-live="polite"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span data-label>অফলাইন ডাউনলোড</span></button>
+      <button class="install-btn" id="installBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg><span>অ্যাপ ইনস্টল</span></button>
     </nav>
   </div>
 </header>

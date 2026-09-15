@@ -65,6 +65,80 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// অ্যাপ ইনস্টল নির্দেশনা (PWA manual install) — DB লাগে না, তবু public router-এ
+router.get('/install', (req, res) => {
+  res.render('install');
+});
+
+// অফলাইন প্যাক: PWA "ডাউনলোড" বাটনের জন্য সব public পেজের URL তালিকা।
+// version বদলালে ক্লায়েন্ট বুঝবে নতুন কনটেন্ট এসেছে (doc সংখ্যা + package version)।
+router.get('/offline-manifest.json', async (req, res, next) => {
+  try {
+    const { getAssetVer } = require('../config/assets');
+    const v = getAssetVer();
+    const urls = new Set([
+      '/',
+      '/questions',
+      '/books',
+      '/notes',
+      '/dars',
+      '/dua',
+      '/gurutto',
+      '/install',
+      '/offline.html',
+      '/manifest.webmanifest',
+      `/css/style.css?v=${v}`,
+      `/js/main.js?v=${v}`,
+      '/icons/icon-192.png',
+      '/icons/icon-512.png',
+      '/icons/maskable-512.png',
+      '/icons/apple-touch-icon.png'
+    ]);
+    const phases = Question.PHASE_VALUES;
+    phases.forEach((p) => {
+      urls.add(`/questions/phase/${p}`);
+      urls.add(`/books/phase/${p}`);
+      urls.add(`/notes/phase/${p}`);
+      urls.add(`/dars/porbo/${p}`);
+      urls.add(`/dua/porbo/${p}`);
+    });
+    Dars.DARS_VALUES.forEach((k) => urls.add(`/dars/dhara/${k}`));
+    Dua.DUA_VALUES.forEach((c) => urls.add(`/dua/dhara/${c}`));
+
+    const [subjects, questions, notes, dars, duas, importants, counts] = await Promise.all([
+      Question.distinct('subject'),
+      Question.find().select('slug').limit(500).lean(),
+      Note.find().select('_id').limit(500).lean(),
+      Dars.find().select('_id').limit(500).lean(),
+      Dua.find().select('_id').limit(500).lean(),
+      Important.find().select('_id').limit(500).lean(),
+      Promise.all([
+        Question.estimatedDocumentCount().catch(() => 0),
+        Book.estimatedDocumentCount().catch(() => 0),
+        Note.estimatedDocumentCount().catch(() => 0),
+        Dars.estimatedDocumentCount().catch(() => 0),
+        Dua.estimatedDocumentCount().catch(() => 0),
+        Important.estimatedDocumentCount().catch(() => 0)
+      ])
+    ]);
+    (subjects || []).forEach((s) => {
+      if (s) urls.add(`/questions/subject/${encodeURIComponent(s)}`);
+    });
+    (questions || []).forEach((q) => {
+      if (q && q.slug) urls.add(`/questions/${q.slug}`);
+    });
+    (notes || []).forEach((n) => urls.add(`/notes/${n._id}`));
+    (dars || []).forEach((d) => urls.add(`/dars/${d._id}`));
+    (duas || []).forEach((d) => urls.add(`/dua/${d._id}`));
+    (importants || []).forEach((i) => urls.add(`/gurutto/${i._id}`));
+
+    const total = counts.reduce((a, b) => a + b, 0);
+    res.json({ version: `c${total}`, urls: [...urls] });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // গুরুত্বপূর্ণ তথ্য তালিকা
 router.get('/gurutto', async (req, res, next) => {
   try {
