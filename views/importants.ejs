@@ -5,16 +5,23 @@
     <h2>গুরুত্বপূর্ণ তথ্য</h2>
   </div>
   <p class="page-sub">জরুরি নোটিশ ও আপডেট সবার আগে।</p>
-  <div class="grid">
+  <div class="feed">
     <% if (importants.length === 0) { %><p class="empty">কোনো তথ্য পাওয়া যায়নি।</p><% } %>
-    <% importants.forEach(i => { %>
-      <div class="card reveal <%= i.isPinned ? 'pinned' : '' %>">
-        <% if (i.isPinned) { %><span class="badge pin"><svg class="icon sm"><use href="#i-pin"/></svg> পিনড</span><% } %>
-        <span class="badge"><%= i.category %></span>
-        <h3><a href="/gurutto/<%= i._id %>"><%= i.title %></a></h3>
-        <p><%= (i.description || '').substring(0, 200) %></p>
-        <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= i.createdAt ? new Date(i.createdAt).toLocaleDateString('bn-BD') : '' %></small>
-      </div>
+    <% importants.forEach((i, idx) => { %>
+      <article class="card social reveal <%= i.isPinned ? 'pinned' : '' %>">
+        <div class="post-head">
+          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (i.title || 'জ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/gurutto/<%= i._id %>" class="post-title"><%= i.title %></a>
+            <div class="post-meta"><%= i.category || 'তথ্য' %> • <%= i.createdAt ? new Date(i.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+          </div>
+          <% if (i.isPinned) { %><span class="badge pin"><svg class="icon sm"><use href="#i-pin"/></svg> পিনড</span><% } %>
+        </div>
+        <p class="post-text"><%= (i.description || '').substring(0, 220) %></p>
+        <div class="post-foot">
+          <a href="/gurutto/<%= i._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>

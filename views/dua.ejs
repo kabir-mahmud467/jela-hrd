@@ -4,30 +4,48 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
     <h2>মাসনুন দুআ</h2>
   </div>
-  <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — আরবি পাঠ, অর্থ ও রেফারেন্সসহ।</p>
+  <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — ভাগ ও পর্ব অনুযায়ী, আরবি পাঠসহ।</p>
 
   <div class="phase-tabs">
-    <a href="/dua" class="phase-tab <%= !cat ? 'active' : '' %>">সব ভাগ<small>সব দুআ একসাথে</small></a>
-    <a href="/dua/dhara/sokal-sondha" class="phase-tab <%= cat === 'sokal-sondha' ? 'active' : '' %>">সকাল-সন্ধ্যার দুআ<small>ভাগ ১</small></a>
-    <a href="/dua/dhara/doinondin" class="phase-tab <%= cat === 'doinondin' ? 'active' : '' %>">দৈনন্দিন কাজের দুআ<small>ভাগ ২</small></a>
-    <a href="/dua/dhara/bipod-sofor" class="phase-tab <%= cat === 'bipod-sofor' ? 'active' : '' %>">বিপদ ও সফরের দুআ<small>ভাগ ৩</small></a>
+    <a href="/dua<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= !cat ? 'active' : '' %>">সব ভাগ<small>সব দুআ একসাথে</small></a>
+    <a href="/dua/dhara/sokal-sondha<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= cat === 'sokal-sondha' ? 'active' : '' %>">সকাল-সন্ধ্যার দুআ<small>ভাগ ১</small></a>
+    <a href="/dua/dhara/doinondin<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= cat === 'doinondin' ? 'active' : '' %>">দৈনন্দিন কাজের দুআ<small>ভাগ ২</small></a>
+    <a href="/dua/dhara/bipod-sofor<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= cat === 'bipod-sofor' ? 'active' : '' %>">বিপদ ও সফরের দুআ<small>ভাগ ৩</small></a>
+  </div>
+  <div class="phase-tabs">
+    <a href="<%= cat ? '/dua/dhara/' + cat : '/dua' %>" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব পর্বের দুআ</small></a>
+    <% Object.entries(phases).forEach(([val, label], i) => { %>
+      <a href="<%= cat ? '/dua/dhara/' + cat + '?phase=' + val : '/dua/porbo/' + val %>" class="phase-tab <%= phase === val ? 'active' : '' %>"><%= label %><small>পর্ব <%= ['১', '২', '৩'][i] %></small></a>
+    <% }) %>
   </div>
 
-  <form method="GET" action="/dua" class="search">
+  <form method="GET" action="<%= cat ? '/dua/dhara/' + cat : '/dua' %>" class="search">
     <input type="text" name="q" placeholder="দুআ খুঁজুন..." value="<%= q %>" maxlength="100">
-    <% if (cat) { %><input type="hidden" name="cat" value="<%= cat %>"><% } %>
+    <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="grid">
-    <% if (duas.length === 0) { %><p class="empty">কোনো দুআ পাওয়া যায়নি। অন্য ভাগ বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
-    <% duas.forEach(d => { %>
-      <div class="card reveal">
-        <span class="badge"><%= duaCats[d.cat] || 'দুআ' %></span>
-        <h3><a href="/dua/<%= d._id %>"><%= d.title %></a></h3>
+  <div class="feed">
+    <% if (duas.length === 0) { %><p class="empty">কোনো দুআ পাওয়া যায়নি। অন্য ভাগ/পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% duas.forEach((d, idx) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (d.title || 'দ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/dua/<%= d._id %>" class="post-title"><%= d.title %></a>
+            <div class="post-meta"><%= duaCats[d.cat] || 'দুআ' %> • <%= d.createdAt ? new Date(d.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+          </div>
+        </div>
+        <div class="post-tags">
+          <% if (d.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+          <% if (d.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+          <% if (d.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+          <% if (d.reference) { %><span class="muted"><%= d.reference %></span><% } %>
+        </div>
         <% if (d.arabic) { %><p class="arabic"><%= d.arabic %></p><% } %>
-        <% if (d.reference) { %><p class="muted"><%= d.reference %></p><% } %>
-        <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+        <div class="post-foot">
+          <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>

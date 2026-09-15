@@ -15,8 +15,8 @@
   <a href="/dars/dhara/darsul-quran" class="chip">দারসুল কুরআন</a>
   <a href="/dars/dhara/darsul-hadis" class="chip">দারসুল হাদিস</a>
 </div>
-<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>ধারা</th><th>অ্যাকশন</th></tr>
-<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.kind === 'darsul-quran' ? 'দারসুল কুরআন' : 'দারসুল হাদিস' %></td>
+<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>ধারা</th><th>পর্ব</th><th>অ্যাকশন</th></tr>
+<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.kind === 'darsul-quran' ? 'দারসুল কুরআন' : 'দারসুল হাদিস' %></td><td><%= i.phase === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : i.phase === 'shopother-purbe' ? 'শপথের পূর্বে' : 'আবেদনপত্রের পূর্বে' %></td>
 <td><a href="/admin/dars/<%= i._id %>/edit" class="btn small">এডিট</a>
 <form method="POST" action="/admin/dars/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form></td></tr><% }) %>
 </table></div>

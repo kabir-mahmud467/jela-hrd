@@ -132,8 +132,8 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/books?q=&phase=`, `/books/phase/:phase` | Books, ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)। Max 200. |
 | GET | `/notes?q=&phase=`, `/notes/phase/:phase` | আলোচনা নোট — ONE route, পর্ব ফিল্টারসহ। Max 200. |
 | GET | `/notes/:id` | ObjectId validated. |
-| GET | `/dars?q=&kind=`, `/dars/dhara/:kind`, `/dars/:id` | দারস — ২ ধারা: `darsul-quran` (দারসুল কুরআন), `darsul-hadis` (দারসুল হাদিস). Max 200. |
-| GET | `/dua?q=&cat=`, `/dua/dhara/:cat`, `/dua/:id` | মাসনুন দুআ — SEPARATE route, ৩ ভাগ: `sokal-sondha` (সকাল-সন্ধ্যা), `doinondin` (দৈনন্দিন), `bipod-sofor` (বিপদ ও সফর). Max 200. |
+| GET | `/dars?q=&kind=&phase=`, `/dars/dhara/:kind`, `/dars/porbo/:phase`, `/dars/:id` | দারস — ২ ধারা + ৩ পর্ব (প্রশ্নের পর্ব)। ধারা পেজে `?phase=`, পর্ব পেজে `?kind=` চলে। Max 200. |
+| GET | `/dua?q=&cat=&phase=`, `/dua/dhara/:cat`, `/dua/porbo/:phase`, `/dua/:id` | মাসনুন দুআ — SEPARATE route, ৩ ভাগ + ৩ পর্ব। ভাগ পেজে `?phase=`, পর্ব পেজে `?cat=` চলে। Max 200. |
 | GET | `/healthz` | No auth/ban/limit. `{"ok":true,"db":"up\|down"}`. |
 | GET | `/favicon.ico` | `204` (avoids 404-render + DB hit). |
 
@@ -175,27 +175,33 @@ shopother-purbe     = শপথের পূর্বে
 `views/admin/note-form.ejs` (`<select>`) → `middleware/validate.js` (kind `book`/`note`).
 
 **Dars kinds** (defined ONCE in `models/Dars.js` as `DARS`/`DARS_VALUES`):
-`darsul-quran` = দারসুল কুরআন, `darsul-hadis` = দারসুল হাদিস.
+`darsul-quran` = দারসুল কুরআন, `darsul-hadis` = দারসুল হাদিস — PLUS the shared
+3 phases (`phase` field, `PHASE_VALUES` from `models/Question.js`).
 Chain: `models/Dars.js` → `middleware/validate.js` (kind `dars`) → `routes/dars.js`
-(`/`, `/dhara/:kind`, `/:id` — order matters: `/dhara/*` BEFORE `/:id`) → `app.js`
-(`app.use('/dars', ...)`) → `views/dars.ejs` + `views/dars-details.ejs` →
-`views/admin/dars-form.ejs` + `dars-list.ejs` → `routes/admin.js` (crudRoutes dars +
-dashboard count) → `seed.js`.
+(`/`, `/dhara/:kind`, `/porbo/:phase`, `/:id` — order matters: `/dhara/*` + `/porbo/*`
+BEFORE `/:id`) → `app.js` (`app.use('/dars', ...)`) → `views/dars.ejs` +
+`views/dars-details.ejs` → `views/admin/dars-form.ejs` + `dars-list.ejs` →
+`routes/admin.js` (crudRoutes dars + dashboard count) → `seed.js`.
 
-**Masnun Dua is a SEPARATE section** (NOT under dars — own model/routes/views):
+**Masnun Dua is a SEPARATE section** (NOT under dars — own model/routes/views),
+also with 3 ভাগ + 3 পর্ব:
 kinds defined ONCE in `models/Dua.js` as `DUA_CATS`/`DUA_VALUES`:
 `sokal-sondha` = সকাল-সন্ধ্যার দুআ, `doinondin` = দৈনন্দিন কাজের দুআ,
-`bipod-sofor` = বিপদ ও সফরের দুআ.
+`bipod-sofor` = বিপদ ও সফরের দুআ; `phase` shared.
 Chain: `models/Dua.js` → `middleware/validate.js` (kind `dua`) → `routes/dua.js`
-→ `app.js` (`app.use('/dua', ...)`) → `views/dua.ejs` + `views/dua-details.ejs` →
-`views/admin/dua-form.ejs` + `dua-list.ejs` → `routes/admin.js` (crudRoutes duas +
-dashboard count) → `seed.js`.
+(`/`, `/dhara/:cat`, `/porbo/:phase`, `/:id`) → `app.js` (`app.use('/dua', ...)`) →
+`views/dua.ejs` + `views/dua-details.ejs` → `views/admin/dua-form.ejs` +
+`dua-list.ejs` → `routes/admin.js` (crudRoutes duas + dashboard count) → `seed.js`.
 
 **UI tokens** (`public/css/style.css` `:root`): SolaimanLipi-first font stack,
 radius `15/12/10px`, focus ring `rgb(0,179,241) 0 0 0 2px` on ALL interactive
-elements (keyboard users — never remove). Buttons must stay visually distinct:
-`.btn.primary` (ভরাট সবুজ) vs `.btn` (আউটলাইন) vs `.search button` (জোড়া) vs
-`.phase-tab` (বাক্স+বাম দাগ) vs `.chip` (ছোট পিল) vs `.more` (টেক্সট লিংক).
+elements (keyboard users — never remove). Palette: navy `#0a2c48`, blue `#114575`,
+sky `#00a9e0`, paper `#dfe9f2`, red `#e93e3f` (accents only).
+Content lists use SOCIAL cards (`.feed` + `.card.social`: avatar + title + meta +
+tags + excerpt + footer action) — NOT plain boxes. Buttons must stay visually
+distinct: `.btn.primary` (ভরাট নীল) vs `.btn` (আউটলাইন) vs `.search button`
+(জোড়া) vs `.phase-tab` (বাক্স+বাম দাগ) vs `.chip` (ছোট পিল) vs `.more`
+(টেক্সট লিংক). Logo: inline SVG book+star emblem (`.logo-emblem`) in header/footer.
 
 **Slug rules** (`models/Question.js`): Bengali range `0980–09FF` preserved, lowercased, spaces→`-`,
 max 80 chars, fallback `proshno`. Uniqueness loop (≤5 tries, random suffix). `pre('save')` skips

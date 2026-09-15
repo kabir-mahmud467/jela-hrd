@@ -2,6 +2,9 @@
 <a href="/dars" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দারস</a>
 <article class="detail reveal in">
   <span class="badge"><%= darsMap[lesson.kind] || 'দারস' %></span>
+  <% if (lesson.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+  <% if (lesson.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+  <% if (lesson.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
   <h1><%= lesson.title %></h1>
   <% if (lesson.reference) { %><p class="muted"><%= lesson.reference %></p><% } %>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= lesson.createdAt ? new Date(lesson.createdAt).toLocaleDateString('bn-BD') : '' %></small>

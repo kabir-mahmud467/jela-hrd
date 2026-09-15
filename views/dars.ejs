@@ -4,29 +4,47 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
     <h2>দারস</h2>
   </div>
-  <p class="page-sub">দারসুল কুরআন ও দারসুল হাদিস — ধারা অনুযায়ী। মাসনুন দুআ পড়ুন <a href="/dua">আলাদা বিভাগে</a>।</p>
+  <p class="page-sub">দারসুল কুরআন ও দারসুল হাদিস — ধারা ও পর্ব অনুযায়ী। মাসনুন দুআ পড়ুন <a href="/dua">আলাদা বিভাগে</a>।</p>
 
   <div class="phase-tabs">
-    <a href="/dars" class="phase-tab <%= !kind ? 'active' : '' %>">সব ধারা<small>সব দারস একসাথে</small></a>
-    <a href="/dars/dhara/darsul-quran" class="phase-tab <%= kind === 'darsul-quran' ? 'active' : '' %>">দারসুল কুরআন<small>ধারা ১</small></a>
-    <a href="/dars/dhara/darsul-hadis" class="phase-tab <%= kind === 'darsul-hadis' ? 'active' : '' %>">দারসুল হাদিস<small>ধারা ২</small></a>
+    <a href="/dars<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= !kind ? 'active' : '' %>">সব ধারা<small>সব দারস একসাথে</small></a>
+    <a href="/dars/dhara/darsul-quran<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= kind === 'darsul-quran' ? 'active' : '' %>">দারসুল কুরআন<small>ধারা ১</small></a>
+    <a href="/dars/dhara/darsul-hadis<%= phase ? '?phase=' + phase : '' %>" class="phase-tab <%= kind === 'darsul-hadis' ? 'active' : '' %>">দারসুল হাদিস<small>ধারা ২</small></a>
+  </div>
+  <div class="phase-tabs">
+    <a href="<%= kind ? '/dars/dhara/' + kind : '/dars' %>" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব পর্বের দারস</small></a>
+    <% Object.entries(phases).forEach(([val, label], i) => { %>
+      <a href="<%= kind ? '/dars/dhara/' + kind + '?phase=' + val : '/dars/porbo/' + val %>" class="phase-tab <%= phase === val ? 'active' : '' %>"><%= label %><small>পর্ব <%= ['১', '২', '৩'][i] %></small></a>
+    <% }) %>
   </div>
 
-  <form method="GET" action="/dars" class="search">
+  <form method="GET" action="<%= kind ? '/dars/dhara/' + kind : '/dars' %>" class="search">
     <input type="text" name="q" placeholder="দারস খুঁজুন..." value="<%= q %>" maxlength="100">
-    <% if (kind) { %><input type="hidden" name="kind" value="<%= kind %>"><% } %>
+    <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="grid">
-    <% if (lessons.length === 0) { %><p class="empty">কোনো দারস পাওয়া যায়নি। অন্য ধারা বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
-    <% lessons.forEach(l => { %>
-      <div class="card reveal">
-        <span class="badge"><%= darsMap[l.kind] || 'দারস' %></span>
-        <h3><a href="/dars/<%= l._id %>"><%= l.title %></a></h3>
-        <% if (l.reference) { %><p class="muted"><%= l.reference %></p><% } %>
-        <p><%= (l.content || '').substring(0, 150) %>...</p>
-        <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+  <div class="feed">
+    <% if (lessons.length === 0) { %><p class="empty">কোনো দারস পাওয়া যায়নি। অন্য ধারা/পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% lessons.forEach((l, idx) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (l.title || 'দ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/dars/<%= l._id %>" class="post-title"><%= l.title %></a>
+            <div class="post-meta"><%= darsMap[l.kind] || 'দারস' %> • <%= l.createdAt ? new Date(l.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+          </div>
+        </div>
+        <div class="post-tags">
+          <% if (l.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+          <% if (l.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+          <% if (l.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+          <% if (l.reference) { %><span class="muted"><%= l.reference %></span><% } %>
+        </div>
+        <p class="post-text"><%= (l.content || '').substring(0, 220) %>...</p>
+        <div class="post-foot">
+          <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>

@@ -15,7 +15,11 @@
 <label>ধারা *</label><select name="kind">
   <option value="darsul-quran" <%= (!item.kind || item.kind === 'darsul-quran') ? 'selected' : '' %>>দারসুল কুরআন</option>
   <option value="darsul-hadis" <%= item.kind === 'darsul-hadis' ? 'selected' : '' %>>দারসুল হাদিস</option>
-  <option value="masnun-dua" <%= item.kind === 'masnun-dua' ? 'selected' : '' %>>মাসনুন দুআ</option>
+</select>
+<label>পর্ব *</label><select name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
 </select>
 <label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
 <label>রেফারেন্স (যেমন: সূরা/হাদিস নম্বর)</label><input name="reference" value="<%= item.reference || '' %>">

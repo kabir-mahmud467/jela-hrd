@@ -84,19 +84,22 @@
   </div>
   <div class="grid">
     <% if (!books || books.length === 0) { %><p class="empty">এখনো কোনো বই যোগ হয়নি।</p><% } %>
-    <% (books || []).forEach(b => { %>
-      <div class="card reveal">
-        <span class="badge"><%= b.category || 'বই' %></span>
-        <% if (b.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-        <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-        <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-        <h3><%= b.title %></h3>
-        <p class="muted"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'লেখক অজানা' %></p>
-        <p><%= (b.description || '').substring(0, 120) %></p>
+    <% (books || []).forEach((b, bi) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (bi % 3) + 1 %>"><%= (b.title || 'ব').charAt(0) %></span>
+          <div class="post-id">
+            <span class="post-title"><%= b.title %></span>
+            <div class="post-meta"><%= b.author || 'লেখক অজানা' %></div>
+          </div>
+        </div>
+        <p class="post-text"><%= (b.description || '').substring(0, 110) %></p>
         <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
-        <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন</a>
+        <div class="post-foot">
+          <a href="<%= b.link %>" target="_blank" rel="noopener" class="more">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
         <% } %>
-      </div>
+      </article>
     <% }) %>
   </div>
 </section>
@@ -109,16 +112,20 @@
   </div>
   <div class="grid">
     <% if (!notes || notes.length === 0) { %><p class="empty">এখনো কোনো আলোচনা নোট যোগ হয়নি।</p><% } %>
-    <% (notes || []).forEach(n => { %>
-      <div class="card reveal">
-        <span class="badge"><%= n.subject || 'নোট' %></span>
-        <% if (n.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-        <% if (n.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-        <% if (n.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-        <h3><a href="/notes/<%= n._id %>"><%= n.title %></a></h3>
-        <p><%= (n.content || '').substring(0, 130) %>...</p>
-        <a href="/notes/<%= n._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+    <% (notes || []).forEach((n, ni) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (ni % 3) + 1 %>"><%= (n.title || 'ন').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/notes/<%= n._id %>" class="post-title"><%= n.title %></a>
+            <div class="post-meta"><%= n.subject || 'নোট' %></div>
+          </div>
+        </div>
+        <p class="post-text"><%= (n.content || '').substring(0, 110) %>...</p>
+        <div class="post-foot">
+          <a href="/notes/<%= n._id %>" class="more">বিস্তারিত <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>
@@ -145,13 +152,19 @@
   </div>
   <div class="grid">
     <% if (!lessons || lessons.length === 0) { %><p class="empty">এখনো কোনো দারস যোগ হয়নি।</p><% } %>
-    <% (lessons || []).forEach(l => { %>
-      <div class="card reveal">
-        <span class="badge"><%= darsMap[l.kind] || 'দারস' %></span>
-        <h3><a href="/dars/<%= l._id %>"><%= l.title %></a></h3>
-        <% if (l.reference) { %><p class="muted"><%= l.reference %></p><% } %>
-        <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+    <% (lessons || []).forEach((l, li) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (li % 3) + 1 %>"><%= (l.title || 'দ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/dars/<%= l._id %>" class="post-title"><%= l.title %></a>
+            <div class="post-meta"><%= darsMap[l.kind] || 'দারস' %></div>
+          </div>
+        </div>
+        <div class="post-foot">
+          <a href="/dars/<%= l._id %>" class="more">বিস্তারিত <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>
@@ -184,13 +197,19 @@
   </div>
   <div class="grid">
     <% if (!duas || duas.length === 0) { %><p class="empty">এখনো কোনো দুআ যোগ হয়নি।</p><% } %>
-    <% (duas || []).forEach(d => { %>
-      <div class="card reveal">
-        <span class="badge"><%= duaCats[d.cat] || 'দুআ' %></span>
-        <h3><a href="/dua/<%= d._id %>"><%= d.title %></a></h3>
-        <% if (d.reference) { %><p class="muted"><%= d.reference %></p><% } %>
-        <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+    <% (duas || []).forEach((d, di) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (di % 3) + 1 %>"><%= (d.title || 'দ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/dua/<%= d._id %>" class="post-title"><%= d.title %></a>
+            <div class="post-meta"><%= duaCats[d.cat] || 'দুআ' %></div>
+          </div>
+        </div>
+        <div class="post-foot">
+          <a href="/dua/<%= d._id %>" class="more">অর্থসহ <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>
@@ -203,13 +222,18 @@
   </div>
   <div class="grid">
     <% if (!importants || importants.length === 0) { %><p class="empty">এখনো কোনো তথ্য যোগ হয়নি।</p><% } %>
-    <% (importants || []).forEach(i => { %>
-      <div class="card reveal <%= i.isPinned ? 'pinned' : '' %>">
-        <% if (i.isPinned) { %><span class="badge pin"><svg class="icon sm"><use href="#i-pin"/></svg> পিনড</span><% } %>
-        <span class="badge"><%= i.category || 'তথ্য' %></span>
-        <h3><a href="/gurutto/<%= i._id %>"><%= i.title %></a></h3>
-        <p><%= (i.description || '').substring(0, 140) %></p>
-      </div>
+    <% (importants || []).forEach((i, ii) => { %>
+      <article class="card social reveal <%= i.isPinned ? 'pinned' : '' %>">
+        <div class="post-head">
+          <span class="avatar av<%= (ii % 3) + 1 %>"><%= (i.title || 'জ').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/gurutto/<%= i._id %>" class="post-title"><%= i.title %></a>
+            <div class="post-meta"><%= i.category || 'তথ্য' %></div>
+          </div>
+          <% if (i.isPinned) { %><span class="badge pin"><svg class="icon sm"><use href="#i-pin"/></svg> পিনড</span><% } %>
+        </div>
+        <p class="post-text"><%= (i.description || '').substring(0, 110) %></p>
+      </article>
     <% }) %>
   </div>
 </section>

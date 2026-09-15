@@ -2,6 +2,9 @@
 <a href="/dua" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দুআ</a>
 <article class="detail reveal in">
   <span class="badge"><%= duaCats[dua.cat] || 'দুআ' %></span>
+  <% if (dua.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+  <% if (dua.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+  <% if (dua.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
   <h1><%= dua.title %></h1>
   <% if (dua.arabic) { %><p class="arabic big"><%= dua.arabic %></p><% } %>
   <div class="answer-box">

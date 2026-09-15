@@ -17,6 +17,11 @@
   <option value="doinondin" <%= (!item.cat || item.cat === 'doinondin') ? 'selected' : '' %>>দৈনন্দিন কাজের দুআ</option>
   <option value="bipod-sofor" <%= item.cat === 'bipod-sofor' ? 'selected' : '' %>>বিপদ ও সফরের দুআ</option>
 </select>
+<label>পর্ব *</label><select name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
 <label>শিরোনাম</label><input name="title" value="<%= item.title || '' %>" required>
 <label>আরবি পাঠ</label><textarea name="arabic" rows="3" dir="auto"><%= item.arabic || '' %></textarea>
 <label>অর্থ / ব্যাখ্যা</label><textarea name="content" rows="6" required><%= item.content || '' %></textarea>

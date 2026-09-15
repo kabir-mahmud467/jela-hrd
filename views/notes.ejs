@@ -18,18 +18,27 @@
     <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="grid">
+  <div class="feed">
     <% if (notes.length === 0) { %><p class="empty">কোনো নোট পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
-    <% notes.forEach(n => { %>
-      <div class="card reveal">
-        <span class="badge"><%= n.subject || 'নোট' %></span>
-        <% if (n.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-        <% if (n.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-        <% if (n.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-        <h3><a href="/notes/<%= n._id %>"><%= n.title %></a></h3>
-        <p><%= (n.content || '').substring(0, 150) %>...</p>
-        <a href="/notes/<%= n._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-      </div>
+    <% notes.forEach((n, idx) => { %>
+      <article class="card social reveal">
+        <div class="post-head">
+          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (n.title || 'ন').charAt(0) %></span>
+          <div class="post-id">
+            <a href="/notes/<%= n._id %>" class="post-title"><%= n.title %></a>
+            <div class="post-meta"><%= n.subject || 'নোট' %> • <%= n.createdAt ? new Date(n.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+          </div>
+        </div>
+        <div class="post-tags">
+          <% if (n.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+          <% if (n.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+          <% if (n.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+        </div>
+        <p class="post-text"><%= (n.content || '').substring(0, 220) %>...</p>
+        <div class="post-foot">
+          <a href="/notes/<%= n._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </article>
     <% }) %>
   </div>
 </section>

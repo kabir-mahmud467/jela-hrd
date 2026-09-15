@@ -16,8 +16,8 @@
   <a href="/dua/dhara/doinondin" class="chip">দৈনন্দিন</a>
   <a href="/dua/dhara/bipod-sofor" class="chip">বিপদ ও সফর</a>
 </div>
-<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>ভাগ</th><th>অ্যাকশন</th></tr>
-<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.cat === 'sokal-sondha' ? 'সকাল-সন্ধ্যা' : i.cat === 'bipod-sofor' ? 'বিপদ ও সফর' : 'দৈনন্দিন' %></td>
+<div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>ভাগ</th><th>পর্ব</th><th>অ্যাকশন</th></tr>
+<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.cat === 'sokal-sondha' ? 'সকাল-সন্ধ্যা' : i.cat === 'bipod-sofor' ? 'বিপদ ও সফর' : 'দৈনন্দিন' %></td><td><%= i.phase === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : i.phase === 'shopother-purbe' ? 'শপথের পূর্বে' : 'আবেদনপত্রের পূর্বে' %></td>
 <td><a href="/admin/duas/<%= i._id %>/edit" class="btn small">এডিট</a>
 <form method="POST" action="/admin/duas/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form></td></tr><% }) %>
 </table></div>
