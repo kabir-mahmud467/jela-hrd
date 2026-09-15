@@ -34,7 +34,18 @@
     </nav>
   </div>
 </header>
-<div class="container"><div class="dl-banner" id="dlBanner" hidden>
+<div class="container"><div class="install-msg" id="installMsg" hidden>
+  <img class="install-msg-icon" src="/icons/icon-192.png" alt="" width="52" height="52">
+  <div class="install-msg-text">
+    <strong data-msg-title>অ্যাপ ইনস্টল করুন</strong>
+    <span class="muted" data-msg-sub>হোম স্ক্রিন থেকে এক ট্যাপে খুলুন, অফলাইনেও পড়ুন</span>
+    <div class="install-msg-prog" data-msg-prog hidden><i></i></div>
+  </div>
+  <div class="install-msg-btns" data-msg-btns>
+    <button class="btn primary small" id="installMsgGo" type="button">ইনস্টল</button>
+    <button class="install-msg-later" id="installMsgLater" type="button">পরে</button>
+  </div>
+</div><div class="dl-banner" id="dlBanner" hidden>
   <div class="dl-top">
     <span class="dl-ico"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></span>
     <div class="dl-text">

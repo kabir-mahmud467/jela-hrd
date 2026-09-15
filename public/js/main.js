@@ -191,17 +191,21 @@ if ('serviceWorker' in navigator) {
 (function () {
   const btn = document.getElementById('installBtn');
   const pageBtn = document.getElementById('installPageBtn');
-  const pop = document.getElementById('installPop');
-  const popGo = document.getElementById('installPopGo');
-  const popLater = document.getElementById('installPopLater');
-  if (!btn && !pageBtn && !pop) return;
+  const msg = document.getElementById('installMsg');
+  const msgGo = document.getElementById('installMsgGo');
+  const msgLater = document.getElementById('installMsgLater');
+  const msgTitle = msg ? msg.querySelector('[data-msg-title]') : null;
+  const msgSub = msg ? msg.querySelector('[data-msg-sub]') : null;
+  const msgProg = msg ? msg.querySelector('[data-msg-prog]') : null;
+  const msgBtns = msg ? msg.querySelector('[data-msg-btns]') : null;
+  if (!btn && !pageBtn && !msg) return;
   const doneNote = document.getElementById('installDone');
   const isStandalone = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
-  const POP_KEY = 'jelaInstallPop';
-  const POP_DAYS = 7;
+  const MSG_KEY = 'jelaInstallMsg';
+  const MSG_DAYS = 7;
   let deferred = null;
 
   const hideAll = () => {
@@ -211,42 +215,76 @@ if ('serviceWorker' in navigator) {
   };
   if (isStandalone()) {
     hideAll();
-    if (pop) pop.hidden = true;
+    if (msg) msg.hidden = true;
     return;
   }
 
-  const popSnoozed = () => {
+  const msgSnoozed = () => {
     try {
-      return Date.now() - (+(localStorage.getItem(POP_KEY) || 0)) < POP_DAYS * 86400000;
+      return Date.now() - (+(localStorage.getItem(MSG_KEY) || 0)) < MSG_DAYS * 86400000;
     } catch {
       return true;
     }
   };
-  const popSnooze = () => {
+  const msgSnooze = () => {
     try {
-      localStorage.setItem(POP_KEY, String(Date.now()));
+      localStorage.setItem(MSG_KEY, String(Date.now()));
     } catch {
       // ignore
     }
   };
-  const showPop = () => {
-    if (pop && !popSnoozed()) pop.hidden = false;
+  const showMsg = () => {
+    if (msg && !msgSnoozed()) msg.hidden = false;
   };
-  const hidePop = () => {
-    if (pop) pop.hidden = true;
+  const hideMsg = () => {
+    if (msg) msg.hidden = true;
+  };
+  const setInstalling = (on) => {
+    if (msgTitle) msgTitle.textContent = on ? 'ইনস্টল হচ্ছে…' : 'অ্যাপ ইনস্টল করুন';
+    if (msgSub) msgSub.textContent = on ? 'শেষ হলে হোম স্ক্রিনে আইকন পাবেন' : 'হোম স্ক্রিন থেকে এক ট্যাপে খুলুন, অফলাইনেও পড়ুন';
+    if (msgProg) msgProg.hidden = !on;
+    if (msgBtns) msgBtns.hidden = on;
   };
 
-  async function doInstall(fromPop) {
+  function waitInstalled(timeoutMs) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (v) => {
+        if (!done) {
+          done = true;
+          resolve(v);
+        }
+      };
+      window.addEventListener('appinstalled', () => finish(true), { once: true });
+      setTimeout(() => finish(false), timeoutMs);
+    });
+  }
+
+  async function doInstall(fromMsg) {
     if (deferred) {
-      if (fromPop) hidePop();
-      popSnooze();
-      deferred.prompt();
-      try {
-        await deferred.userChoice;
-      } catch {
-        // ignore
-      }
+      if (fromMsg) setInstalling(true);
+      const p = deferred;
       deferred = null;
+      try {
+        p.prompt();
+        // userChoice কিছু ব্রাউজারে ঝুলে থাকতে পারে — 30s পর UI ফেরত দাও
+        const choice = await Promise.race([
+          p.userChoice,
+          new Promise((resolve) => setTimeout(() => resolve(null), 30000))
+        ]);
+        if (choice && choice.outcome === 'accepted') {
+          // ইনস্টল চলছে — appinstalled না আসা পর্যন্ত প্রগ্রেস দেখাও
+          await waitInstalled(15000);
+          msgSnooze();
+          hideMsg();
+          hideAll();
+        } else {
+          // বাতিল/সময় শেষ — মেসেজ আগের অবস্থায় ফেরত (আবার চেষ্টা করা যাবে)
+          setInstalling(false);
+        }
+      } catch {
+        setInstalling(false);
+      }
       return;
     }
     if (!isStandalone() && window.location.pathname !== '/install') {
@@ -254,11 +292,11 @@ if ('serviceWorker' in navigator) {
     }
   }
 
-  // iOS: manual নির্দেশনা পেজেই মূল ভরসা — nav বাটন + auto popup দেখাও
+  // iOS: manual নির্দেশনা পেজেই মূল ভরসা — nav বাটন + মেসেজ দেখাও
   if (isIOS) {
     if (btn) btn.hidden = false;
     window.addEventListener('load', () => {
-      setTimeout(showPop, 2500);
+      setTimeout(showMsg, 2500);
     });
   }
 
@@ -267,22 +305,22 @@ if ('serviceWorker' in navigator) {
     deferred = e;
     if (btn) btn.hidden = false;
     if (pageBtn) pageBtn.hidden = false;
-    // auto popup: prompt তৈরি হলেই একবার দেখাও (snooze সম্মান করে)
-    setTimeout(showPop, 2500);
+    // prompt তৈরি হলেই মেসেজ দেখাও (snooze সম্মান করে)
+    setTimeout(showMsg, 2500);
   });
   window.addEventListener('appinstalled', () => {
     deferred = null;
-    popSnooze();
-    hidePop();
+    msgSnooze();
+    hideMsg();
     hideAll();
   });
 
   if (btn) btn.addEventListener('click', () => doInstall(false));
   if (pageBtn) pageBtn.addEventListener('click', () => doInstall(false));
-  if (popGo) popGo.addEventListener('click', () => doInstall(true));
-  if (popLater) popLater.addEventListener('click', () => {
-    hidePop();
-    popSnooze();
+  if (msgGo) msgGo.addEventListener('click', () => doInstall(true));
+  if (msgLater) msgLater.addEventListener('click', () => {
+    hideMsg();
+    msgSnooze();
   });
 })();
 

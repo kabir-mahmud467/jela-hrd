@@ -314,15 +314,27 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .dl-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--sky), var(--blue)); border-radius: 999px; transition: width 0.2s ease; }
 .dl-pct { font-size: 12.5px; margin-top: 6px; }
 .dl-pct[hidden] { display: none; }
-/* ===== PWA: auto install popup (bottom sheet) ===== */
-.install-pop { position: fixed; inset: auto 0 0 0; z-index: 80; display: flex; justify-content: center; padding: 0 14px calc(14px + env(safe-area-inset-bottom)); pointer-events: none; }
-.install-pop[hidden] { display: none; }
-.install-pop-card { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 560px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 50px rgba(10, 44, 72, 0.3); padding: 14px 16px; animation: popUp 0.25s ease; }
-@keyframes popUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-.install-pop-text { flex: 1; min-width: 0; }
-.install-pop-text strong { display: block; color: var(--navy); font-size: 15px; }
-.install-pop-text .muted { font-size: 12.5px; }
-.install-pop-btns { display: flex; gap: 8px; flex-shrink: 0; }
+/* ===== PWA: install message (in-page card, browser only, JS shows it) ===== */
+.install-msg { display: flex; align-items: center; gap: 13px; background: linear-gradient(120deg, #fff 60%, #e8f4fc); border: 1px solid #bcd9ee; border-left: 5px solid var(--sky); border-radius: var(--r); box-shadow: var(--shadow-hover); padding: 14px 16px; margin-top: 14px; animation: msgIn 0.3s ease; }
+.install-msg[hidden] { display: none; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.install-msg-icon { width: 52px; height: 52px; border-radius: 15px; box-shadow: var(--shadow); flex-shrink: 0; }
+.install-msg-text { flex: 1; min-width: 0; }
+.install-msg-text strong { display: block; color: var(--navy); font-size: 16px; }
+.install-msg-text .muted { font-size: 13px; }
+.install-msg-btns { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.install-msg-btns[hidden] { display: none; }
+.install-msg-later { background: none; border: none; color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+.install-msg-later:hover { color: var(--navy); background: var(--soft); }
+.install-msg-prog { height: 8px; border-radius: 999px; background: var(--line-soft); overflow: hidden; margin-top: 8px; position: relative; }
+.install-msg-prog[hidden] { display: none; }
+.install-msg-prog i { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; border-radius: 999px; background: linear-gradient(90deg, var(--sky), var(--blue)); animation: msgSlide 1.1s ease-in-out infinite; }
+@keyframes msgSlide { 0% { left: -40%; } 100% { left: 100%; } }
+@media (max-width: 560px) {
+  .install-msg { flex-wrap: wrap; }
+  .install-msg-btns { width: 100%; }
+  .install-msg-btns .btn { flex: 1; }
+}
 /* ===== PWA: install button (browser only, JS shows it) ===== */
 .install-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: #fff; border: 1px solid var(--navy); font: inherit; font-size: 13.5px; font-weight: 700; padding: 8px 14px; border-radius: 999px; white-space: nowrap; cursor: pointer; transition: background 0.15s; }
 .install-btn:hover { background: var(--blue); border-color: var(--blue); }
