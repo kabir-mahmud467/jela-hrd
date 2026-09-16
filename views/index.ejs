@@ -19,10 +19,10 @@
       <button type="button" class="btn small" id="checklist-reset">রিসেট</button>
     </div>
     <div id="checklist-list" class="qa-list">
-      <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; %>
+      <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; var _catNum=0; %>
       <% _initial.forEach(function(it,i){ %>
-        <% if(it.c !== _last){ %><div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px"><%= it.c %></div><% _last=it.c; } %>
-        <label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>" style="margin-top:3px"> <span style="font-size:14px;line-height:1.5"><%= (i+1) %>. <%= it.t %></span></label>
+        <% if(it.c !== _last){ _catNum=1; %><div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px"><%= it.c %></div><% _last=it.c; } else { _catNum++; } %>
+        <label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>" style="margin-top:3px"> <span style="font-size:14px;line-height:1.5"><%= _catNum %>. <%= it.t %></span></label>
       <% }) %>
     </div>
   </div>
@@ -42,17 +42,21 @@
     var boxes=document.querySelectorAll('#checklist-list input[type=checkbox]');
     for(var i=0;i<boxes.length;i++){
       var k=boxes[i].getAttribute('data-k');
-      boxes[i].checked=!!store[k];
+      if(k) boxes[i].checked=!!store[k];
     }
   }
   function updateProgress(){
     var store=load();
     var list=data[current]||[];
-    var done=list.filter(function(_,i){return !!store[current+'-'+i]}).length;
+    var done=0;
+    for(var i=0;i<list.length;i++) if(store[current+'-'+i]) done++;
     var pct=list.length?Math.round(done/list.length*100):0;
-    document.getElementById('checklist-bar').style.width=pct+'%';
-    document.getElementById('checklist-count').textContent=done+'/'+list.length;
-    document.getElementById('checklist-progress').textContent=pct+'% সম্পন্ন';
+    var bar=document.getElementById('checklist-bar');
+    var cnt=document.getElementById('checklist-count');
+    var prog=document.getElementById('checklist-progress');
+    if(bar) bar.style.width=pct+'%';
+    if(cnt) cnt.textContent=done+'/'+list.length;
+    if(prog) prog.textContent=pct+'% সম্পন্ন';
   }
   function render(){
     var store=load();
@@ -64,12 +68,13 @@
     document.getElementById('checklist-progress').textContent=pct+'% সম্পন্ন';
     var html='';
     var lastCat='';
+    var catNum=0;
     for(var i=0;i<list.length;i++){
       var it=list[i];
       var key=current+'-'+i;
       var checked=store[key]?'checked':'';
-      if(it.c!==lastCat){ html+='<div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px">'+it.c+'</div>'; lastCat=it.c; }
-      html+='<label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="'+key+'" '+checked+' style="margin-top:3px"> <span style="font-size:14px;line-height:1.5">'+(i+1)+'. '+it.t+'</span></label>';
+      if(it.c!==lastCat){ catNum=1; html+='<div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px">'+it.c+'</div>'; lastCat=it.c; } else { catNum++; }
+      html+='<label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="'+key+'" '+checked+' style="margin-top:3px"> <span style="font-size:14px;line-height:1.5">'+catNum+'. '+it.t+'</span></label>';
     }
     document.getElementById('checklist-list').innerHTML=html;
     var boxes=document.querySelectorAll('#checklist-list input[type=checkbox]');

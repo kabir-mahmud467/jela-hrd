@@ -1,0 +1,19 @@
+<%- include('partials/header', { title: item.title }) %>
+<a href="/ayat-hadith" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব আয়াত-হাদিস</a>
+<article class="detail reveal in">
+  <span class="badge"><%= item.kind==='ayat' ? 'আয়াত' : 'হাদিস' %></span>
+  <% if(item.topic){ %><span class="badge light"><%= item.topic %></span><% } %>
+  <% if(item.phase==='abedonpotrer-purbe'){ %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+  <% if(item.phase==='proshnopotrer-purbe'){ %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+  <% if(item.phase==='shopother-purbe'){ %><span class="badge light">শপথের পূর্বে</span><% } %>
+  <h1><%= item.title %></h1>
+  <% if(item.arabic){ %><p class="arabic big"><%= item.arabic %></p><% } %>
+  <% if(item.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= item.transliteration %></p><% } %>
+  <div class="answer-box">
+    <strong>অর্থ:</strong>
+    <p><%= item.translation %></p>
+  </div>
+  <% if(item.reference){ %><p class="muted">রেফারেন্স: <%= item.reference %></p><% } %>
+  <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= item.createdAt ? new Date(item.createdAt).toLocaleDateString('bn-BD') : '' %></small>
+</article>
+<%- include('partials/footer') %>

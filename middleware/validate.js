@@ -65,6 +65,20 @@ function validateBody(kind, body) {
     data.reference = str(body.reference, 300);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('অর্থ/ব্যাখ্যা আবশ্যক।');
+  } else if (kind === 'ayathadith') {
+    const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
+    data.title = str(body.title, 300);
+    data.arabic = str(body.arabic, 2000);
+    data.transliteration = str(body.transliteration, 2000);
+    data.translation = str(body.translation, 10000);
+    data.reference = str(body.reference, 300);
+    data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
+    if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
+    data.kind = str(body.kind, 20) || 'ayat';
+    if (!['ayat','hadis'].includes(data.kind)) data.kind = 'ayat';
+    data.topic = str(body.topic, 100);
+    if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
+    if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
   } else if (kind === 'important') {
     data.title = str(body.title, 300);
     data.description = str(body.description, 5000);
