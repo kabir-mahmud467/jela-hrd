@@ -5,6 +5,7 @@ const { PHASE_VALUES } = require('./Question');
 const duaSchema = new mongoose.Schema({
   title: { type: String, required: [true, 'শিরোনাম আবশ্যক'], trim: true, maxlength: 300 },
   arabic: { type: String, default: '', trim: true, maxlength: 2000 },
+  transliteration: { type: String, default: '', trim: true, maxlength: 2000 },
   content: { type: String, required: [true, 'অর্থ/ব্যাখ্যা আবশ্যক'], trim: true, maxlength: 10000 },
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },

@@ -58,6 +58,7 @@ function validateBody(kind, body) {
     const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
     data.title = str(body.title, 300);
     data.arabic = str(body.arabic, 2000);
+    data.transliteration = str(body.transliteration, 2000);
     data.content = str(body.content, 10000);
     data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
     if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';

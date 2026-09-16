@@ -22,6 +22,7 @@
 </select>
 <label for="f-title">শিরোনাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
 <label for="f-arabic">আরবি পাঠ</label><textarea id="f-arabic" name="arabic" rows="3" dir="auto" maxlength="2000"><%= item.arabic || '' %></textarea>
+<label for="f-trans">বাংলা উচ্চারণ</label><textarea id="f-trans" name="transliteration" rows="2" maxlength="2000" placeholder="যেমন: আল্লাহুম্মা আনতা রাব্বি..."><%= item.transliteration || '' %></textarea>
 <label for="f-content">অর্থ / ব্যাখ্যা</label><textarea id="f-content" name="content" rows="6" required maxlength="10000"><%= item.content || '' %></textarea>
 <label for="f-ref">রেফারেন্স (যেমন: সহিহ বুখারি)</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300">
 <div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/duas" class="btn">বাতিল</a></div>
