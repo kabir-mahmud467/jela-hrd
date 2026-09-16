@@ -6,11 +6,11 @@
   </div>
   <p class="page-sub">পড়ুন ও ডাউনলোড করুন — পর্ব অনুযায়ী সাজানো।</p>
 
-  <div class="phase-tabs">
-    <a href="/books" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব বই একসাথে</small></a>
-    <a href="/books/phase/abedonpotrer-purbe" class="phase-tab <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে<small>পর্ব ১</small></a>
-    <a href="/books/phase/proshnopotrer-purbe" class="phase-tab <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে<small>পর্ব ২</small></a>
-    <a href="/books/phase/shopother-purbe" class="phase-tab <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে<small>পর্ব ৩</small></a>
+  <div class="chips">
+    <a href="/books" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <a href="/books/phase/abedonpotrer-purbe" class="chip <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে</a>
+    <a href="/books/phase/proshnopotrer-purbe" class="chip <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে</a>
+    <a href="/books/phase/shopother-purbe" class="chip <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে</a>
   </div>
 
   <form method="GET" action="/books" class="search">

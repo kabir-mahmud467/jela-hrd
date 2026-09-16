@@ -6,10 +6,10 @@
   </div>
   <p class="page-sub">দারস — পর্ব অনুযায়ী। মাসনুন দুআ পড়ুন <a href="/dua">আলাদা বিভাগে</a>।</p>
 
-  <div class="phase-tabs">
-    <a href="/dars" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব পর্বের দারস</small></a>
-    <% Object.entries(phases).forEach(([val, label], i) => { %>
-      <a href="/dars/porbo/<%= val %>" class="phase-tab <%= phase === val ? 'active' : '' %>"><%= label %><small>পর্ব <%= ['১', '২', '৩'][i] %></small></a>
+  <div class="chips">
+    <a href="/dars" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <% Object.entries(phases).forEach(([val, label]) => { %>
+      <a href="/dars/porbo/<%= val %>" class="chip <%= phase === val ? 'active' : '' %>"><%= label %></a>
     <% }) %>
   </div>
 

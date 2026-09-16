@@ -6,11 +6,11 @@
   </div>
   <p class="hint">যেকোনো প্রশ্নে চাপ দিলেই নিচে উত্তর খুলে যাবে। প্রতিটি প্রশ্নের আলাদা লিংক আছে।</p>
 
-  <div class="phase-tabs">
-    <a href="/questions" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব প্রশ্ন একসাথে</small></a>
-    <a href="/questions/phase/abedonpotrer-purbe" class="phase-tab <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে<small>পর্ব ১</small></a>
-    <a href="/questions/phase/proshnopotrer-purbe" class="phase-tab <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে<small>পর্ব ২</small></a>
-    <a href="/questions/phase/shopother-purbe" class="phase-tab <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে<small>পর্ব ৩</small></a>
+  <div class="chips">
+    <a href="/questions" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <a href="/questions/phase/abedonpotrer-purbe" class="chip <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে</a>
+    <a href="/questions/phase/proshnopotrer-purbe" class="chip <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে</a>
+    <a href="/questions/phase/shopother-purbe" class="chip <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে</a>
   </div>
 
   <% if (typeof subjects !== 'undefined' && subjects && subjects.length) { %>

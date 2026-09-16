@@ -6,11 +6,11 @@
   </div>
   <p class="page-sub">বিস্তারিত আলোচনা ও ব্যাখ্যাসহ নোট — পর্ব অনুযায়ী।</p>
 
-  <div class="phase-tabs">
-    <a href="/notes" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব নোট একসাথে</small></a>
-    <a href="/notes/phase/abedonpotrer-purbe" class="phase-tab <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে<small>পর্ব ১</small></a>
-    <a href="/notes/phase/proshnopotrer-purbe" class="phase-tab <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে<small>পর্ব ২</small></a>
-    <a href="/notes/phase/shopother-purbe" class="phase-tab <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে<small>পর্ব ৩</small></a>
+  <div class="chips">
+    <a href="/notes" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <a href="/notes/phase/abedonpotrer-purbe" class="chip <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে</a>
+    <a href="/notes/phase/proshnopotrer-purbe" class="chip <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে</a>
+    <a href="/notes/phase/shopother-purbe" class="chip <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে</a>
   </div>
 
   <form method="GET" action="/notes" class="search">

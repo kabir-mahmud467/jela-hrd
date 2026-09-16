@@ -6,10 +6,10 @@
   </div>
   <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — পর্ব অনুযায়ী, আরবি পাঠসহ। শিরোনামে চাপ দিলে নিচে অর্থ খুলবে।</p>
 
-  <div class="phase-tabs">
-    <a href="/dua" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব পর্বের দুআ</small></a>
-    <% Object.entries(phases).forEach(([val, label], i) => { %>
-      <a href="/dua/porbo/<%= val %>" class="phase-tab <%= phase === val ? 'active' : '' %>"><%= label %><small>পর্ব <%= ['১', '২', '৩'][i] %></small></a>
+  <div class="chips">
+    <a href="/dua" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <% Object.entries(phases).forEach(([val, label]) => { %>
+      <a href="/dua/porbo/<%= val %>" class="chip <%= phase === val ? 'active' : '' %>"><%= label %></a>
     <% }) %>
   </div>
 
