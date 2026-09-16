@@ -395,7 +395,12 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .card.stat.a-violet h2 { color: #4a34a0; }
 .card.stat h2 { font-size: clamp(26px, 5vw, 34px); }
 .card.stat p { margin: 2px 0 10px; font-weight: 700; color: var(--ink); }
-.card.stat .btn + .btn { margin-left: 6px; }
+.stat-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.admin-main { padding-bottom: 24px; }
+.table-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.form label.check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.sec-head .badge { margin: 0; }
 .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .admin-panels { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; align-items: start; }
 @media (max-width: 760px) { .admin-panels { grid-template-columns: 1fr; } }
@@ -408,10 +413,11 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .panel h3 { margin: 0 0 8px; font-size: 16px; display: flex; align-items: center; gap: 7px; color: var(--navy); }
 .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .recent-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.recent-list li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+.recent-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; min-width: 0; }
 .recent-list li:last-child { border-bottom: none; padding-bottom: 0; }
-.recent-list a.title { color: var(--ink); text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.recent-list a.title { color: var(--ink); text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 160px; min-width: 0; }
 .recent-list a.title:hover { color: var(--blue); }
+.recent-list .muted { margin-left: auto; }
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
 .toolbar .search { flex: 1; min-width: 200px; margin: 0; }
 .toolbar .count { margin-left: auto; }
@@ -441,6 +447,11 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .form input, .form textarea, .form select,
   .search input, .login-box input { font-size: 16px; }
   .table th, .table td { padding: 8px 9px; font-size: 13.5px; }
-  .card.stat .btn + .btn { margin-left: 0; }
-  .toolbar .count { margin-left: 0; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar .search { min-width: 0; width: 100%; }
+  .toolbar .count { margin-left: 0; align-self: flex-start; }
+  .sec-head { border-radius: var(--r-sm); }
+  .sec-head .btn { margin-left: 0; }
+  .stat-actions .btn { flex: 1 1 auto; }
+  .table-actions .btn { flex: 0 0 auto; }
 }

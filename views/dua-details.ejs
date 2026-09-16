@@ -1,7 +1,7 @@
 <%- include('partials/header', { title: dua.title }) %>
 <a href="/dua" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দুআ</a>
 <article class="detail reveal in">
-  <span class="badge"><%= duaCats[dua.cat] || 'দুআ' %></span>
+  <span class="badge">মাসনুন দুআ</span>
   <% if (dua.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
   <% if (dua.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
   <% if (dua.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
@@ -13,7 +13,7 @@
   </div>
   <% if (dua.reference) { %><p class="muted">রেফারেন্স: <%= dua.reference %></p><% } %>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= dua.createdAt ? new Date(dua.createdAt).toLocaleDateString('bn-BD') : '' %></small>
-  <p><a href="/dua/dhara/<%= dua.cat %>" class="btn"><svg class="icon"><use href="#i-star"/></svg> এই ভাগের আরও দুআ</a></p>
+  <p><a href="/dua/porbo/<%= dua.phase %>" class="btn"><svg class="icon"><use href="#i-star"/></svg> এই পর্বের আরও দুআ</a></p>
 </article>
 
 <% if (typeof related !== 'undefined' && related && related.length) { %>

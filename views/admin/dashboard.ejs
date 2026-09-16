@@ -6,7 +6,7 @@
 </head>
 <body>
 <%- include('partials/nav', { active: 'dashboard', admin }) %>
-<main class="container">
+<main class="container admin-main">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-layers"/></svg></span>
     <h2>স্বাগতম, <%= admin.username %>!</h2>
@@ -23,14 +23,14 @@
   </div>
 
   <div class="admin-grid">
-    <div class="card stat a-amber"><h2><%= counts.question %></h2><p>প্রশ্নোত্তর</p><a href="/admin/questions" class="btn small">পরিচালনা</a><a href="/admin/questions/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat a-emerald"><h2><%= counts.book %></h2><p>বই লিংক</p><a href="/admin/books" class="btn small">পরিচালনা</a><a href="/admin/books/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat a-sky"><h2><%= counts.note %></h2><p>আলোচনা নোট</p><a href="/admin/notes" class="btn small">পরিচালনা</a><a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat a-violet"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><a href="/admin/importants" class="btn small">পরিচালনা</a><a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat a-emerald"><h2><%= counts.dars %></h2><p>দারস</p><a href="/admin/dars" class="btn small">পরিচালনা</a><a href="/admin/dars/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat a-sky"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><a href="/admin/duas" class="btn small">পরিচালনা</a><a href="/admin/duas/new" class="btn small primary">+ নতুন</a></div>
-    <div class="card stat"><h2><%= counts.ban %></h2><p>ব্যানড IP</p><a href="/admin/bans" class="btn small">পরিচালনা</a><a href="/admin/security" class="btn small primary">আক্রমণ দেখুন</a></div>
-    <div class="card stat"><h2><%= events24h %></h2><p>সন্দেহজনক ঘটনা (২৪ঘ)</p><a href="/admin/security" class="btn small">বিস্তারিত</a><a href="/admin/export/security" class="btn small primary">এক্সপোর্ট</a></div>
+    <div class="card stat a-amber"><h2><%= counts.question %></h2><p>প্রশ্নোত্তর</p><div class="stat-actions"><a href="/admin/questions" class="btn small">পরিচালনা</a><a href="/admin/questions/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-emerald"><h2><%= counts.book %></h2><p>বই লিংক</p><div class="stat-actions"><a href="/admin/books" class="btn small">পরিচালনা</a><a href="/admin/books/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-sky"><h2><%= counts.note %></h2><p>আলোচনা নোট</p><div class="stat-actions"><a href="/admin/notes" class="btn small">পরিচালনা</a><a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-violet"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><div class="stat-actions"><a href="/admin/importants" class="btn small">পরিচালনা</a><a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-emerald"><h2><%= counts.dars %></h2><p>দারস</p><div class="stat-actions"><a href="/admin/dars" class="btn small">পরিচালনা</a><a href="/admin/dars/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-sky"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><div class="stat-actions"><a href="/admin/duas" class="btn small">পরিচালনা</a><a href="/admin/duas/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat"><h2><%= counts.ban %></h2><p>ব্যানড IP</p><div class="stat-actions"><a href="/admin/bans" class="btn small">পরিচালনা</a><a href="/admin/security" class="btn small primary">আক্রমণ দেখুন</a></div></div>
+    <div class="card stat"><h2><%= events24h %></h2><p>সন্দেহজনক ঘটনা (২৪ঘ)</p><div class="stat-actions"><a href="/admin/security" class="btn small">বিস্তারিত</a><a href="/admin/export/security" class="btn small primary">এক্সপোর্ট</a></div></div>
   </div>
 
   <div class="admin-panels mt-16">

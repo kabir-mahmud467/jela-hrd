@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html lang="bn">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>গুরুত্বপূর্ণ | Admin</title><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></head>
+<head>
+<title>গুরুত্বপূর্ণ | Admin</title>
+<%- include('partials/head') %>
+</head>
 <body>
 <%- include('../partials/icons') %>
-
-<header class="navbar admin-nav" id="navbar"><div class="container nav-inner"><a href="/admin" class="logo"><svg class="icon"><use href="#i-gear"/></svg> Admin</a><button class="nav-toggle" id="navToggle" aria-label="menu" aria-expanded="false"><span></span><span></span><span></span></button><nav id="mainnav"><a href="/admin">ড্যাশবোর্ড</a><a href="/admin/logout" class="admin-btn">লগআউট</a></nav></div></header>
-<main class="container">
-<h1><svg class="icon"><use href="#i-star"/></svg> গুরুত্বপূর্ণ তালিকা <a href="/admin/importants/new" class="btn primary small">+ নতুন</a></h1>
+<%- include('partials/nav', { active: 'importants', admin: typeof admin !== 'undefined' ? admin : null }) %>
+<main class="container admin-main">
+<div class="sec-head">
+  <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
+  <h2>গুরুত্বপূর্ণ তালিকা</h2>
+  <a href="/admin/importants/new" class="btn primary small">+ নতুন</a>
+</div>
 <div class="table-wrap"><table class="table"><tr><th>শিরোনাম</th><th>ক্যাটাগরি</th><th>পিনড</th><th>অ্যাকশন</th></tr>
-<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.category %></td><td><%= i.isPinned ? '<svg class="icon sm"><use href="#i-pin"/></svg>' : '' %></td>
-<td><a href="/admin/importants/<%= i._id %>/edit" class="btn small">এডিট</a>
-<form method="POST" action="/admin/importants/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form></td></tr><% }) %>
+<% items.forEach(i => { %><tr><td><%= i.title %></td><td><%= i.category %></td><td><%- i.isPinned ? '<svg class="icon sm"><use href="#i-pin"/></svg>' : '' %></td>
+<td><div class="table-actions"><a href="/admin/importants/<%= i._id %>/edit" class="btn small">এডিট</a>
+<form method="POST" action="/admin/importants/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form></div></td></tr><% }) %>
 </table></div>
 </main>
-<button class="to-top" id="toTop" aria-label="উপরে যান"><svg class="icon"><use href="#i-top"/></svg></button>
-<script src="/js/main.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script></body></html>
+<%- include('partials/foot') %>

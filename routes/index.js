@@ -26,8 +26,8 @@ router.get('/', async (req, res, next) => {
         Book.find().sort({ createdAt: -1 }).limit(6).lean(),
         Note.find().select('title subject content phase createdAt').sort({ createdAt: -1 }).limit(6).lean(),
         Important.find().sort({ isPinned: -1, createdAt: -1 }).limit(6).lean(),
-        Dars.find().select('title kind reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
-        Dua.find().select('title cat reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
+        Dars.find().select('title phase reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
+        Dua.find().select('title phase reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
         Question.aggregate([{ $group: { _id: '$phase', count: { $sum: 1 } } }]),
         Question.estimatedDocumentCount().catch(() => 0),
         Book.estimatedDocumentCount().catch(() => 0),
@@ -48,8 +48,6 @@ router.get('/', async (req, res, next) => {
       importants,
       lessons,
       duas,
-      darsMap: Dars.DARS,
-      duaCats: Dua.DUA_CATS,
       phases: Question.PHASES,
       phaseCounts,
       qCount,
@@ -102,8 +100,6 @@ router.get('/offline-manifest.json', async (req, res, next) => {
       urls.add(`/dars/porbo/${p}`);
       urls.add(`/dua/porbo/${p}`);
     });
-    Dars.DARS_VALUES.forEach((k) => urls.add(`/dars/dhara/${k}`));
-    Dua.DUA_VALUES.forEach((c) => urls.add(`/dua/dhara/${c}`));
 
     const [subjects, questions, notes, dars, duas, importants, counts] = await Promise.all([
       Question.distinct('subject'),

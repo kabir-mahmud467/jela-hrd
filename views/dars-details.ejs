@@ -1,7 +1,7 @@
 <%- include('partials/header', { title: lesson.title }) %>
 <a href="/dars" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব দারস</a>
 <article class="detail reveal in">
-  <span class="badge"><%= darsMap[lesson.kind] || 'দারস' %></span>
+  <span class="badge">দারস</span>
   <% if (lesson.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
   <% if (lesson.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
   <% if (lesson.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
@@ -9,7 +9,7 @@
   <% if (lesson.reference) { %><p class="muted"><%= lesson.reference %></p><% } %>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= lesson.createdAt ? new Date(lesson.createdAt).toLocaleDateString('bn-BD') : '' %></small>
   <p class="content pre"><%= lesson.content %></p>
-  <a href="/dars/dhara/<%= lesson.kind %>" class="btn"><svg class="icon"><use href="#i-book"/></svg> এই ধারার আরও দারস</a>
+  <a href="/dars/porbo/<%= lesson.phase %>" class="btn"><svg class="icon"><use href="#i-book"/></svg> এই পর্বের আরও দারস</a>
 </article>
 
 <% if (typeof related !== 'undefined' && related && related.length) { %>

@@ -137,16 +137,22 @@
     <a href="/dars" class="more">সব দারস <svg class="icon sm"><use href="#i-arrow"/></svg></a>
   </div>
   <div class="phase-grid">
-    <a href="/dars/dhara/darsul-quran" class="phase-card p1 reveal">
-      <span class="p-num">ধারা ১</span>
-      <h3>দারসুল কুরআন</h3>
-      <p>কুরআনের আয়াতভিত্তিক দারস ও ব্যাখ্যা।</p>
+    <a href="/dars/porbo/abedonpotrer-purbe" class="phase-card p1 reveal">
+      <span class="p-num">পর্ব ১</span>
+      <h3>আবেদনপত্রের পূর্বে</h3>
+      <p>শুরুর দারস — ভিত্তি প্রস্তুতি।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
-    <a href="/dars/dhara/darsul-hadis" class="phase-card p2 reveal">
-      <span class="p-num">ধারা ২</span>
-      <h3>দারসুল হাদিস</h3>
-      <p>হাদিসভিত্তিক দারস ও শিক্ষা।</p>
+    <a href="/dars/porbo/proshnopotrer-purbe" class="phase-card p2 reveal">
+      <span class="p-num">পর্ব ২</span>
+      <h3>প্রশ্নপত্রের পূর্বে</h3>
+      <p>মূল পরীক্ষা কেন্দ্রিক দারস।</p>
+      <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
+    </a>
+    <a href="/dars/porbo/shopother-purbe" class="phase-card p3 reveal">
+      <span class="p-num">পর্ব ৩</span>
+      <h3>শপথের পূর্বে</h3>
+      <p>শেষ মুহূর্তের দারস।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
   </div>
@@ -158,7 +164,7 @@
           <span class="avatar av<%= (li % 3) + 1 %>"><%= (l.title || 'দ').charAt(0) %></span>
           <div class="post-id">
             <a href="/dars/<%= l._id %>" class="post-title"><%= l.title %></a>
-            <div class="post-meta"><%= darsMap[l.kind] || 'দারস' %></div>
+            <div class="post-meta">দারস</div>
           </div>
         </div>
         <div class="post-foot">
@@ -176,22 +182,22 @@
     <a href="/dua" class="more">সব দুআ <svg class="icon sm"><use href="#i-arrow"/></svg></a>
   </div>
   <div class="phase-grid">
-    <a href="/dua/dhara/sokal-sondha" class="phase-card p1 reveal">
-      <span class="p-num">ভাগ ১</span>
-      <h3>সকাল-সন্ধ্যার দুআ</h3>
-      <p>সকাল ও সন্ধ্যায় পড়ার মাসনুন দুআ।</p>
+    <a href="/dua/porbo/abedonpotrer-purbe" class="phase-card p1 reveal">
+      <span class="p-num">পর্ব ১</span>
+      <h3>আবেদনপত্রের পূর্বে</h3>
+      <p>শুরুর মাসনুন দুআ।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
-    <a href="/dua/dhara/doinondin" class="phase-card p2 reveal">
-      <span class="p-num">ভাগ ২</span>
-      <h3>দৈনন্দিন কাজের দুআ</h3>
-      <p>খাওয়া, ঘুম, পোশাকসহ দৈনন্দিন দুআ।</p>
+    <a href="/dua/porbo/proshnopotrer-purbe" class="phase-card p2 reveal">
+      <span class="p-num">পর্ব ২</span>
+      <h3>প্রশ্নপত্রের পূর্বে</h3>
+      <p>মূল পরীক্ষা কেন্দ্রিক দুআ।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
-    <a href="/dua/dhara/bipod-sofor" class="phase-card p3 reveal">
-      <span class="p-num">ভাগ ৩</span>
-      <h3>বিপদ ও সফরের দুআ</h3>
-      <p>বিপদ, অসুস্থতা ও সফরের দুআ।</p>
+    <a href="/dua/porbo/shopother-purbe" class="phase-card p3 reveal">
+      <span class="p-num">পর্ব ৩</span>
+      <h3>শপথের পূর্বে</h3>
+      <p>শেষ মুহূর্তের দুআ।</p>
       <span class="p-link">পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></span>
     </a>
   </div>
@@ -203,7 +209,7 @@
           <span class="avatar av<%= (di % 3) + 1 %>"><%= (d.title || 'দ').charAt(0) %></span>
           <div class="post-id">
             <a href="/dua/<%= d._id %>" class="post-title"><%= d.title %></a>
-            <div class="post-meta"><%= duaCats[d.cat] || 'দুআ' %></div>
+            <div class="post-meta">মাসনুন দুআ</div>
           </div>
         </div>
         <div class="post-foot">

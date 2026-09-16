@@ -35,15 +35,15 @@ async function seed() {
   }
   if ((await Dars.countDocuments()) === 0) {
     await Dars.insertMany([
-      { title: 'দারসুল কুরআন: সূরা ফাতিহা', content: 'সূরা ফাতিহার সংক্ষিপ্ত তাফসির ও শিক্ষা...', kind: 'darsul-quran', phase: 'abedonpotrer-purbe', reference: 'সূরা ফাতিহা: ১-৭' },
-      { title: 'দারসুল হাদিস: নিয়ত', content: 'কাজের ফলাফল নিয়তের ওপর নির্ভরশীল — এই হাদিসের ব্যাখ্যা...', kind: 'darsul-hadis', phase: 'proshnopotrer-purbe', reference: 'সহিহ বুখারি: ১' }
+      { title: 'দারসুল কুরআন: সূরা ফাতিহা', content: 'সূরা ফাতিহার সংক্ষিপ্ত তাফসির ও শিক্ষা...', phase: 'abedonpotrer-purbe', reference: 'সূরা ফাতিহা: ১-৭' },
+      { title: 'দারসুল হাদিস: নিয়ত', content: 'কাজের ফলাফল নিয়তের ওপর নির্ভরশীল — এই হাদিসের ব্যাখ্যা...', phase: 'proshnopotrer-purbe', reference: 'সহিহ বুখারি: ১' }
     ]);
   }
   if ((await Dua.countDocuments()) === 0) {
     await Dua.insertMany([
-      { title: 'সকালে পড়ার দুআ', arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا', content: 'হে আল্লাহ! আপনার অনুগ্রহে আমরা সকালে উপনীত হই...', cat: 'sokal-sondha', phase: 'abedonpotrer-purbe', reference: 'তিরমিজি' },
-      { title: 'ঘুম থেকে ওঠার দুআ', arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا', content: 'সমস্ত প্রশংসা আল্লাহর, যিনি আমাদের মৃত্যুর পর জীবিত করেছেন...', cat: 'doinondin', phase: 'proshnopotrer-purbe', reference: 'সহিহ বুখারি' },
-      { title: 'সফরের দুআ', arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا', content: 'পবিত্র সেই সত্তা যিনি আমাদের জন্য এটিকে বশীভূত করেছেন...', cat: 'bipod-sofor', phase: 'shopother-purbe', reference: 'সহিহ মুসলিম' }
+      { title: 'সকালে পড়ার দুআ', arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا', content: 'হে আল্লাহ! আপনার অনুগ্রহে আমরা সকালে উপনীত হই...', phase: 'abedonpotrer-purbe', reference: 'তিরমিজি' },
+      { title: 'ঘুম থেকে ওঠার দুআ', arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا', content: 'সমস্ত প্রশংসা আল্লাহর, যিনি আমাদের মৃত্যুর পর জীবিত করেছেন...', phase: 'proshnopotrer-purbe', reference: 'সহিহ বুখারি' },
+      { title: 'সফরের দুআ', arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا', content: 'পবিত্র সেই সত্তা যিনি আমাদের জন্য এটিকে বশীভূত করেছেন...', phase: 'shopother-purbe', reference: 'সহিহ মুসলিম' }
     ]);
   }
   if ((await Question.countDocuments()) === 0) {
