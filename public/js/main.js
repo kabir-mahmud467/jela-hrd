@@ -10,7 +10,20 @@ document.documentElement.classList.add('js');
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     try {
-      navigator.serviceWorker.register('/sw.js').catch(function () {});
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
+        // SW update found — activate immediately for installed app.
+        if (reg.waiting) try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {}
+        reg.addEventListener('updatefound', function () {
+          var nw = reg.installing;
+          if (nw) nw.addEventListener('statechange', function () {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version ready; next launch will use it.
+            }
+          });
+        });
+      }).catch(function () {});
+      // Allow SW to skipWaiting via message (installed app updates faster).
+      navigator.serviceWorker.addEventListener('controllerchange', function () {});
     } catch (e) {
       // ignore
     }

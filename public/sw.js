@@ -1,21 +1,25 @@
 /* Jela HRD service worker — offline support for the PWA.
- * Install = basic shell only (home + offline page + icons); full content
- * comes later via the in-app download card (JELA_PREFETCH).
- * Navigations: network-first, then cache, then offline page.
+ * Install = offline shell only (offline page + icons); '/' is NOT
+ * precached (it requires DB and cache.addAll would fail atomically).
+ * Navigations: network-first, cache fallback, then offline page.
  * Static (css/js/icons): stale-while-revalidate.
- * Admin pages, healthz and non-GET requests are never cached.
+ * Admin, healthz, non-GET are never cached.
  *
- * ES5 ONLY (var/function/Promise chains) — very old Android Chrome must
- * parse this, otherwise install fails on those devices.
+ * ES5 ONLY (var/function/Promise) — old Android Chrome must parse.
  */
-var CACHE = 'jela-hrd-v4';
+var CACHE = 'jela-hrd-v5';
 var OFFLINE_URL = '/offline.html';
-var PRECACHE = ['/', OFFLINE_URL, '/icons/icon-192.png', '/icons/icon-512.png'];
+var PRECACHE = [OFFLINE_URL, '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png'];
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE).then(function (cache) {
-      return cache.addAll(PRECACHE);
+      // Precaching must NOT fail the install — cache each separately.
+      return Promise.all(PRECACHE.map(function (url) {
+        return fetch(url, { cache: 'reload' }).then(function (res) {
+          if (res && res.ok) return cache.put(url, res);
+        }).catch(function () {});
+      }));
     }).then(function () {
       return self.skipWaiting();
     })
@@ -49,7 +53,6 @@ function cacheable(req, url) {
   return true;
 }
 
-// Old browsers lack request.mode — fall back to the Accept header.
 function isNavigation(req) {
   if (req.mode === 'navigate') return true;
   if (req.method !== 'GET') return false;
@@ -66,25 +69,34 @@ self.addEventListener('fetch', function (event) {
   var url = new URL(req.url);
   if (!cacheable(req, url)) return;
 
-  // Page navigations: try network, fall back to cache, then offline page
   if (isNavigation(req)) {
     event.respondWith(
       fetch(req).then(function (res) {
-        if (res && res.ok) {
+        // Cache only 200 HTML; if server sent 500/404, show cached/offline instead.
+        var ct = res && res.headers && res.headers.get('content-type');
+        if (res && res.ok && ct && ct.indexOf('text/html') !== -1) {
           var copy = res.clone();
           caches.open(CACHE).then(function (cache) { cache.put(req, copy); });
+          return res;
+        }
+        if (res && !res.ok) {
+          return caches.match(req).then(function (hit) {
+            return hit || caches.match(OFFLINE_URL);
+          });
         }
         return res;
       }).catch(function () {
         return caches.match(req).then(function (hit) {
-          return hit || caches.match(OFFLINE_URL);
+          if (hit) return hit;
+          return caches.match('/').then(function (home) {
+            return home || caches.match(OFFLINE_URL);
+          });
         });
       })
     );
     return;
   }
 
-  // Versioned static assets (?v= changes on deploy): serve cache, refresh behind
   if (isStaticAsset(url.pathname)) {
     event.respondWith(
       caches.match(req).then(function (hit) {
@@ -94,19 +106,19 @@ self.addEventListener('fetch', function (event) {
             caches.open(CACHE).then(function (cache) { cache.put(req, copy); });
           }
           return res;
-        });
+        }).catch(function () { return hit; });
         return hit || net;
       })
     );
   }
 });
 
-// Full offline pack: page sends { type:'JELA_PREFETCH', urls:[...] }.
-// Missing URLs are fetched in small batches and cached; progress is
-// posted back so the download card can show done/total.
+// Messages from page: SKIP_WAITING + full offline pack JELA_PREFETCH.
 self.addEventListener('message', function (event) {
   var msg = event.data;
-  if (!msg || msg.type !== 'JELA_PREFETCH' || !Array.isArray(msg.urls)) return;
+  if (!msg || !msg.type) return;
+  if (msg.type === 'SKIP_WAITING') { self.skipWaiting(); return; }
+  if (msg.type !== 'JELA_PREFETCH' || !Array.isArray(msg.urls)) return;
   event.waitUntil(prefetchAll(msg.urls));
 });
 
@@ -129,7 +141,7 @@ function prefetchAll(urls) {
       try {
         req = new Request(u, { credentials: 'same-origin' });
       } catch (e) {
-        req = u; // very old Chrome: plain URL works with cache.match/put/fetch
+        req = u;
       }
       return cache.match(req).then(function (hit) {
         if (hit) return true;

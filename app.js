@@ -119,6 +119,10 @@ app.use(
         // Service worker: browser 24h-এ একবারই update check করে — max-age দিলে
         // নতুন version আরও দেরিতে আসে, তাই no-cache।
         res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('Service-Worker-Allowed', '/');
+      } else if (/manifest\.webmanifest$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Content-Type', 'application/manifest+json');
       } else if (/\.(css|js)$/.test(filePath)) {
         res.setHeader('Cache-Control', 'public, max-age=86400');
       }
