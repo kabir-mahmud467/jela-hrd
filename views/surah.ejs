@@ -35,12 +35,23 @@
             <% if(s.phase==='shopother-purbe'){ %><span class="badge light">শপথের পূর্বে</span><% } %>
             <% if(s.reference){ %><span class="muted"><%= s.reference %></span><% } %>
           </div>
-          <% if(s.arabic){ %><p class="arabic"><%= s.arabic %></p><% } %>
-          <% if(s.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= s.transliteration %></p><% } %>
-          <div class="answer-box">
-            <strong>অর্থ:</strong>
-            <p style="white-space:pre-line"><%= s.translation %></p>
-          </div>
+          <% if(s.arabic){ %>
+            <% var aLines=(s.arabic||'').split('\n').filter(function(x){return x.trim()}); var tLines=(s.transliteration||'').split('\n'); var mLines=(s.translation||'').split('\n'); %>
+            <% aLines.forEach(function(line, i){ %>
+              <div style="margin:8px 0;padding:8px 10px;background:var(--soft);border-radius:8px;border:1px solid var(--line-soft)">
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px"><span class="badge"><%= toBengali(i+1) %></span> <span class="muted">আয়াত <%= toBengali(i+1) %></span></div>
+                <p class="arabic" style="margin:4px 0"><%= line %></p>
+                <% if(tLines[i]){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px;margin:4px 0"><strong>উচ্চারণ:</strong> <%= tLines[i] %></p><% } %>
+                <% if(mLines[i]){ %><p style="margin:4px 0;font-size:14px"><strong>অর্থ:</strong> <%= mLines[i] %></p><% } %>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <% if(s.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= s.transliteration %></p><% } %>
+            <div class="answer-box">
+              <strong>অর্থ:</strong>
+              <p style="white-space:pre-line"><%= s.translation %></p>
+            </div>
+          <% } %>
         </div>
       </div>
     <% }) %>
