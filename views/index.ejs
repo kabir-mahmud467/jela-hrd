@@ -29,7 +29,7 @@
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
+(function(){
   var KEY='jela_checklist_v1';
   var data=<%- JSON.stringify(typeof checklistData !== 'undefined' ? checklistData : {}) %>;
   var current='abedonpotrer-purbe';
@@ -99,6 +99,6 @@ document.addEventListener('DOMContentLoaded', function(){
       var s=load(); var k=e.target.getAttribute('data-k'); s[k]=e.target.checked; if(!e.target.checked) delete s[k]; save(s); updateProgress();
     }
   });
-});
+})();
 </script>
 <%- include('partials/footer') %>
