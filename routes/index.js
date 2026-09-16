@@ -7,6 +7,7 @@ const Note = require('../models/Note');
 const Question = require('../models/Question');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
+const checklistData = require('../config/checklist');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
@@ -56,7 +57,8 @@ router.get('/', async (req, res, next) => {
       impCount,
       darsCount,
       duaCount,
-      sCount: subjects.length
+      sCount: subjects.length,
+      checklistData
     });
   } catch (err) {
     next(err);
