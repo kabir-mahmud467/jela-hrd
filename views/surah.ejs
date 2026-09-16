@@ -1,0 +1,49 @@
+<%- include('partials/header', { title: 'সূরা মুখস্থ' }) %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>সূরা মুখস্থ</h2>
+  </div>
+  <p class="page-sub">অর্থসহ সূরা মুখস্থ — পর্ব অনুযায়ী, আয়াত বাই আয়াত আরবি, উচ্চারণ ও অর্থসহ।</p>
+
+  <div class="chips">
+    <a href="/surah" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <% Object.entries(phases).forEach(([val,label])=>{ %>
+      <a href="/surah/porbo/<%= val %>" class="chip <%= phase===val ? 'active' : '' %>"><%= label %></a>
+    <% }) %>
+  </div>
+
+  <form method="GET" action="/surah" class="search">
+    <input type="text" name="q" placeholder="সূরা খুঁজুন..." value="<%= q %>" maxlength="100">
+    <% if(phase){ %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+
+  <div class="qa-list">
+    <% if(!items || items.length===0){ %><p class="empty">কোনো সূরা পাওয়া যায়নি।</p><% } %>
+    <% (items||[]).forEach(function(s,idx){ %>
+      <div class="qa-item reveal">
+        <button class="qa-q" data-toggle-target="surah-<%= idx %>" aria-expanded="false">
+          <span><span class="q-no"><%= idx+1 %>.</span> <%= s.title %></span>
+          <svg class="icon chev"><use href="#i-chev"/></svg>
+        </button>
+        <div id="surah-<%= idx %>" class="qa-a hidden">
+          <div class="ans-meta">
+            <% if(s.phase==='abedonpotrer-purbe'){ %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+            <% if(s.phase==='proshnopotrer-purbe'){ %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+            <% if(s.phase==='shopother-purbe'){ %><span class="badge light">শপথের পূর্বে</span><% } %>
+            <% if(s.reference){ %><span class="muted"><%= s.reference %></span><% } %>
+          </div>
+          <% if(s.arabic){ %><p class="arabic"><%= s.arabic %></p><% } %>
+          <% if(s.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= s.transliteration %></p><% } %>
+          <div class="answer-box">
+            <strong>অর্থ:</strong>
+            <p style="white-space:pre-line"><%= s.translation %></p>
+          </div>
+          <a href="/surah/<%= s._id %>" class="more">স্থায়ী লিংক <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -13,6 +13,7 @@ const questionsRoutes = require('./routes/questions');
 const darsRoutes = require('./routes/dars');
 const duaRoutes = require('./routes/dua');
 const ayatHadithRoutes = require('./routes/ayathadith');
+const surahRoutes = require('./routes/surah');
 const adminRoutes = require('./routes/admin');
 const { securityMiddleware, globalLimiter } = require('./middleware/security');
 const { ipBanCheck } = require('./middleware/ipBan');
@@ -204,6 +205,7 @@ app.use('/questions', questionsRoutes);
 app.use('/dars', darsRoutes);
 app.use('/dua', duaRoutes);
 app.use('/ayat-hadith', ayatHadithRoutes);
+app.use('/surah', surahRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 / 500

@@ -79,6 +79,17 @@ function validateBody(kind, body) {
     data.topic = str(body.topic, 100);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
+  } else if (kind === 'surah') {
+    const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
+    data.title = str(body.title, 200);
+    data.arabic = str(body.arabic, 10000);
+    data.transliteration = str(body.transliteration, 5000);
+    data.translation = str(body.translation, 10000);
+    data.reference = str(body.reference, 300);
+    data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
+    if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
+    if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
+    if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
   } else if (kind === 'important') {
     data.title = str(body.title, 300);
     data.description = str(body.description, 5000);

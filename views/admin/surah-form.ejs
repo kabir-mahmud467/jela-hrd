@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title>সূরা ফর্ম | Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('../partials/icons') %>
+<%- include('partials/nav', { active: 'surah', admin: typeof admin !== 'undefined' ? admin : null }) %>
+<main class="container admin-main">
+<div class="sec-head">
+  <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+  <h2><%= item && item._id ? 'এডিট' : 'নতুন' %> সূরা</h2>
+  <a href="/admin/surah" class="btn small">তালিকা</a>
+</div>
+<% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="POST" action="<%= item && item._id ? '/admin/surah/' + item._id : '/admin/surah' %>" class="form">
+<label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
+<label for="f-title">সূরার নাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="200">
+<label for="f-arabic">আরবি (আয়াত বাই আয়াত)</label><textarea id="f-arabic" name="arabic" rows="6" dir="rtl" maxlength="10000"><%= item.arabic || '' %></textarea>
+<label for="f-trans">বাংলা উচ্চারণ</label><textarea id="f-trans" name="transliteration" rows="4" maxlength="5000"><%= item.transliteration || '' %></textarea>
+<label for="f-content">অর্থ (আয়াত বাই আয়াত)</label><textarea id="f-content" name="translation" rows="8" required maxlength="10000"><%= item.translation || '' %></textarea>
+<label for="f-ref">রেফারেন্স</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300">
+<div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/surah" class="btn">বাতিল</a></div>
+</form>
+</main>
+<%- include('partials/foot') %>
