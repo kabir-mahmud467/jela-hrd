@@ -32,7 +32,7 @@ router.get('/', async (req, res, next) => {
     const q = (req.query.q || '').toString().slice(0, 100);
     const phase = (req.query.phase || '').toString().slice(0, 50);
     const kind = (req.query.kind || '').toString().slice(0, 20);
-    const items = await AyatHadith.find(buildFilter(q, phase, kind)).sort({ createdAt: -1 }).limit(200).lean();
+    const items = await AyatHadith.find(buildFilter(q, phase, kind)).sort({ createdAt: 1 }).limit(200).lean();
     renderList(res, items, q, Question.PHASE_VALUES.includes(phase) ? phase : '', ['ayat','hadis'].includes(kind) ? kind : '');
   } catch (err) { next(err); }
 });
@@ -42,7 +42,7 @@ router.get('/porbo/:phase', async (req, res, next) => {
     const phase = req.params.phase.slice(0, 50);
     if (!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const kind = (req.query.kind || '').toString().slice(0, 20);
-    const items = await AyatHadith.find(buildFilter('', phase, kind)).sort({ createdAt: -1 }).limit(200).lean();
+    const items = await AyatHadith.find(buildFilter('', phase, kind)).sort({ createdAt: 1 }).limit(200).lean();
     renderList(res, items, '', phase, ['ayat','hadis'].includes(kind) ? kind : '');
   } catch (err) { next(err); }
 });
@@ -52,7 +52,7 @@ router.get('/kind/:kind', async (req, res, next) => {
     const kind = req.params.kind.slice(0, 20);
     if (!['ayat','hadis'].includes(kind)) return res.status(404).render('404');
     const phase = (req.query.phase || '').toString().slice(0, 50);
-    const items = await AyatHadith.find(buildFilter('', phase, kind)).sort({ createdAt: -1 }).limit(200).lean();
+    const items = await AyatHadith.find(buildFilter('', phase, kind)).sort({ createdAt: 1 }).limit(200).lean();
     renderList(res, items, '', Question.PHASE_VALUES.includes(phase) ? phase : '', kind);
   } catch (err) { next(err); }
 });

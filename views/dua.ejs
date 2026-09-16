@@ -1,4 +1,5 @@
 <%- include('partials/header', { title: 'মাসনুন দুআ' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
 <section class="sec-note">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
@@ -24,7 +25,7 @@
     <% (duas || []).forEach((d, idx) => { %>
       <div class="qa-item reveal">
         <button class="qa-q" data-toggle-target="dua-<%= idx %>" aria-expanded="false">
-          <span><span class="q-no"><%= idx + 1 %>.</span> <%= d.title %></span>
+          <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= d.title %></span>
           <svg class="icon chev"><use href="#i-chev"/></svg>
         </button>
         <div id="dua-<%= idx %>" class="qa-a hidden">

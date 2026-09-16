@@ -1,4 +1,5 @@
 <%- include('partials/header', { title: 'সূরা মুখস্থ' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
 <section class="sec-note">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
@@ -24,7 +25,7 @@
     <% (items||[]).forEach(function(s,idx){ %>
       <div class="qa-item reveal">
         <button class="qa-q" data-toggle-target="surah-<%= idx %>" aria-expanded="false">
-          <span><span class="q-no"><%= idx+1 %>.</span> <%= s.title %></span>
+          <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= s.title %></span>
           <svg class="icon chev"><use href="#i-chev"/></svg>
         </button>
         <div id="surah-<%= idx %>" class="qa-a hidden">
@@ -40,7 +41,6 @@
             <strong>অর্থ:</strong>
             <p style="white-space:pre-line"><%= s.translation %></p>
           </div>
-          <a href="/surah/<%= s._id %>" class="more">স্থায়ী লিংক <svg class="icon sm"><use href="#i-arrow"/></svg></a>
         </div>
       </div>
     <% }) %>

@@ -32,7 +32,7 @@ router.get('/', async (req, res, next) => {
   try {
     const q = (req.query.q || '').toString().slice(0, 100);
     const phase = (req.query.phase || '').toString().slice(0, 50);
-    const duas = await Dua.find(buildFilter(q, phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const duas = await Dua.find(buildFilter(q, phase)).sort({ createdAt: 1 }).limit(200).lean();
     renderList(res, duas, q, Question.PHASE_VALUES.includes(phase) ? phase : '');
   } catch (err) {
     next(err);
@@ -44,7 +44,7 @@ router.get('/porbo/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
     if (!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
-    const duas = await Dua.find(buildFilter('', phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const duas = await Dua.find(buildFilter('', phase)).sort({ createdAt: 1 }).limit(200).lean();
     renderList(res, duas, '', phase);
   } catch (err) {
     next(err);
@@ -59,7 +59,7 @@ router.get('/:id', async (req, res) => {
     if (!dua) return res.status(404).render('404');
     const related = await Dua.find({ _id: { $ne: dua._id }, phase: dua.phase })
       .select('title')
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .limit(5)
       .lean();
     res.render('dua-details', { dua, related, phases: Question.PHASES });

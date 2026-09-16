@@ -18,7 +18,7 @@ router.get('/', async (req,res,next)=>{
   try{
     const q=(req.query.q||'').toString().slice(0,100);
     const phase=(req.query.phase||'').toString().slice(0,50);
-    const items=await Surah.find(buildFilter(q, phase)).sort({createdAt:-1}).limit(100).lean();
+    const items=await Surah.find(buildFilter(q, phase)).sort({createdAt:1}).limit(100).lean();
     res.render('surah', { items, q, phase, phases: Question.PHASES });
   }catch(e){ next(e); }
 });
@@ -27,7 +27,7 @@ router.get('/porbo/:phase', async (req,res,next)=>{
   try{
     const phase=req.params.phase.slice(0,50);
     if(!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
-    const items=await Surah.find(buildFilter('', phase)).sort({createdAt:-1}).limit(100).lean();
+    const items=await Surah.find(buildFilter('', phase)).sort({createdAt:1}).limit(100).lean();
     res.render('surah', { items, q:'', phase, phases: Question.PHASES });
   }catch(e){ next(e); }
 });
