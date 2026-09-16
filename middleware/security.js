@@ -13,8 +13,6 @@ function securityMiddleware(app) {
         directives: {
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'"],
-          workerSrc: ["'self'"],
-          manifestSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
           imgSrc: ["'self'", 'data:', 'https:'],
