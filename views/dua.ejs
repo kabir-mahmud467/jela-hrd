@@ -4,7 +4,7 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-star"/></svg></span>
     <h2>মাসনুন দুআ</h2>
   </div>
-  <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — পর্ব অনুযায়ী, আরবি পাঠসহ।</p>
+  <p class="page-sub">দৈনন্দিন জীবনের মাসনুন দুআ — পর্ব অনুযায়ী, আরবি পাঠসহ। শিরোনামে চাপ দিলে নিচে অর্থ খুলবে।</p>
 
   <div class="phase-tabs">
     <a href="/dua" class="phase-tab <%= !phase ? 'active' : '' %>">সব পর্ব<small>সব পর্বের দুআ</small></a>
@@ -18,28 +18,29 @@
     <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="feed">
-    <% if (duas.length === 0) { %><p class="empty">কোনো দুআ পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
-    <% duas.forEach((d, idx) => { %>
-      <article class="card social reveal">
-        <div class="post-head">
-          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (d.title || 'দ').charAt(0) %></span>
-          <div class="post-id">
-            <a href="/dua/<%= d._id %>" class="post-title"><%= d.title %></a>
-            <div class="post-meta">মাসনুন দুআ • <%= d.createdAt ? new Date(d.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+
+  <div class="qa-list">
+    <% if (!duas || duas.length === 0) { %><p class="empty">কোনো দুআ পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% (duas || []).forEach((d, idx) => { %>
+      <div class="qa-item reveal">
+        <button class="qa-q" data-toggle-target="dua-<%= idx %>" aria-expanded="false">
+          <span><span class="q-no"><%= idx + 1 %>.</span> <%= d.title %></span>
+          <svg class="icon chev"><use href="#i-chev"/></svg>
+        </button>
+        <div id="dua-<%= idx %>" class="qa-a hidden">
+          <div class="ans-meta">
+            <% if (d.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+            <% if (d.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+            <% if (d.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+            <% if (d.reference) { %><span class="muted"><%= d.reference %></span><% } %>
+          </div>
+          <% if (d.arabic) { %><p class="arabic"><%= d.arabic %></p><% } %>
+          <div class="answer-box">
+            <strong><svg class="icon sm"><use href="#i-check"/></svg> অর্থ:</strong>
+            <p><%= d.content %></p>
           </div>
         </div>
-        <div class="post-tags">
-          <% if (d.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-          <% if (d.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-          <% if (d.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-          <% if (d.reference) { %><span class="muted"><%= d.reference %></span><% } %>
-        </div>
-        <% if (d.arabic) { %><p class="arabic"><%= d.arabic %></p><% } %>
-        <div class="post-foot">
-          <a href="/dua/<%= d._id %>" class="more">অর্থসহ পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-        </div>
-      </article>
+      </div>
     <% }) %>
   </div>
 </section>
