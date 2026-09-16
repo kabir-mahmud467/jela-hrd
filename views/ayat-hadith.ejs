@@ -1,0 +1,51 @@
+<%- include('partials/header', { title: 'আয়াত-হাদিস মুখস্থ' }) %>
+<section class="sec-note">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>আয়াত-হাদিস মুখস্থ</h2>
+  </div>
+  <p class="page-sub">PDF অনুযায়ী ৩ পর্বের আয়াত-হাদিস বিষয় — টিক দিলে ব্রাউজারে সংরক্ষিত থাকবে।</p>
+
+  <div class="chips">
+    <a href="/ayat-hadith" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <% Object.entries(phases).forEach(([val,label])=>{ %>
+      <a href="/ayat-hadith/porbo/<%= val %>" class="chip <%= phase===val ? 'active' : '' %>"><%= label %></a>
+    <% }) %>
+  </div>
+
+  <% const phasesToShow = phase ? [phase] : Object.keys(phases); %>
+  <% phasesToShow.forEach(function(ph){ %>
+    <div class="panel" style="margin-top:12px">
+      <h3><svg class="icon sm"><use href="#i-book"/></svg> <%= phases[ph] %></h3>
+      <% const items = (checklistData[ph]||[]).filter(function(it){ return it.c.indexOf('আয়াত')!==-1 || it.c.indexOf('আয়াত')!==-1; }); %>
+      <% if(items.length===0){ %><p class="muted">এই পর্বে আয়াত-হাদিস তালিকা নেই</p><% } %>
+      <div class="qa-list" data-ayathadith-phase="<%= ph %>">
+        <% let last=''; items.forEach(function(it,idx){ %>
+          <% if(it.c!==last){ %><div style="margin:8px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px"><%= it.c %></div><% last=it.c; } %>
+          <label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer">
+            <input type="checkbox" data-k="ayat-<%= ph %>-<%= idx %>" style="margin-top:3px">
+            <span style="font-size:14px"><%= it.t %></span>
+          </label>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+</section>
+
+<script>
+(function(){
+  var KEY='jela_ayat_hadith_v1';
+  function load(){ try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}} }
+  function save(o){ try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){} }
+  var store=load();
+  var boxes=document.querySelectorAll('[data-ayathadith-phase] input[type=checkbox]');
+  for(var i=0;i<boxes.length;i++){
+    var k=boxes[i].getAttribute('data-k');
+    boxes[i].checked=!!store[k];
+    boxes[i].addEventListener('change',function(e){
+      var s=load(); var kk=e.target.getAttribute('data-k'); s[kk]=e.target.checked; if(!e.target.checked) delete s[kk]; save(s);
+    });
+  }
+})();
+</script>
+<%- include('partials/footer') %>
