@@ -9,6 +9,7 @@ const Dua = require('../models/Dua');
 const Bibidh = require('../models/Bibidh');
 const Surah = require('../models/Surah');
 const AyatHadith = require('../models/AyatHadith');
+const Question = require('../models/Question');
 const checklistData = require('../config/checklist');
 const { PHASE_VALUES } = require('../config/phases');
 
