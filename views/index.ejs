@@ -82,7 +82,7 @@
     updateProgress();
   }
   // apply saved state to server-rendered initial list
-  applyState(); updateProgress();
+  try{ applyState(); updateProgress(); }catch(e){ console.log(e); }
   document.getElementById('checklist-tabs').addEventListener('click',function(e){
     var b=e.target.closest('[data-check-phase]'); if(!b) return;
     current=b.getAttribute('data-check-phase');
