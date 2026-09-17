@@ -1,15 +1,15 @@
-<%- include('partials/header', { title: 'আয়াত-হাদিস' }) %>
+<%- include('partials/header', { title: 'আয়াত-হাদিস' }) %>
 <% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
 <section class="sec-note">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
-    <h2>আয়াত-হাদিস মুখস্থ</h2>
+    <h2>আয়াত-হাদিস মুখস্থ</h2>
   </div>
-  <p class="page-sub">PDF অনুযায়ী আয়াত/হাদিস — পর্ব ও ধরন (আয়াত/হাদিস) অনুযায়ী। শিরোনামে চাপ দিলে আরবি, উচ্চারণ ও অর্থ খুলবে।</p>
+  <p class="page-sub">বিষয় অনুযায়ী সাজানো — প্রতি বিষয়ের নিচে আয়াত (১, ২…) ও হাদিস। শিরোনামে চাপ দিলে আরবি, উচ্চারণ ও অর্থ খুলবে।</p>
 
   <div class="chips">
     <a href="/ayat-hadith<%= phase ? '?phase='+phase : '' %>" class="chip <%= !kind ? 'active' : '' %>">সব ধরন</a>
-    <a href="/ayat-hadith/kind/ayat<%= phase ? '?phase='+phase : '' %>" class="chip <%= kind==='ayat' ? 'active' : '' %>">আয়াত</a>
+    <a href="/ayat-hadith/kind/ayat<%= phase ? '?phase='+phase : '' %>" class="chip <%= kind==='ayat' ? 'active' : '' %>">আয়াত</a>
     <a href="/ayat-hadith/kind/hadis<%= phase ? '?phase='+phase : '' %>" class="chip <%= kind==='hadis' ? 'active' : '' %>">হাদিস</a>
   </div>
   <div class="chips">
@@ -20,62 +20,54 @@
   </div>
 
   <form method="GET" action="/ayat-hadith" class="search">
-    <input type="text" name="q" placeholder="আয়াত/হাদিস খুঁজুন..." value="<%= q %>" maxlength="100">
+    <input type="text" name="q" placeholder="আয়াত/হাদিস খুঁজুন..." value="<%= q %>" maxlength="100">
     <% if(phase){ %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <% if(kind){ %><input type="hidden" name="kind" value="<%= kind %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
 
-  <% const ayatItems = items.filter(function(x){return x.kind==='ayat'}); %>
-  <% const hadisItems = items.filter(function(x){return x.kind==='hadis'}); %>
-
-  <% function renderGroup(list, prefix, title, emptyMsg){ %>
-    <div class="panel" style="margin-top:12px">
-      <h3><svg class="icon sm"><use href="#i-book"/></svg> <%= title %> <span class="badge"><%= list.length %></span></h3>
-      <% if(list.length===0){ %><p class="muted"><%= emptyMsg %></p><% } %>
-      <div class="qa-list">
-        <% list.forEach(function(it,idx){ %>
-          <div class="qa-item reveal">
-            <button class="qa-q" data-toggle-target="<%= prefix %>-<%= idx %>" aria-expanded="false">
-              <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= it.title %></span>
-              <svg class="icon chev"><use href="#i-chev"/></svg>
-            </button>
-            <div id="<%= prefix %>-<%= idx %>" class="qa-a hidden">
-              <div class="ans-meta">
-                <span class="badge"><%= it.kind==='ayat' ? 'আয়াত' : 'হাদিস' %></span>
-                <% if(it.topic){ %><span class="badge light"><%= it.topic %></span><% } %>
-                <% if(it.phase==='abedonpotrer-purbe'){ %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-                <% if(it.phase==='proshnopotrer-purbe'){ %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-                <% if(it.phase==='shopother-purbe'){ %><span class="badge light">শপথের পূর্বে</span><% } %>
-                <% if(it.reference){ %><span class="muted"><%= it.reference %></span><% } %>
-              </div>
-              <% if(it.arabic){ %><p class="arabic"><%= it.arabic %></p><% } %>
-              <% if(it.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= it.transliteration %></p><% } %>
-              <div class="answer-box">
-                <strong>অর্থ:</strong>
-                <p><%= it.translation %></p>
-                <% if((it.topic && it.topic.indexOf('পাঁচ দফা')!==-1) || (it.title && it.title.indexOf('পাঁচ দফা')!==-1)){ %>
-                  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--navy)">৫ দফা কর্মসূচি দেখুন</summary>
-                    <ol style="margin:6px 0 0 18px;line-height:1.7">
-                      <li>দাওয়াত</li>
-                      <li>সংগঠন</li>
-                      <li>প্রশিক্ষণ</li>
-                      <li>ইসলামী শিক্ষা আন্দোলন ও ছাত্র সমস্যার সমাধান</li>
-                      <li>ইসলামী সমাজ বিনির্মাণ</li>
-                    </ol>
-                  </details>
-                <% } %>
-              </div>
-            </div>
-          </div>
-        <% }) %>
+  <% function renderItem(it, tid, no, kindLabel){ %>
+    <div class="qa-item reveal">
+      <button class="qa-q" data-toggle-target="<%= tid %>" aria-expanded="false">
+        <span><span class="q-no"><%= toBengali(no) %>.</span> <%= it.title %></span>
+        <svg class="icon chev"><use href="#i-chev"/></svg>
+      </button>
+      <div id="<%= tid %>" class="qa-a hidden">
+        <div class="ans-meta">
+          <span class="badge"><%= kindLabel %></span>
+          <% if(it.reference){ %><span class="muted"><%= it.reference %></span><% } %>
+        </div>
+        <% if(it.arabic){ %><p class="arabic"><%= it.arabic %></p><% } %>
+        <% if(it.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= it.transliteration %></p><% } %>
+        <div class="answer-box">
+          <strong>অর্থ:</strong>
+          <p><%= it.translation %></p>
+          <% if((it.topic && it.topic.indexOf('পাঁচ দফা')!==-1) || (it.title && it.title.indexOf('পাঁচ দফা')!==-1)){ %>
+            <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--navy)">৫ দফা কর্মসূচি দেখুন</summary>
+              <ol style="margin:6px 0 0 18px;line-height:1.7">
+                <li>দাওয়াত</li>
+                <li>সংগঠন</li>
+                <li>প্রশিক্ষণ</li>
+                <li>ইসলামী শিক্ষা আন্দোলন ও ছাত্র সমস্যার সমাধান</li>
+                <li>ইসলামী সমাজ বিনির্মাণ</li>
+              </ol>
+            </details>
+          <% } %>
+        </div>
       </div>
     </div>
   <% } %>
 
-  <% if(!kind || kind==='ayat'){ renderGroup(ayatItems, 'ayat', 'আয়াত', 'কোনো আয়াত পাওয়া যায়নি'); } %>
-  <% if(!kind || kind==='hadis'){ renderGroup(hadisItems, 'hadis', 'হাদিস', 'কোনো হাদিস পাওয়া যায়নি'); } %>
+  <% (groups || []).forEach(function(g, gi){ %>
+    <div class="panel" style="margin-top:12px">
+      <h3><svg class="icon sm"><use href="#i-book"/></svg> <%= g.topic %> <span class="badge"><%= g.ayat.length + g.hadis.length %></span></h3>
+      <div class="qa-list">
+        <% g.ayat.forEach(function(it, idx){ renderItem(it, 'g'+gi+'a'+idx, idx+1, 'আয়াত'); }); %>
+        <% g.hadis.forEach(function(it, idx){ renderItem(it, 'g'+gi+'h'+idx, idx+1, 'হাদিস'); }); %>
+      </div>
+    </div>
+  <% }) %>
 
-  <% if(items.length===0){ %><p class="empty" style="margin-top:12px">কোনো আয়াত/হাদিস পাওয়া যায়নি। অন্য পর্ব বা ধরন চেষ্টা করুন।</p><% } %>
+  <% if(!items || items.length===0){ %><p class="empty" style="margin-top:12px">কোনো আয়াত/হাদিস পাওয়া যায়নি। অন্য পর্ব বা ধরন চেষ্টা করুন।</p><% } %>
 </section>
 <%- include('partials/footer') %>

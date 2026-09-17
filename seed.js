@@ -55,7 +55,7 @@ async function seed() {
   }
   if ((await Bibidh.countDocuments()) === 0) {
     await Bibidh.insertMany([
-      { title: 'ওজুর ফরজ কয়টি', content: 'ওজুর ফরজ ৪টি: ১. মুখ ধোয়া, ২. কনুইসহ হাত ধোয়া, ৩. মাথা মাসেহ, ৪. টাখনুসহ পা ধোয়া।', category: 'masala-masayel', phase: 'abedonpotrer-purbe', reference: 'সূরা মায়িদা: ৬' }
+      { title: 'ওজুর ফরজ কয়টি', content: 'ওজুর ফরজ ৪টি: ১. মুখ ধোয়া, ২. কনুইসহ হাত ধোয়া, ৩. মাথা মাসেহ, ৪. টাখনুসহ পা ধোয়া।', category: 'masala-masayel', reference: 'সূরা মায়িদা: ৬' }
     ]);
   }
   if ((await Question.countDocuments()) === 0) {

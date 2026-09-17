@@ -91,14 +91,11 @@ function validateBody(kind, body) {
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
   } else if (kind === 'bibidh') {
-    const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
     const BIBIDH_VALUES = ['ilmul-quran','ilmul-hadis','ilmut-tajbid','masala-masayel','shane-nuzul','jiboni','dibosh','motobad','guruttopurno-ghotonaboli','jatiyo-antorjatik','onnanno-proshno','samprotik-proshno'];
     data.title = str(body.title, 300);
     data.content = str(body.content, 10000);
     data.category = str(body.category, 50) || 'ilmul-quran';
     if (!BIBIDH_VALUES.includes(data.category)) data.category = 'ilmul-quran';
-    data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
-    if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
     data.reference = str(body.reference, 300);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('বিস্তারিত আবশ্যক।');

@@ -23,7 +23,21 @@ function buildFilter(q, phase, kind) {
 }
 
 function renderList(res, items, q, phase, kind) {
-  res.render('ayat-hadith', { items, q, phase, kind, phases: Question.PHASES });
+  // বিষয় অনুযায়ী গ্রুপ: প্রতি বিষয়ে আগে আয়াত (১, ২…), তারপর হাদিস (১, ২…)
+  const groups = [];
+  const byTopic = new Map();
+  (items || []).forEach((it) => {
+    const t = it.topic || 'সাধারণ';
+    if (!byTopic.has(t)) {
+      const g = { topic: t, ayat: [], hadis: [] };
+      byTopic.set(t, g);
+      groups.push(g);
+    }
+    const g = byTopic.get(t);
+    if (it.kind === 'hadis') g.hadis.push(it);
+    else g.ayat.push(it);
+  });
+  res.render('ayat-hadith', { items, groups, q, phase, kind, phases: Question.PHASES });
 }
 
 // GET /ayat-hadith?q=&phase=&kind=

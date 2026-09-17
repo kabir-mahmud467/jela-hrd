@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { PHASE_VALUES } = require('./Question');
 
 const BIBIDH_CATS = {
   'ilmul-quran': 'ইলমূল কুরআন',
@@ -21,13 +20,11 @@ const bibidhSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 300 },
   content: { type: String, required: true, trim: true, maxlength: 10000 },
   category: { type: String, enum: BIBIDH_VALUES, default: 'ilmul-quran', index: true },
-  phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },
   createdAt: { type: Date, default: Date.now }
 });
 
 bibidhSchema.index({ category: 1, createdAt: -1 });
-bibidhSchema.index({ phase: 1, createdAt: -1 });
 
 bibidhSchema.statics.BIBIDH_CATS = BIBIDH_CATS;
 bibidhSchema.statics.BIBIDH_VALUES = BIBIDH_VALUES;

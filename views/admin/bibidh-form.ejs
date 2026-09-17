@@ -21,11 +21,6 @@
     <option value="<%= val %>" <%= ((!item.category && val === 'ilmul-quran') || item.category === val) ? 'selected' : '' %>><%= cats[val] %></option>
   <% }) %>
 </select>
-<label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
-  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
-  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
-  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
-</select>
 <label for="f-title">শিরোনাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
 <label for="f-ref">রেফারেন্স</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300">
 <label for="f-content">বিস্তারিত</label><textarea id="f-content" name="content" rows="8" required maxlength="10000"><%= item.content || '' %></textarea>

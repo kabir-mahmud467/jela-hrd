@@ -56,9 +56,12 @@ router.get('/offline-manifest.json', async (req, res, next) => {
       urls.add(`/notes/phase/${p}`);
       urls.add(`/dars/porbo/${p}`);
       urls.add(`/dua/porbo/${p}`);
-      urls.add(`/bibidh?cat=${p}`);
       urls.add(`/surah/porbo/${p}`);
       urls.add(`/ayat-hadith/porbo/${p}`);
+    });
+    Bibidh.BIBIDH_VALUES.forEach((c) => {
+      urls.add(`/bibidh?cat=${c}`);
+      urls.add(`/bibidh/cat/${c}`);
     });
 
     const [notes, dars, duas, bibidh, surah, ayatHadith, counts] = await Promise.all([

@@ -2,9 +2,6 @@
 <a href="/bibidh?cat=<%= item.category %>" class="back"><svg class="icon sm"><use href="#i-back"/></svg> বিবিধ</a>
 <article class="detail reveal in">
   <span class="badge"><%= cats[item.category]||item.category %></span>
-  <% if(item.phase==='abedonpotrer-purbe'){ %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-  <% if(item.phase==='proshnopotrer-purbe'){ %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-  <% if(item.phase==='shopother-purbe'){ %><span class="badge light">শপথের পূর্বে</span><% } %>
   <h1><%= item.title %></h1>
   <p style="white-space:pre-line"><%= item.content %></p>
   <% if(item.reference){ %><p class="muted">রেফারেন্স: <%= item.reference %></p><% } %>
