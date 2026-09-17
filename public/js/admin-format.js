@@ -55,9 +55,13 @@
     bold: function () { exec('bold'); },
     italic: function () { exec('italic'); },
     underline: function () { exec('underline'); },
+    strike: function () { exec('strikeThrough'); },
     heading: function () { exec('formatBlock', 'h3'); },
     para: function () { exec('formatBlock', 'p'); },
     list: function () { exec('insertUnorderedList'); },
+    ordered: function () { exec('insertOrderedList'); },
+    indent: function () { exec('indent'); },
+    outdent: function () { exec('outdent'); },
     link: function () {
       var u = null;
       try { u = window.prompt('লিংকের ঠিকানা দিন (https://…)', 'https://'); } catch (e) {}
@@ -73,9 +77,13 @@
     { act: 'bold', label: 'B', title: 'গাঢ় (bold)', cls: 'b' },
     { act: 'italic', label: 'I', title: 'তির্যক (italic)', cls: 'i' },
     { act: 'underline', label: 'U', title: 'নিচে দাগ (underline)', cls: 'u' },
+    { act: 'strike', label: 'S', title: 'কাটা দাগ (strikethrough)', cls: 's' },
     { act: 'heading', label: 'H', title: 'শিরোনাম', cls: '' },
     { act: 'para', label: 'P', title: 'সাধারণ প্যারা', cls: '' },
     { act: 'list', label: '•', title: 'বুলেট তালিকা', cls: '' },
+    { act: 'ordered', label: '1.', title: 'নম্বর তালিকা (auto numbering)', cls: '' },
+    { act: 'indent', label: '⇥', title: 'ভেতরে সরান (indent)', cls: '' },
+    { act: 'outdent', label: '⇤', title: 'বাইরে আনুন (outdent)', cls: '' },
     { act: 'link', label: 'লিংক', title: 'লিংক যোগ করুন', cls: '' },
     { act: 'clear', label: '✕', title: 'ফরম্যাট মুছুন', cls: '' }
   ];
@@ -176,18 +184,29 @@
     }
     bar.innerHTML = html;
     var btns = bar.querySelectorAll('button');
+    var lastTouchFire = 0;
+    function fire(btn) {
+      var ed = getEd();
+      if (!ed) return;
+      restoreRange(ed);
+      var act = btn.getAttribute('data-act');
+      if (ACTIONS[act]) ACTIONS[act]();
+      saveRange();
+      try { ed.focus(); } catch (e) {}
+    }
     for (var j = 0; j < btns.length; j++) {
       btns[j].addEventListener('mousedown', function (ev) { ev.preventDefault(); });
       btns[j].addEventListener('touchstart', function (ev) { ev.preventDefault(); }, { passive: false });
+      /* iOS cancels click after prevented touchstart — act on touchend */
+      btns[j].addEventListener('touchend', function (ev) {
+        ev.preventDefault();
+        lastTouchFire = Date.now();
+        fire(this);
+      }, { passive: false });
       btns[j].addEventListener('click', function (ev) {
         ev.preventDefault();
-        var ed = getEd();
-        if (!ed) return;
-        restoreRange(ed);
-        var act = this.getAttribute('data-act');
-        if (ACTIONS[act]) ACTIONS[act]();
-        saveRange();
-        try { ed.focus(); } catch (e) {}
+        if (Date.now() - lastTouchFire < 800) return;
+        fire(this);
       });
     }
     return bar;
@@ -210,39 +229,58 @@
   forEachTarget(setupEditor);
 
   if (isTouch) {
-    /* ---- mobile: floating bar, selection-এই শুধু দেখায় ---- */
-    var floatBar = buildBar(function () {
-      if (lastEditor && lastEditor.parentNode) return lastEditor;
-      var ae = document.activeElement;
-      if (ae && ae.className && String(ae.className).indexOf('rich-editor') >= 0) return ae;
-      return null;
-    }, 'fmt-bar fmt-float');
+    /* ---- mobile: floating bar, selection-এই শুধু দেখায় ----
+       activeElement-এর উপর নির্ভর নয় — iOS-এ selection থাকলেও focus
+       body-তে থাকতে পারে, তাই anchorNode থেকে editor খুঁজি। */
+    var floatBar = buildBar(function () { return lastEditor; }, 'fmt-bar fmt-float');
     floatBar.style.display = 'none';
     document.body.appendChild(floatBar);
+    function editorOf(node) {
+      while (node && node !== document) {
+        if (node.className && String(node.className).indexOf('rich-editor') >= 0) return node;
+        node = node.parentNode;
+      }
+      return null;
+    }
+    function currentEditor() {
+      try {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+          var ed = editorOf(sel.anchorNode);
+          if (ed) return ed;
+        }
+      } catch (e) {}
+      return null;
+    }
     var rafId = null;
     function evalSel() {
       rafId = null;
-      var show = false;
-      var ae = document.activeElement;
-      if (ae && ae.className && String(ae.className).indexOf('rich-editor') >= 0) {
-        try {
-          var sel = window.getSelection();
-          if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
-            show = true;
-            lastEditor = ae;
-          }
-        } catch (e) {}
+      var ed = currentEditor();
+      if (ed) {
+        lastEditor = ed;
+        floatBar.style.display = 'flex';
+      } else {
+        floatBar.style.display = 'none';
       }
-      floatBar.style.display = show ? 'flex' : 'none';
     }
     function schedule() {
       if (rafId != null) return;
       if ('requestAnimationFrame' in window) rafId = requestAnimationFrame(evalSel);
       else evalSel();
     }
+    /* iOS selection দেরিতে settle হয় — touch-এর পরেও মূল্যায়ন */
+    function scheduleLate() {
+      schedule();
+      setTimeout(schedule, 120);
+      setTimeout(schedule, 400);
+    }
     document.addEventListener('selectionchange', schedule);
+    document.addEventListener('touchend', scheduleLate, { passive: true });
+    var scrollT = null;
     document.addEventListener('scroll', function () {
       floatBar.style.display = 'none';
+      if (scrollT) clearTimeout(scrollT);
+      scrollT = setTimeout(schedule, 250);
     }, { passive: true });
     document.addEventListener('submit', function () {
       floatBar.style.display = 'none';
