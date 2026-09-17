@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-const Important = require('../models/Important');
 const Book = require('../models/Book');
 const Note = require('../models/Note');
 const Dars = require('../models/Dars');
@@ -91,13 +90,6 @@ router.get('/offline-manifest.json', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-// bibidh handles guruttopurno totho replacement — keep old gurutto as redirect for bookmarks
-router.get('/gurutto', (req,res)=> res.redirect(301,'/bibidh'));
-router.get('/gurutto/:id', (req,res)=> {
-  const id=(req.params.id||'').toString();
-  return res.redirect(301, '/bibidh/'+encodeURIComponent(id));
 });
 
 // বই — ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)

@@ -102,13 +102,6 @@ function validateBody(kind, body) {
     data.reference = str(body.reference, 300);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('বিস্তারিত আবশ্যক।');
-  } else if (kind === 'important') {
-    data.title = str(body.title, 300);
-    data.description = str(body.description, 5000);
-    data.category = str(body.category, 100) || 'সাধারণ';
-    data.isPinned = !!body.isPinned;
-    if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
-    if (data.description.length < 3) errors.push('বিবরণ আবশ্যক।');
   }
   return { errors, data };
 }

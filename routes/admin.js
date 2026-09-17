@@ -5,7 +5,6 @@ const router = express.Router();
 
 const Admin = require('../models/Admin');
 const Ban = require('../models/Ban');
-const Important = require('../models/Important');
 const Book = require('../models/Book');
 const Note = require('../models/Note');
 const Dars = require('../models/Dars');
@@ -94,8 +93,7 @@ router.get('/logout', (req, res) => {
 // ---------- Dashboard (remake: stats + recent + live attacks + system) ----------
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
-    const [cImportant, cBook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
-      Important.countDocuments(),
+    const [cBook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
       Book.countDocuments(),
       Note.countDocuments(),
       Dars.countDocuments(),
@@ -106,7 +104,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
       Ban.countDocuments()
     ]);
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [recentB, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, recentImp, events24h] = await Promise.all([
+    const [recentB, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, events24h] = await Promise.all([
       Book.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Note.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Dars.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
@@ -114,7 +112,6 @@ router.get('/', requireAdmin, async (req, res, next) => {
       AyatHadith.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Surah.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Bibidh.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
-      Important.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       SecurityEvent.countDocuments({ createdAt: { $gte: since24h } }).catch(() => 0)
     ]);
     const recent = [
@@ -124,8 +121,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
       ...recentDua.map(r => ({ type: 'দুআ', title: r.title, when: r.createdAt, adminUrl: '/admin/duas' })),
       ...recentAyat.map(r => ({ type: 'আয়াত-হাদিস', title: r.title, when: r.createdAt, adminUrl: '/admin/ayathadith' })),
       ...recentSurah.map(r => ({ type: 'সূরা', title: r.title, when: r.createdAt, adminUrl: '/admin/surah' })),
-      ...recentBibidh.map(r => ({ type: 'বিবিধ', title: r.title, when: r.createdAt, adminUrl: '/admin/bibidh' })),
-      ...recentImp.map(r => ({ type: 'তথ্য', title: r.title, when: r.createdAt, adminUrl: '/admin/importants' }))
+      ...recentBibidh.map(r => ({ type: 'বিবিধ', title: r.title, when: r.createdAt, adminUrl: '/admin/bibidh' }))
     ]
       .sort((a, b) => new Date(b.when || 0) - new Date(a.when || 0))
       .slice(0, 8);
@@ -140,7 +136,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     };
     res.render('admin/dashboard', {
       admin: req.session.admin,
-      counts: { important: cImportant, book: cBook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
+      counts: { book: cBook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
       recent,
       topIps,
       events24h,
@@ -157,12 +153,11 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     const q = escRegex(req.query.q);
     if (!q) return res.redirect('/admin');
     const rx = new RegExp(q, 'i');
-    const [books, notes, dars, duas, importants, ayatHadith, surah, bibidh] = await Promise.all([
+    const [books, notes, dars, duas, ayatHadith, surah, bibidh] = await Promise.all([
       Book.find({ $or: [{ title: rx }, { author: rx }] }).limit(20).select('title author').lean().catch(() => []),
       Note.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dars.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dua.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
-      Important.find({ $or: [{ title: rx }, { description: rx }] }).limit(20).select('title').lean().catch(() => []),
       AyatHadith.find({ $or: [{ title: rx }, { translation: rx }, { reference: rx }, { topic: rx }] }).limit(20).select('title').lean().catch(() => []),
       Surah.find({ $or: [{ title: rx }, { translation: rx }] }).limit(20).select('title').lean().catch(() => []),
       Bibidh.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => [])
@@ -170,7 +165,7 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     res.render('admin/search', {
       admin: req.session.admin,
       q: req.query.q,
-      results: { books, notes, dars, duas, importants, ayatHadith, surah, bibidh }
+      results: { books, notes, dars, duas, ayatHadith, surah, bibidh }
     });
   } catch (err) {
     next(err);
@@ -191,18 +186,17 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
       return send('security-events', events);
     }
     if (t === 'all') {
-      const [books, notes, dars, duas, importants, ayatHadith, surah, bibidh, bans] = await Promise.all([
+      const [books, notes, dars, duas, ayatHadith, surah, bibidh, bans] = await Promise.all([
         Book.find().limit(2000).lean(),
         Note.find().limit(2000).lean(),
         Dars.find().limit(2000).lean(),
         Dua.find().limit(2000).lean(),
-        Important.find().limit(2000).lean(),
         AyatHadith.find().limit(2000).lean(),
         Surah.find().limit(2000).lean(),
         Bibidh.find().limit(2000).lean(),
         Ban.find().lean()
       ]);
-      return send('backup', { books, notes, dars, duas, importants, ayatHadith, surah, bibidh, bans, exportedAt: new Date() });
+      return send('backup', { books, notes, dars, duas, ayatHadith, surah, bibidh, bans, exportedAt: new Date() });
     }
     return res.redirect('/admin');
   } catch (err) {
@@ -267,7 +261,7 @@ router.post('/security/clear', requireAdmin, adminWriteLimiter, async (req, res,
   }
 });
 
-// ---------- Generic CRUD (importants/books/notes) ----------
+// ---------- Generic CRUD (books/notes/dars/duas/ayathadith/surah/bibidh) ----------
 function crudRoutes({ path, Model, viewPrefix, kind }) {
   router.get(`/${path}`, requireAdmin, async (req, res, next) => {
     try {
@@ -332,7 +326,6 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
   });
 }
 
-crudRoutes({ path: 'importants', Model: Important, viewPrefix: 'important', kind: 'important' });
 crudRoutes({ path: 'books', Model: Book, viewPrefix: 'book', kind: 'book' });
 crudRoutes({ path: 'notes', Model: Note, viewPrefix: 'note', kind: 'note' });
 crudRoutes({ path: 'dars', Model: Dars, viewPrefix: 'dars', kind: 'dars' });

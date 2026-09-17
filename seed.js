@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Important = require('./models/Important');
 const Book = require('./models/Book');
 const Note = require('./models/Note');
 const Question = require('./models/Question');
@@ -18,12 +17,6 @@ async function seed() {
 
   try {
 
-  if ((await Important.countDocuments()) === 0) {
-    await Important.insertMany([
-      { title: 'ভর্তি / পরীক্ষার গুরুত্বপূর্ণ নোটিশ', description: 'এখানে জেলার গুরুত্বপূর্ণ আপডেট থাকবে। Admin panel থেকে পরিবর্তন করুন।', category: 'নোটিশ', isPinned: true },
-      { title: 'সাপ্তাহিক আলোচনা সভা', description: 'প্রতি শুক্রবার বিকাল ৩টায় আলোচনা সভা অনুষ্ঠিত হবে।', category: 'সভা' }
-    ]);
-  }
   if ((await Book.countDocuments()) === 0) {
     await Book.insertMany([
       { title: 'বাংলা ব্যাকরণ বই', author: 'ড. সুনীতিকুমার', link: 'https://example.com/book1.pdf', description: 'ব্যাকরণ শেখার সেরা বই', category: 'বাংলা', phase: 'abedonpotrer-purbe' },

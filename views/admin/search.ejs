@@ -26,7 +26,6 @@
     ['আয়াত-হাদিস', results.ayatHadith || [], '/admin/ayathadith', r => r.title],
     ['সূরা', results.surah || [], '/admin/surah', r => r.title],
     ['বিবিধ', results.bibidh || [], '/admin/bibidh', r => r.title],
-    ['গুরুত্বপূর্ণ তথ্য', results.importants, '/admin/importants', r => r.title],
   ]; %>
   <% let total = 0; sections.forEach(s => total += s[1].length); %>
   <% if (total === 0) { %><div class="empty">কিছু পাওয়া যায়নি। অন্য শব্দে চেষ্টা করুন।</div><% } %>
