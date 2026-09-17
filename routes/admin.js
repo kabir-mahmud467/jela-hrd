@@ -19,6 +19,33 @@ const { flagEvent, getTopIps } = require('../middleware/traffic');
 const SecurityEvent = require('../models/SecurityEvent');
 const { validateBody } = require('../middleware/validate');
 
+// Bijoy (SutonnyMJ) auto-convert — client JS বন্ধ থাকলেও সার্ভারে রূপান্তর হবে।
+// শুধু Bijoy-চিহ্নিত টেক্সট ছোঁয় (Unicode বাংলা / English / URL অপরিবর্তিত থাকে)।
+let BijoyConverter = null;
+try {
+  BijoyConverter = require('../public/js/bijoy-converter.js');
+} catch {
+  BijoyConverter = null;
+}
+// kind অনুযায়ী বাংলা ফিল্ড (link/arabic বাদ — এগুলো কখনো convert নয়)
+const BIJOY_FIELDS = {
+  book: ['title', 'author', 'description', 'category'],
+  note: ['title', 'content'],
+  dars: ['title', 'content', 'reference'],
+  dua: ['title', 'transliteration', 'content', 'reference'],
+  ayathadith: ['title', 'transliteration', 'translation', 'reference', 'topic'],
+  surah: ['title', 'transliteration', 'translation', 'reference'],
+  bibidh: ['title', 'content', 'reference']
+};
+function autoBijoy(body, kind) {
+  if (!BijoyConverter || !body || !BIJOY_FIELDS[kind]) return;
+  BIJOY_FIELDS[kind].forEach((f) => {
+    if (typeof body[f] === 'string' && BijoyConverter.looksLikeBijoy(body[f])) {
+      body[f] = BijoyConverter.convertBijoyToUnicode(body[f]);
+    }
+  });
+}
+
 const net = require('net');
 
 function escRegex(s) {
@@ -275,6 +302,7 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
     res.render(`admin/${viewPrefix}-form`, { item: {}, admin: req.session.admin, error: null });
   });
   router.post(`/${path}`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    autoBijoy(req.body, kind);
     const { errors, data } = validateBody(kind, req.body);
     if (errors.length) {
       return res.status(400).render(`admin/${viewPrefix}-form`, {
@@ -303,6 +331,7 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
   router.post(`/${path}/:id`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
     try {
       if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
+      autoBijoy(req.body, kind);
       const { errors, data } = validateBody(kind, req.body);
       if (errors.length) {
         return res.status(400).render(`admin/${viewPrefix}-form`, {

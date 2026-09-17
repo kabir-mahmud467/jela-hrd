@@ -12,6 +12,8 @@ function compute() {
     const css = path.join(__dirname, '..', 'public', 'css', 'style.css');
     const theme = path.join(__dirname, '..', 'public', 'css', 'theme.css');
     const js = path.join(__dirname, '..', 'public', 'js', 'main.js');
+    const bijoy = path.join(__dirname, '..', 'public', 'js', 'bijoy-converter.js');
+    const adminBijoy = path.join(__dirname, '..', 'public', 'js', 'admin-bijoy.js');
     const pkg = path.join(__dirname, '..', 'package.json');
     const mt = (p) => {
       try {
@@ -26,7 +28,7 @@ function compute() {
     } catch {
       // ignore
     }
-    return `${pkgVer}.${mt(css)}.${mt(theme)}.${mt(js)}`;
+    return `${pkgVer}.${mt(css)}.${mt(theme)}.${mt(js)}.${mt(bijoy)}.${mt(adminBijoy)}`;
   } catch {
     return String(Date.now());
   }
