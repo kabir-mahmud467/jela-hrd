@@ -46,7 +46,7 @@
             <% if (n.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
             <% if (n.createdAt) { %><span class="muted"><%= new Date(n.createdAt).toLocaleDateString('bn-BD') %></span><% } %>
           </div>
-          <p style="white-space:pre-line"><%= n.content %></p>
+          <div class="content"><%- bnHtml(n.content) %></div>
         </div>
       </div>
     <% }) %>

@@ -34,7 +34,7 @@
           <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
           <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
         </div>
-        <% if (b.description) { %><p class="post-text"><%= b.description %></p><% } %>
+        <% if (b.description) { %><div class="content"><%- bnHtml(b.description) %></div><% } %>
         <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
         <div class="post-foot">
           <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন / ডাউনলোড</a>

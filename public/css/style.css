@@ -418,3 +418,25 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .stat-actions .btn { flex: 1 1 auto; }
   .table-actions .btn { flex: 0 0 auto; }
 }
+
+/* ===== Rich content (bn-format render) ===== */
+.content p { margin: 0 0 10px; }
+.content p:last-child { margin-bottom: 0; }
+.content h3 { font-size: 17px; color: var(--navy); margin: 14px 0 8px; line-height: 1.6; }
+.content ul { margin: 0 0 10px; padding-left: 22px; }
+.content li { margin-bottom: 5px; }
+.content a { color: var(--sky-dark); font-weight: 600; overflow-wrap: anywhere; }
+.content strong { color: var(--ink); }
+
+/* ===== Admin format toolbar ===== */
+.fmt-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--soft, #f4f7fb); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; margin-bottom: -4px; }
+.fmt-btn { min-width: 34px; padding: 5px 10px; border-radius: 7px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer; line-height: 1.4; }
+.fmt-btn:hover { border-color: var(--sky); color: var(--navy); }
+.fmt-btn:active { transform: translateY(1px); }
+.fmt-btn.fmt-b { font-weight: 800; }
+.fmt-btn.fmt-i { font-style: italic; }
+/* Mobile: static toolbar কখনো নয় — শুধু floating selection bar */
+.fmt-float { display: none; position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 200; box-shadow: var(--shadow-hover); margin-bottom: 0; max-width: calc(100vw - 20px); }
+@media (max-width: 760px) {
+  .fmt-bar:not(.fmt-float) { display: none; }
+}

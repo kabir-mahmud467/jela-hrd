@@ -20,6 +20,7 @@ const { securityMiddleware, sanitizeMiddleware, globalLimiter } = require('./mid
 const { ipBanCheck } = require('./middleware/ipBan');
 const { trafficMiddleware, flagEvent } = require('./middleware/traffic');
 const { getAssetVer } = require('./config/assets');
+const { renderHtml: bnHtml, toPlain: bnText } = require(path.join(__dirname, 'lib', 'bn-format.js'));
 
 const app = express();
 
@@ -129,6 +130,19 @@ app.get('/healthz', (req, res) =>
 // Static assets — rate limit-এর আগেই serve করো (প্রতি পেজে CSS/JS গণনায় আসবে না)
 // maxAge 1d + ?v= version query: version বদলালে browser নতুন ফাইল আনে, পুরনো cache সমস্যা হয় না।
 // ?v= ছাড়া সরাসরি /css/style.css হিট করলে dev-এ no-cache যাতে এডিট সঙ্গে সঙ্গে দেখা যায়।
+// lib/ (browser+Node shared modules) — একই /js/* URL-এ serve হয়; public-এ না
+// পেলে এখানে খোঁজে, তাই Vercel-এও কাজ করে (public/ function-এ নাও থাকতে পারে)।
+app.use(
+  '/js',
+  express.static(path.join(__dirname, 'lib'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  })
+);
 app.use(
   express.static(path.join(__dirname, 'public'), {
     maxAge: '1d',
@@ -240,6 +254,8 @@ app.use((req, res, next) => {
   res.locals.duas = [];
   res.locals.hint = null;
   res.locals.retryAfter = 0;
+  res.locals.bnHtml = bnHtml;
+  res.locals.bnText = bnText;
   next();
 });
 

@@ -39,7 +39,7 @@
           <% if (d.transliteration) { %><p class="muted" style="font-style: italic; border-left: 3px solid var(--sky); padding-left: 10px;"><strong>উচ্চারণ:</strong> <%= d.transliteration %></p><% } %>
           <div class="answer-box">
             <strong><svg class="icon sm"><use href="#i-check"/></svg> অর্থ:</strong>
-            <p><%= d.content %></p>
+            <div class="content"><%- bnHtml(d.content) %></div>
           </div>
         </div>
       </div>

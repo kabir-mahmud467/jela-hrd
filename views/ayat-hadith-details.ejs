@@ -11,7 +11,7 @@
   <% if(item.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= item.transliteration %></p><% } %>
   <div class="answer-box">
     <strong>অর্থ:</strong>
-    <p><%= item.translation %></p>
+    <div class="content"><%- bnHtml(item.translation) %></div>
   </div>
   <% if(item.reference){ %><p class="muted">রেফারেন্স: <%= item.reference %></p><% } %>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= item.createdAt ? new Date(item.createdAt).toLocaleDateString('bn-BD') : '' %></small>

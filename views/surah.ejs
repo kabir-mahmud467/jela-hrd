@@ -49,7 +49,7 @@
             <% if(s.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= s.transliteration %></p><% } %>
             <div class="answer-box">
               <strong>অর্থ:</strong>
-              <p style="white-space:pre-line"><%= s.translation %></p>
+              <div class="content"><%- bnHtml(s.translation) %></div>
             </div>
           <% } %>
         </div>

@@ -35,7 +35,7 @@
           <% if (l.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
           <% if (l.reference) { %><span class="muted"><%= l.reference %></span><% } %>
         </div>
-        <p class="post-text"><%= (l.content || '').substring(0, 220) %>...</p>
+        <p class="post-text"><%= bnText(l.content || '').substring(0, 220) %>...</p>
         <div class="post-foot">
           <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
         </div>

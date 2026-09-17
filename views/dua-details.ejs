@@ -9,7 +9,7 @@
   <% if (dua.arabic) { %><p class="arabic big"><%= dua.arabic %></p><% } %>
   <div class="answer-box">
     <strong><svg class="icon sm"><use href="#i-check"/></svg> অর্থ:</strong>
-    <p><%= dua.content %></p>
+    <div class="content"><%- bnHtml(dua.content) %></div>
   </div>
   <% if (dua.reference) { %><p class="muted">রেফারেন্স: <%= dua.reference %></p><% } %>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= dua.createdAt ? new Date(dua.createdAt).toLocaleDateString('bn-BD') : '' %></small>

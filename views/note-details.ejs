@@ -6,7 +6,7 @@
   <% if (note.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
   <h1><%= note.title %></h1>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= note.createdAt ? new Date(note.createdAt).toLocaleDateString('bn-BD') : '' %></small>
-  <p class="content pre"><%= note.content %></p>
+  <div class="content"><%- bnHtml(note.content) %></div>
   <a href="/note" class="btn"><svg class="icon"><use href="#i-note"/></svg> আরও নোট পড়ুন</a>
 </article>
 <%- include('partials/footer') %>

@@ -35,7 +35,7 @@
             <span class="badge"><%= cats[it.category]||it.category %></span>
             <% if(it.reference){ %><span class="muted"><%= it.reference %></span><% } %>
           </div>
-          <p style="white-space:pre-line"><%= it.content %></p>
+          <div class="content"><%- bnHtml(it.content) %></div>
           <a href="/bibidh/<%= it._id %>" class="more">স্থায়ী লিংক <svg class="icon sm"><use href="#i-arrow"/></svg></a>
         </div>
       </div>

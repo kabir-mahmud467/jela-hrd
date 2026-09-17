@@ -12,8 +12,10 @@ function compute() {
     const css = path.join(__dirname, '..', 'public', 'css', 'style.css');
     const theme = path.join(__dirname, '..', 'public', 'css', 'theme.css');
     const js = path.join(__dirname, '..', 'public', 'js', 'main.js');
-    const bijoy = path.join(__dirname, '..', 'public', 'js', 'bijoy-converter.js');
+    const bijoy = path.join(__dirname, '..', 'lib', 'bijoy-converter.js');
     const adminBijoy = path.join(__dirname, '..', 'public', 'js', 'admin-bijoy.js');
+    const bnFormat = path.join(__dirname, '..', 'lib', 'bn-format.js');
+    const adminFormat = path.join(__dirname, '..', 'public', 'js', 'admin-format.js');
     const pkg = path.join(__dirname, '..', 'package.json');
     const mt = (p) => {
       try {
@@ -28,7 +30,7 @@ function compute() {
     } catch {
       // ignore
     }
-    return `${pkgVer}.${mt(css)}.${mt(theme)}.${mt(js)}.${mt(bijoy)}.${mt(adminBijoy)}`;
+    return `${pkgVer}.${mt(css)}.${mt(theme)}.${mt(js)}.${mt(bijoy)}.${mt(adminBijoy)}.${mt(bnFormat)}.${mt(adminFormat)}`;
   } catch {
     return String(Date.now());
   }

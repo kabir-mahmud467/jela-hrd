@@ -21,9 +21,10 @@ const { validateBody } = require('../middleware/validate');
 
 // Bijoy (SutonnyMJ) auto-convert — client JS বন্ধ থাকলেও সার্ভারে রূপান্তর হবে।
 // শুধু Bijoy-চিহ্নিত টেক্সট ছোঁয় (Unicode বাংলা / English / URL অপরিবর্তিত থাকে)।
+const path = require('path');
 let BijoyConverter = null;
 try {
-  BijoyConverter = require('../public/js/bijoy-converter.js');
+  BijoyConverter = require(path.join(__dirname, '..', 'lib', 'bijoy-converter.js'));
 } catch {
   BijoyConverter = null;
 }

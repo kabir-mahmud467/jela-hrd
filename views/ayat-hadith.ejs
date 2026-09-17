@@ -41,7 +41,7 @@
         <% if(it.transliteration){ %><p class="muted" style="font-style:italic;border-left:3px solid var(--sky);padding-left:10px"><strong>উচ্চারণ:</strong> <%= it.transliteration %></p><% } %>
         <div class="answer-box">
           <strong>অর্থ:</strong>
-          <p><%= it.translation %></p>
+          <div class="content"><%- bnHtml(it.translation) %></div>
           <% if((it.topic && it.topic.indexOf('পাঁচ দফা')!==-1) || (it.title && it.title.indexOf('পাঁচ দফা')!==-1)){ %>
             <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--navy)">৫ দফা কর্মসূচি দেখুন</summary>
               <ol style="margin:6px 0 0 18px;line-height:1.7">
