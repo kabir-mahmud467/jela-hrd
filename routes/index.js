@@ -137,26 +137,11 @@ router.get('/offline-manifest.json', async (req, res, next) => {
   }
 });
 
-// গুরুত্বপূর্ণ তথ্য তালিকা
-router.get('/gurutto', async (req, res, next) => {
-  try {
-    const importants = await Important.find().sort({ isPinned: -1, createdAt: -1 }).limit(200).lean();
-    res.render('importants', { importants });
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get('/gurutto/:id', async (req, res) => {
-  try {
-    const mongoose = require('mongoose');
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).render('404');
-    const item = await Important.findById(req.params.id).lean();
-    if (!item) return res.status(404).render('404');
-    res.render('important-details', { item });
-  } catch {
-    return res.status(404).render('404');
-  }
+// bibidh handles guruttopurno totho replacement — keep old gurutto as redirect for bookmarks
+router.get('/gurutto', (req,res)=> res.redirect(301,'/bibidh'));
+router.get('/gurutto/:id', (req,res)=> {
+  const id=(req.params.id||'').toString();
+  return res.redirect(301, '/bibidh/'+encodeURIComponent(id));
 });
 
 // বই — ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)

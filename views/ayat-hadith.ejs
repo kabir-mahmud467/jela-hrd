@@ -54,6 +54,17 @@
               <div class="answer-box">
                 <strong>অর্থ:</strong>
                 <p><%= it.translation %></p>
+                <% if((it.topic && it.topic.indexOf('পাঁচ দফা')!==-1) || (it.title && it.title.indexOf('পাঁচ দফা')!==-1)){ %>
+                  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--navy)">৫ দফা কর্মসূচি দেখুন</summary>
+                    <ol style="margin:6px 0 0 18px;line-height:1.7">
+                      <li>দাওয়াত</li>
+                      <li>সংগঠন</li>
+                      <li>প্রশিক্ষণ</li>
+                      <li>ইসলামী শিক্ষা আন্দোলন ও ছাত্র সমস্যার সমাধান</li>
+                      <li>ইসলামী সমাজ বিনির্মাণ</li>
+                    </ol>
+                  </details>
+                <% } %>
               </div>
             </div>
           </div>
