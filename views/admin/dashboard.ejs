@@ -16,10 +16,10 @@
 
   <div class="toolbar">
     <form method="GET" action="/admin/search" class="search" role="search">
-      <input name="q" value="" maxlength="100" placeholder="সব কনটেন্টে খুঁজুন (বই/নোট/দারস/দুআ)…" aria-label="সার্চ">
+      <input name="q" value="" maxlength="100" placeholder="সব কনটেন্টে খুঁজুন (বই/নোট/দারস/দুআ/আয়াত/সূরা/বিবিধ)…" aria-label="সার্চ">
       <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
     </form>
-    <span class="count badge light">মোট কনটেন্ট: <%= counts.important + counts.book + counts.note + counts.dars + counts.dua %></span>
+    <span class="count badge light">মোট কনটেন্ট: <%= counts.important + counts.book + counts.note + counts.dars + counts.dua + counts.ayatHadith + counts.surah + counts.bibidh %></span>
   </div>
 
   <div class="admin-grid">
@@ -28,6 +28,9 @@
     <div class="card stat a-violet"><h2><%= counts.important %></h2><p>গুরুত্বপূর্ণ তথ্য</p><div class="stat-actions"><a href="/admin/importants" class="btn small">পরিচালনা</a><a href="/admin/importants/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-emerald"><h2><%= counts.dars %></h2><p>দারস</p><div class="stat-actions"><a href="/admin/dars" class="btn small">পরিচালনা</a><a href="/admin/dars/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-sky"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><div class="stat-actions"><a href="/admin/duas" class="btn small">পরিচালনা</a><a href="/admin/duas/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-violet"><h2><%= counts.ayatHadith %></h2><p>আয়াত-হাদিস</p><div class="stat-actions"><a href="/admin/ayathadith" class="btn small">পরিচালনা</a><a href="/admin/ayathadith/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-emerald"><h2><%= counts.surah %></h2><p>সূরা</p><div class="stat-actions"><a href="/admin/surah" class="btn small">পরিচালনা</a><a href="/admin/surah/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-sky"><h2><%= counts.bibidh %></h2><p>বিবিধ</p><div class="stat-actions"><a href="/admin/bibidh" class="btn small">পরিচালনা</a><a href="/admin/bibidh/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat"><h2><%= counts.ban %></h2><p>ব্যানড IP</p><div class="stat-actions"><a href="/admin/bans" class="btn small">পরিচালনা</a><a href="/admin/security" class="btn small primary">আক্রমণ দেখুন</a></div></div>
     <div class="card stat"><h2><%= events24h %></h2><p>সন্দেহজনক ঘটনা (২৪ঘ)</p><div class="stat-actions"><a href="/admin/security" class="btn small">বিস্তারিত</a><a href="/admin/export/security" class="btn small primary">এক্সপোর্ট</a></div></div>
   </div>
@@ -46,11 +49,13 @@
         <% }) %>
       </ul>
       <div class="quick-actions mt-16">
-        <a href="/admin/questions/new" class="btn small primary">+ প্রশ্ন</a>
-        <a href="/admin/books/new" class="btn small">+ বই</a>
+        <a href="/admin/books/new" class="btn small primary">+ বই</a>
         <a href="/admin/notes/new" class="btn small">+ নোট</a>
         <a href="/admin/dars/new" class="btn small">+ দারস</a>
         <a href="/admin/duas/new" class="btn small">+ দুআ</a>
+        <a href="/admin/ayathadith/new" class="btn small">+ আয়াত-হাদিস</a>
+        <a href="/admin/surah/new" class="btn small">+ সূরা</a>
+        <a href="/admin/bibidh/new" class="btn small">+ বিবিধ</a>
         <a href="/admin/importants/new" class="btn small">+ তথ্য</a>
       </div>
     </div>

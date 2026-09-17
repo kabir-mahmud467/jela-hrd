@@ -6,6 +6,9 @@ const Note = require('./models/Note');
 const Question = require('./models/Question');
 const Dars = require('./models/Dars');
 const Dua = require('./models/Dua');
+const AyatHadith = require('./models/AyatHadith');
+const Surah = require('./models/Surah');
+const Bibidh = require('./models/Bibidh');
 
 async function seed() {
   const uri = process.env.MONGODB_URI;
@@ -44,6 +47,22 @@ async function seed() {
       { title: 'সকালে পড়ার দুআ', arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا', content: 'হে আল্লাহ! আপনার অনুগ্রহে আমরা সকালে উপনীত হই...', phase: 'abedonpotrer-purbe', reference: 'তিরমিজি' },
       { title: 'ঘুম থেকে ওঠার দুআ', arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا', content: 'সমস্ত প্রশংসা আল্লাহর, যিনি আমাদের মৃত্যুর পর জীবিত করেছেন...', phase: 'proshnopotrer-purbe', reference: 'সহিহ বুখারি' },
       { title: 'সফরের দুআ', arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا', content: 'পবিত্র সেই সত্তা যিনি আমাদের জন্য এটিকে বশীভূত করেছেন...', phase: 'shopother-purbe', reference: 'সহিহ মুসলিম' }
+    ]);
+  }
+  if ((await AyatHadith.countDocuments()) === 0) {
+    await AyatHadith.insertMany([
+      { title: 'আয়াতুল কুরসি', arabic: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ', transliteration: 'আল্লাহু লা ইলাহা ইল্লা হুওয়াল হাইয়ুল কাইয়ুম', translation: 'আল্লাহ — তিনি ছাড়া কোনো ইলাহ নেই, তিনি চিরঞ্জীব, সবকিছুর ধারক।', reference: 'সূরা বাকারা: ২৫৫', phase: 'abedonpotrer-purbe', kind: 'ayat', topic: 'তাওহীদ' },
+      { title: 'নিয়তের হাদিস', arabic: 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ', transliteration: 'ইন্নামাল আ’মালু বিন্নিয়্যাত', translation: 'নিশ্চয়ই সব কাজ নিয়তের ওপর নির্ভরশীল।', reference: 'সহিহ বুখারি: ১', phase: 'abedonpotrer-purbe', kind: 'hadis', topic: 'নিয়ত' }
+    ]);
+  }
+  if ((await Surah.countDocuments()) === 0) {
+    await Surah.insertMany([
+      { title: 'সূরা ফাতিহা', arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', transliteration: 'বিসমিল্লাহির রাহমানির রাহিম', translation: 'পরম করুণাময়, অসীম দয়ালু আল্লাহর নামে।', reference: 'সূরা ফাতিহা', phase: 'abedonpotrer-purbe', ayahCount: 7 }
+    ]);
+  }
+  if ((await Bibidh.countDocuments()) === 0) {
+    await Bibidh.insertMany([
+      { title: 'ওজুর ফরজ কয়টি', content: 'ওজুর ফরজ ৪টি: ১. মুখ ধোয়া, ২. কনুইসহ হাত ধোয়া, ৩. মাথা মাসেহ, ৪. টাখনুসহ পা ধোয়া।', category: 'masala-masayel', phase: 'abedonpotrer-purbe', reference: 'সূরা মায়িদা: ৬' }
     ]);
   }
   if ((await Question.countDocuments()) === 0) {

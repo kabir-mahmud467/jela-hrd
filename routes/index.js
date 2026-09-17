@@ -9,64 +9,16 @@ const Dua = require('../models/Dua');
 const Bibidh = require('../models/Bibidh');
 const Surah = require('../models/Surah');
 const AyatHadith = require('../models/AyatHadith');
-const Question = require('../models/Question');
 const checklistData = require('../config/checklist');
-const { PHASE_VALUES } = require('../config/phases');
+const { PHASE_VALUES, PHASES } = require('../config/phases');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
 }
 
-// হোমপেজ — প্রশ্ন + ৩ পর্ব + বই + আলোচনা নোট + গুরুত্বপূর্ণ তথ্য (সব হালকা, limit সহ)
-router.get('/', async (req, res, next) => {
-  try {
-    const [questions, subjects, books, notes, importants, lessons, duas, phaseAgg, qCount, bookCount, noteCount, impCount, darsCount, duaCount] =
-      await Promise.all([
-        Question.find()
-          .select('question answer subject chapter phase slug')
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .lean(),
-        Question.distinct('subject'),
-        Book.find().sort({ createdAt: -1 }).limit(6).lean(),
-        Note.find().select('title subject content phase createdAt').sort({ createdAt: -1 }).limit(6).lean(),
-        Important.find().sort({ isPinned: -1, createdAt: -1 }).limit(6).lean(),
-        Dars.find().select('title phase reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
-        Dua.find().select('title phase reference createdAt').sort({ createdAt: -1 }).limit(6).lean(),
-        Question.aggregate([{ $group: { _id: '$phase', count: { $sum: 1 } } }]),
-        Question.estimatedDocumentCount().catch(() => 0),
-        Book.estimatedDocumentCount().catch(() => 0),
-        Note.estimatedDocumentCount().catch(() => 0),
-        Important.estimatedDocumentCount().catch(() => 0),
-        Dars.estimatedDocumentCount().catch(() => 0),
-        Dua.estimatedDocumentCount().catch(() => 0)
-      ]);
-    const phaseCounts = {};
-    (phaseAgg || []).forEach((p) => {
-      phaseCounts[p._id] = p.count;
-    });
-    res.render('index', {
-      questions,
-      subjects,
-      books,
-      notes,
-      importants,
-      lessons,
-      duas,
-      phases: Question.PHASES,
-      phaseCounts,
-      qCount,
-      bookCount,
-      noteCount,
-      impCount,
-      darsCount,
-      duaCount,
-      sCount: subjects.length,
-      checklistData
-    });
-  } catch (err) {
-    next(err);
-  }
+// হোমপেজ — সদস্য মানোন্নয়ন চেকলিস্ট (static data, DB লাগে না)
+router.get('/', (req, res) => {
+  res.render('index', { checklistData });
 });
 
 // অ্যাপ ইনস্টল নির্দেশনা (PWA manual install) — DB লাগে না, তবু public router-এ
@@ -110,8 +62,7 @@ router.get('/offline-manifest.json', async (req, res, next) => {
       urls.add(`/ayat-hadith/porbo/${p}`);
     });
 
-    const [subjects, notes, dars, duas, bibidh, surah, ayatHadith, counts] = await Promise.all([
-      Question.distinct('subject'),
+    const [notes, dars, duas, bibidh, surah, ayatHadith, counts] = await Promise.all([
       Note.find().select('_id').limit(500).lean(),
       Dars.find().select('_id').limit(500).lean(),
       Dua.find().select('_id').limit(500).lean(),
@@ -128,9 +79,6 @@ router.get('/offline-manifest.json', async (req, res, next) => {
         AyatHadith.estimatedDocumentCount().catch(() => 0)
       ])
     ]);
-    (subjects || []).forEach((s) => {
-      if (s) urls.add(`/questions/subject/${encodeURIComponent(s)}`);
-    });
     (notes || []).forEach((n) => urls.add(`/notes/${n._id}`));
     (dars || []).forEach((d) => urls.add(`/dars/${d._id}`));
     (duas || []).forEach((d) => urls.add(`/dua/${d._id}`));
@@ -166,7 +114,7 @@ router.get('/books', async (req, res, next) => {
     if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
     const filter = and.length ? { $and: and } : {};
     const books = await Book.find(filter).sort({ createdAt: -1 }).limit(200).lean();
-    res.render('books', { books, q, phase, phases: Question.PHASES });
+    res.render('books', { books, q, phase, phases: PHASES });
   } catch (err) {
     next(err);
   }
@@ -178,7 +126,7 @@ router.get('/books/phase/:phase', async (req, res, next) => {
     const phase = req.params.phase.slice(0, 50);
     if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const books = await Book.find({ phase }).sort({ createdAt: -1 }).limit(200).lean();
-    res.render('books', { books, q: '', phase, phases: Question.PHASES });
+    res.render('books', { books, q: '', phase, phases: PHASES });
   } catch (err) {
     next(err);
   }
@@ -198,7 +146,7 @@ router.get('/notes', async (req, res, next) => {
     if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
     const filter = and.length ? { $and: and } : {};
     const notes = await Note.find(filter).sort({ createdAt: -1 }).limit(200).lean();
-    res.render('notes', { notes, q, phase, phases: Question.PHASES });
+    res.render('notes', { notes, q, phase, phases: PHASES });
   } catch (err) {
     next(err);
   }
@@ -210,7 +158,7 @@ router.get('/notes/phase/:phase', async (req, res, next) => {
     const phase = req.params.phase.slice(0, 50);
     if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const notes = await Note.find({ phase }).sort({ createdAt: -1 }).limit(200).lean();
-    res.render('notes', { notes, q: '', phase, phases: Question.PHASES });
+    res.render('notes', { notes, q: '', phase, phases: PHASES });
   } catch (err) {
     next(err);
   }
@@ -228,6 +176,6 @@ router.get('/notes/:id', async (req, res) => {
   }
 });
 
-// NOTE: /questions routes এখন routes/questions.js এ, /dars routes routes/dars.js এ
+// NOTE: /dars routes routes/dars.js এ, /dua routes routes/dua.js এ
 
 module.exports = router;

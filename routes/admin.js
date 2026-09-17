@@ -157,17 +157,20 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     const q = escRegex(req.query.q);
     if (!q) return res.redirect('/admin');
     const rx = new RegExp(q, 'i');
-    const [books, notes, dars, duas, importants] = await Promise.all([
+    const [books, notes, dars, duas, importants, ayatHadith, surah, bibidh] = await Promise.all([
       Book.find({ $or: [{ title: rx }, { author: rx }] }).limit(20).select('title author').lean().catch(() => []),
       Note.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dars.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dua.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
-      Important.find({ $or: [{ title: rx }, { description: rx }] }).limit(20).select('title').lean().catch(() => [])
+      Important.find({ $or: [{ title: rx }, { description: rx }] }).limit(20).select('title').lean().catch(() => []),
+      AyatHadith.find({ $or: [{ title: rx }, { translation: rx }, { reference: rx }, { topic: rx }] }).limit(20).select('title').lean().catch(() => []),
+      Surah.find({ $or: [{ title: rx }, { translation: rx }] }).limit(20).select('title').lean().catch(() => []),
+      Bibidh.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => [])
     ]);
     res.render('admin/search', {
       admin: req.session.admin,
       q: req.query.q,
-      results: { books, notes, dars, duas, importants }
+      results: { books, notes, dars, duas, importants, ayatHadith, surah, bibidh }
     });
   } catch (err) {
     next(err);
@@ -188,15 +191,18 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
       return send('security-events', events);
     }
     if (t === 'all') {
-      const [books, notes, dars, duas, importants, bans] = await Promise.all([
+      const [books, notes, dars, duas, importants, ayatHadith, surah, bibidh, bans] = await Promise.all([
         Book.find().limit(2000).lean(),
         Note.find().limit(2000).lean(),
         Dars.find().limit(2000).lean(),
         Dua.find().limit(2000).lean(),
         Important.find().limit(2000).lean(),
+        AyatHadith.find().limit(2000).lean(),
+        Surah.find().limit(2000).lean(),
+        Bibidh.find().limit(2000).lean(),
         Ban.find().lean()
       ]);
-      return send('backup', { books, notes, dars, duas, importants, bans, exportedAt: new Date() });
+      return send('backup', { books, notes, dars, duas, importants, ayatHadith, surah, bibidh, bans, exportedAt: new Date() });
     }
     return res.redirect('/admin');
   } catch (err) {

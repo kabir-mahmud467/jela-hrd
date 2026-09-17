@@ -8,12 +8,12 @@
 
   <form method="GET" action="/bibidh" class="form" style="flex-direction:row;gap:8px;align-items:center;flex-wrap:wrap">
     <label for="bibidh-cat" style="font-weight:700">বিষয় নির্বাচন:</label>
-    <select id="bibidh-cat" name="cat" onchange="this.form.submit()" style="min-width:220px">
+    <select id="bibidh-cat" name="cat" style="min-width:220px">
       <% Object.entries(cats).forEach(([val,label])=>{ %>
         <option value="<%= val %>" <%= cat===val ? 'selected' : '' %>><%= label %></option>
       <% }) %>
     </select>
-    <noscript><button type="submit" class="btn small">দেখুন</button></noscript>
+    <button type="submit" class="btn small">দেখুন</button>
   </form>
 
   <% if(cat==='samprotik-proshno'){ %>

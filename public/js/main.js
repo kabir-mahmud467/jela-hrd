@@ -136,7 +136,17 @@ function toggleAnswer(id) {
   }
 })();
 
-// Checklist: homepage localStorage progress handled inline in index.ejs
+// Checklist: homepage localStorage progress handled in /js/checklist.js (index.ejs only)
+
+// Bibidh category dropdown: CSP-safe auto-submit (inline onchange not allowed)
+(function () {
+  var sel = document.getElementById('bibidh-cat');
+  if (sel && sel.form) {
+    sel.addEventListener('change', function () {
+      sel.form.submit();
+    });
+  }
+})();
 
 // Reveal on scroll
 (function () {

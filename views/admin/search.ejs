@@ -23,6 +23,9 @@
     ['আলোচনা নোট', results.notes, '/admin/notes', r => r.title],
     ['দারস', results.dars, '/admin/dars', r => r.title],
     ['মাসনুন দুআ', results.duas, '/admin/duas', r => r.title],
+    ['আয়াত-হাদিস', results.ayatHadith || [], '/admin/ayathadith', r => r.title],
+    ['সূরা', results.surah || [], '/admin/surah', r => r.title],
+    ['বিবিধ', results.bibidh || [], '/admin/bibidh', r => r.title],
     ['গুরুত্বপূর্ণ তথ্য', results.importants, '/admin/importants', r => r.title],
   ]; %>
   <% let total = 0; sections.forEach(s => total += s[1].length); %>
