@@ -9,7 +9,6 @@ const connectDB = require('./config/db');
 const Admin = require('./models/Admin');
 
 const indexRoutes = require('./routes/index');
-const questionsRoutes = require('./routes/questions');
 const darsRoutes = require('./routes/dars');
 const duaRoutes = require('./routes/dua');
 const ayatHadithRoutes = require('./routes/ayathadith');
@@ -200,9 +199,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes — প্রতিটি প্রশ্নের আলাদা route সহ
+// Routes
 app.use('/', indexRoutes);
-app.use('/questions', questionsRoutes);
 app.use('/dars', darsRoutes);
 app.use('/dua', duaRoutes);
 app.use('/ayat-hadith', ayatHadithRoutes);

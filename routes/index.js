@@ -4,10 +4,13 @@ const router = express.Router();
 const Important = require('../models/Important');
 const Book = require('../models/Book');
 const Note = require('../models/Note');
-const Question = require('../models/Question');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
+const Bibidh = require('../models/Bibidh');
+const Surah = require('../models/Surah');
+const AyatHadith = require('../models/AyatHadith');
 const checklistData = require('../config/checklist');
+const { PHASE_VALUES } = require('../config/phases');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
@@ -78,12 +81,13 @@ router.get('/offline-manifest.json', async (req, res, next) => {
     const v = getAssetVer();
     const urls = new Set([
       '/',
-      '/questions',
       '/books',
       '/notes',
       '/dars',
       '/dua',
-      '/gurutto',
+      '/bibidh',
+      '/surah',
+      '/ayat-hadith',
       '/install',
       '/offline.html',
       '/manifest.webmanifest',
@@ -94,41 +98,44 @@ router.get('/offline-manifest.json', async (req, res, next) => {
       '/icons/maskable-512.png',
       '/icons/apple-touch-icon.png'
     ]);
-    const phases = Question.PHASE_VALUES;
+    const phases = PHASE_VALUES;
     phases.forEach((p) => {
-      urls.add(`/questions/phase/${p}`);
       urls.add(`/books/phase/${p}`);
       urls.add(`/notes/phase/${p}`);
       urls.add(`/dars/porbo/${p}`);
       urls.add(`/dua/porbo/${p}`);
+      urls.add(`/bibidh?cat=${p}`);
+      urls.add(`/surah/porbo/${p}`);
+      urls.add(`/ayat-hadith/porbo/${p}`);
     });
 
-    const [subjects, questions, notes, dars, duas, importants, counts] = await Promise.all([
+    const [subjects, notes, dars, duas, bibidh, surah, ayatHadith, counts] = await Promise.all([
       Question.distinct('subject'),
-      Question.find().select('slug').limit(500).lean(),
       Note.find().select('_id').limit(500).lean(),
       Dars.find().select('_id').limit(500).lean(),
       Dua.find().select('_id').limit(500).lean(),
-      Important.find().select('_id').limit(500).lean(),
+      Bibidh.find().select('_id').limit(500).lean(),
+      Surah.find().select('_id').limit(500).lean(),
+      AyatHadith.find().select('_id').limit(500).lean(),
       Promise.all([
-        Question.estimatedDocumentCount().catch(() => 0),
         Book.estimatedDocumentCount().catch(() => 0),
         Note.estimatedDocumentCount().catch(() => 0),
         Dars.estimatedDocumentCount().catch(() => 0),
         Dua.estimatedDocumentCount().catch(() => 0),
-        Important.estimatedDocumentCount().catch(() => 0)
+        Bibidh.estimatedDocumentCount().catch(() => 0),
+        Surah.estimatedDocumentCount().catch(() => 0),
+        AyatHadith.estimatedDocumentCount().catch(() => 0)
       ])
     ]);
     (subjects || []).forEach((s) => {
       if (s) urls.add(`/questions/subject/${encodeURIComponent(s)}`);
     });
-    (questions || []).forEach((q) => {
-      if (q && q.slug) urls.add(`/questions/${q.slug}`);
-    });
     (notes || []).forEach((n) => urls.add(`/notes/${n._id}`));
     (dars || []).forEach((d) => urls.add(`/dars/${d._id}`));
     (duas || []).forEach((d) => urls.add(`/dua/${d._id}`));
-    (importants || []).forEach((i) => urls.add(`/gurutto/${i._id}`));
+    (bibidh || []).forEach((b) => urls.add(`/bibidh/${b._id}`));
+    (surah || []).forEach((s) => urls.add(`/surah/${s._id}`));
+    (ayatHadith || []).forEach((a) => urls.add(`/ayat-hadith/${a._id}`));
 
     const total = counts.reduce((a, b) => a + b, 0);
     res.json({ version: `c${total}`, urls: [...urls] });
@@ -155,7 +162,7 @@ router.get('/books', async (req, res, next) => {
         $or: [{ title: new RegExp(escapeRegex(q), 'i') }, { author: new RegExp(escapeRegex(q), 'i') }]
       });
     }
-    if (phase && Question.PHASE_VALUES.includes(phase)) and.push({ phase });
+    if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
     const filter = and.length ? { $and: and } : {};
     const books = await Book.find(filter).sort({ createdAt: -1 }).limit(200).lean();
     res.render('books', { books, q, phase, phases: Question.PHASES });
@@ -168,7 +175,7 @@ router.get('/books', async (req, res, next) => {
 router.get('/books/phase/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
-    if (!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
+    if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const books = await Book.find({ phase }).sort({ createdAt: -1 }).limit(200).lean();
     res.render('books', { books, q: '', phase, phases: Question.PHASES });
   } catch (err) {
@@ -187,7 +194,7 @@ router.get('/notes', async (req, res, next) => {
         $or: [{ title: new RegExp(escapeRegex(q), 'i') }, { subject: new RegExp(escapeRegex(q), 'i') }]
       });
     }
-    if (phase && Question.PHASE_VALUES.includes(phase)) and.push({ phase });
+    if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
     const filter = and.length ? { $and: and } : {};
     const notes = await Note.find(filter).sort({ createdAt: -1 }).limit(200).lean();
     res.render('notes', { notes, q, phase, phases: Question.PHASES });
@@ -200,7 +207,7 @@ router.get('/notes', async (req, res, next) => {
 router.get('/notes/phase/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
-    if (!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
+    if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const notes = await Note.find({ phase }).sort({ createdAt: -1 }).limit(200).lean();
     res.render('notes', { notes, q: '', phase, phases: Question.PHASES });
   } catch (err) {
