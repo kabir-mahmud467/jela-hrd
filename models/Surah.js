@@ -9,6 +9,7 @@ const surahSchema = new mongoose.Schema({
   reference: { type: String, default: '', trim: true, maxlength: 300 },
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   ayahCount: { type: Number, default: 0 },
+  order: { type: Number, default: 0, index: true },
   createdAt: { type: Date, default: Date.now }
 });
 

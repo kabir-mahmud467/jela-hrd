@@ -10,6 +10,19 @@
   /* শুধু কনটেন্ট ফর্মে (login/settings/bans ছোঁবে না) */
   var CONTENT_RE = /^\/admin\/(books|notes|dars|duas|ayathadith|surah|bibidh)(\/|$)/;
 
+  function convertField(el) {
+    var v = el.value;
+    if (/<[a-zA-Z][^<>]*>/.test(v)) {
+      /* editor HTML: convert text nodes only, markup intact */
+      var out = window.BijoyConverter.convertHtmlMixed(v);
+      if (out !== v) el.value = out;
+      return;
+    }
+    if (window.BijoyConverter.looksLikeBijoy(v)) {
+      el.value = window.BijoyConverter.convertBijoyToUnicode(v);
+    }
+  }
+
   function skip(el) {
     if (el.disabled || el.readOnly) return true;
     if (el.hasAttribute && el.hasAttribute('data-no-bijoy')) return true;
@@ -30,10 +43,7 @@
     for (var i = 0; i < els.length; i++) {
       var el = els[i];
       if (skip(el)) continue;
-      var v = el.value;
-      if (window.BijoyConverter.looksLikeBijoy(v)) {
-        el.value = window.BijoyConverter.convertBijoyToUnicode(v);
-      }
+      convertField(el);
     }
   }, true);
 })();

@@ -111,7 +111,7 @@ router.get('/books', async (req, res, next) => {
     }
     if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
     const filter = and.length ? { $and: and } : {};
-    const books = await Book.find(filter).sort({ createdAt: -1 }).limit(200).lean();
+    const books = await Book.find(filter).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('books', { books, q, phase, phases: PHASES });
   } catch (err) {
     next(err);
@@ -123,7 +123,7 @@ router.get('/books/phase/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
     if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
-    const books = await Book.find({ phase }).sort({ createdAt: -1 }).limit(200).lean();
+    const books = await Book.find({ phase }).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('books', { books, q: '', phase, phases: PHASES });
   } catch (err) {
     next(err);
@@ -159,7 +159,7 @@ router.get('/note', async (req, res, next) => {
     const cat = validNoteCat(req.query.cat);
     const q = (req.query.q || '').toString().slice(0, 100);
     const phase = (req.query.phase || '').toString().slice(0, 50);
-    const notes = await Note.find(noteFilter(cat, q, phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const notes = await Note.find(noteFilter(cat, q, phase)).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('note', {
       notes, q, phase: NOTE_PHASE_VALUES.includes(phase) ? phase : '',
       cat, cats: Note.NOTE_CATS, phases: PHASES
@@ -174,7 +174,7 @@ router.get('/note/cat/:cat', async (req, res, next) => {
   try {
     const cat = req.params.cat.slice(0, 50);
     if (!Note.NOTE_VALUES.includes(cat)) return res.status(404).render('404');
-    const notes = await Note.find(noteFilter(cat, '', '')).sort({ createdAt: -1 }).limit(200).lean();
+    const notes = await Note.find(noteFilter(cat, '', '')).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('note', { notes, q: '', phase: '', cat, cats: Note.NOTE_CATS, phases: PHASES });
   } catch (err) {
     next(err);
@@ -187,7 +187,7 @@ router.get('/note/phase/:phase', async (req, res, next) => {
     const phase = req.params.phase.slice(0, 50);
     if (!NOTE_PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const cat = validNoteCat(req.query.cat);
-    const notes = await Note.find(noteFilter(cat, '', phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const notes = await Note.find(noteFilter(cat, '', phase)).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('note', { notes, q: '', phase, cat, cats: Note.NOTE_CATS, phases: PHASES });
   } catch (err) {
     next(err);

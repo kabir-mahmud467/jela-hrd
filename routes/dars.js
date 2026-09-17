@@ -33,7 +33,7 @@ router.get('/', async (req, res, next) => {
   try {
     const q = (req.query.q || '').toString().slice(0, 100);
     const phase = (req.query.phase || '').toString().slice(0, 50);
-    const lessons = await Dars.find(buildFilter(q, phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const lessons = await Dars.find(buildFilter(q, phase)).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     renderList(res, lessons, q, Question.PHASE_VALUES.includes(phase) ? phase : '');
   } catch (err) {
     next(err);
@@ -45,7 +45,7 @@ router.get('/porbo/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
     if (!Question.PHASE_VALUES.includes(phase)) return res.status(404).render('404');
-    const lessons = await Dars.find(buildFilter('', phase)).sort({ createdAt: -1 }).limit(200).lean();
+    const lessons = await Dars.find(buildFilter('', phase)).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     renderList(res, lessons, '', phase);
   } catch (err) {
     next(err);
@@ -60,7 +60,7 @@ router.get('/:id', async (req, res, next) => {
     if (!lesson) return res.status(404).render('404');
     const related = await Dars.find({ _id: { $ne: lesson._id }, phase: lesson.phase })
       .select('title')
-      .sort({ createdAt: -1 })
+      .sort({ order: 1, createdAt: -1 })
       .limit(5)
       .lean();
     res.render('dars-details', { lesson, related, phases: Question.PHASES });

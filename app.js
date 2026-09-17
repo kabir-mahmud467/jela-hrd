@@ -20,7 +20,8 @@ const { securityMiddleware, sanitizeMiddleware, globalLimiter } = require('./mid
 const { ipBanCheck } = require('./middleware/ipBan');
 const { trafficMiddleware, flagEvent } = require('./middleware/traffic');
 const { getAssetVer } = require('./config/assets');
-const { renderHtml: bnHtml, toPlain: bnText } = require(path.join(__dirname, 'lib', 'bn-format.js'));
+const { toPlain: bnText } = require(path.join(__dirname, 'lib', 'bn-format.js'));
+const { renderRich } = require(path.join(__dirname, 'lib', 'rich-html.js'));
 
 const app = express();
 
@@ -254,7 +255,7 @@ app.use((req, res, next) => {
   res.locals.duas = [];
   res.locals.hint = null;
   res.locals.retryAfter = 0;
-  res.locals.bnHtml = bnHtml;
+  res.locals.bnHtml = renderRich;
   res.locals.bnText = bnText;
   next();
 });

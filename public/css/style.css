@@ -424,6 +424,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .content p:last-child { margin-bottom: 0; }
 .content h3 { font-size: 17px; color: var(--navy); margin: 14px 0 8px; line-height: 1.6; }
 .content ul { margin: 0 0 10px; padding-left: 22px; }
+.content ol { margin: 0 0 10px; padding-left: 22px; }
 .content li { margin-bottom: 5px; }
 .content a { color: var(--sky-dark); font-weight: 600; overflow-wrap: anywhere; }
 .content strong { color: var(--ink); }
@@ -440,3 +441,17 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 @media (max-width: 760px) {
   .fmt-bar:not(.fmt-float) { display: none; }
 }
+
+/* ===== WYSIWYG editor ===== */
+.rich-editor { min-height: 140px; padding: 10px 14px; border-radius: var(--r-xs); border: 1.5px solid var(--line); background: #fff; color: var(--ink); font-family: inherit; font-size: 14.5px; line-height: 1.9; overflow-wrap: anywhere; }
+.rich-editor:focus { outline: none; border-color: var(--sky); }
+.rich-editor:empty:before { content: attr(data-placeholder); color: var(--faint); }
+.rich-editor p { margin: 0 0 8px; }
+.rich-editor h3 { font-size: 16.5px; color: var(--navy); margin: 10px 0 6px; }
+.rich-editor ul, .rich-editor ol { margin: 0 0 8px; padding-left: 22px; }
+.rich-editor a { color: var(--sky-dark); }
+
+/* ===== Serial move buttons (admin lists, right side stacked) ===== */
+.move-col { display: inline-flex; flex-direction: column; gap: 3px; }
+.move-btn { min-width: 30px; padding: 2px 8px; font-size: 12px; line-height: 1.5; }
+.move-btn:disabled { opacity: 0.35; cursor: not-allowed; }

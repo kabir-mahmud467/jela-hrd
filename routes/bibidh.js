@@ -13,7 +13,7 @@ router.get('/', async (req,res,next)=>{
     const validCat = Bibidh.BIBIDH_VALUES.includes(cat) ? cat : 'ilmul-quran';
     const filter={ category: validCat };
     if(q){ const rx=new RegExp(esc(q),'i'); filter.$and=[{category: validCat},{$or:[{title:rx},{content:rx}]}]; }
-    const items=await Bibidh.find(filter).sort({createdAt:-1}).limit(200).lean();
+    const items=await Bibidh.find(filter).sort({order:1,createdAt:-1}).limit(200).lean();
     res.render('bibidh', { items, q, cat: validCat, cats: Bibidh.BIBIDH_CATS });
   }catch(e){ next(e); }
 });
@@ -22,7 +22,7 @@ router.get('/cat/:cat', async (req,res,next)=>{
   try{
     const cat=req.params.cat.slice(0,50);
     if(!Bibidh.BIBIDH_VALUES.includes(cat)) return res.status(404).render('404');
-    const items=await Bibidh.find({ category: cat }).sort({createdAt:-1}).limit(200).lean();
+    const items=await Bibidh.find({ category: cat }).sort({order:1,createdAt:-1}).limit(200).lean();
     res.render('bibidh', { items, q:'', cat, cats: Bibidh.BIBIDH_CATS });
   }catch(e){ next(e); }
 });

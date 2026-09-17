@@ -9,6 +9,7 @@ const duaSchema = new mongoose.Schema({
   content: { type: String, required: [true, 'অর্থ/ব্যাখ্যা আবশ্যক'], trim: true, maxlength: 10000 },
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },
+  order: { type: Number, default: 0, index: true },
   createdAt: { type: Date, default: Date.now }
 });
 

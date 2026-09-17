@@ -1,110 +1,169 @@
-/* Admin formatting: **bold** *italic* ## heading - list [text](url).
- * Desktop: static toolbar above each long-text field.
- * Touch/mobile: NO static toolbar — floating bar appears only while text
- * is selected inside a field (selectionchange driven).
- * Also enables browser spellcheck (lang="bn") on admin content fields.
+/* Admin WYSIWYG editor — bold shows as bold while typing (no **markers**).
+ * Target long-text fields become contenteditable editors (execCommand based,
+ * ES5, no dependencies). Saved HTML is sanitized server-side; legacy
+ * plain/markdown content is upgraded to formatted view on first edit.
+ * Desktop: static toolbar above each field.
+ * Touch/mobile: NO static toolbar — floating bar only while text selected.
+ * Paste is forced to plain text (keeps DB clean, Bijoy-safe).
+ * Browser spellcheck (lang="bn") on editors + plain fields.
  * ES5 ONLY, CSP-safe (no inline handlers).
  */
 (function () {
   var CONTENT_RE = /^\/admin\/(books|notes|dars|duas|ayathadith|surah|bibidh)(\/|$)/;
   var TARGET_SEL = 'textarea[name="content"], textarea[name="description"], textarea[name="translation"]';
 
-  function isTarget(el) {
-    if (!el || el.tagName !== 'TEXTAREA') return false;
+  function exec(name, val) {
     try {
-      return el.matches && el.matches(TARGET_SEL);
+      return document.execCommand(name, false, (val === undefined || val === null) ? null : val);
     } catch (e) {
-      var n = (el.getAttribute('name') || '');
-      return n === 'content' || n === 'description' || n === 'translation';
+      return false;
     }
   }
 
-  /* ---------- edit actions ---------- */
-  function surround(el, before, after, sample) {
-    var v = el.value;
-    var s = el.selectionStart;
-    var e = el.selectionEnd;
-    if (s == null) return;
-    var sel = v.slice(s, e) || sample;
-    el.value = v.slice(0, s) + before + sel + after + v.slice(e);
-    el.focus();
+  /* mobile selection restore */
+  var savedRange = null;
+  var lastEditor = null;
+  function saveRange() {
     try {
-      el.setSelectionRange(s + before.length, s + before.length + sel.length);
-    } catch (err) {}
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount) savedRange = sel.getRangeAt(0).cloneRange();
+    } catch (e) {}
+  }
+  function restoreRange(ed) {
+    try {
+      ed.focus();
+      if (savedRange) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+      }
+    } catch (e) {
+      try { ed.focus(); } catch (e2) {}
+    }
   }
 
-  function lineAction(el, mode, sample) {
-    var v = el.value;
-    var s = el.selectionStart;
-    var e = el.selectionEnd;
-    if (s == null) return;
-    var ls = v.lastIndexOf('\n', s - 1) + 1;
-    var le = v.indexOf('\n', e);
-    if (le < 0) le = v.length;
-    var block = v.slice(ls, le);
-    var lines = block.split('\n');
-    var hasText = false;
-    for (var i = 0; i < lines.length; i++) {
-      if (!/^\s*$/.test(lines[i])) hasText = true;
-    }
-    if (!hasText) {
-      var ins = (mode === 'h' ? '## ' : '- ') + sample;
-      el.value = v.slice(0, ls) + ins + v.slice(le);
-      el.focus();
-      try {
-        el.setSelectionRange(ls + (mode === 'h' ? 3 : 2), ls + ins.length);
-      } catch (err) {}
-      return;
-    }
-    for (var j = 0; j < lines.length; j++) {
-      if (/^\s*$/.test(lines[j])) continue;
-      var stripped = lines[j].replace(/^\s*(##\s+|-\s+)/, '').replace(/^\s+/, '');
-      lines[j] = (mode === 'h' ? '## ' : '- ') + stripped;
-    }
-    var out = lines.join('\n');
-    el.value = v.slice(0, ls) + out + v.slice(le);
-    el.focus();
-    try {
-      el.setSelectionRange(ls, ls + out.length);
-    } catch (err) {}
-  }
-
-  function clearFormat(el) {
-    var v = el.value;
-    var s = el.selectionStart;
-    var e = el.selectionEnd;
-    if (s == null || s === e) return;
-    var sel = v.slice(s, e)
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '$1')
-      .replace(/\*\*/g, '')
-      .replace(/^##\s+/gm, '')
-      .replace(/^-\s+/gm, '');
-    el.value = v.slice(0, s) + sel + v.slice(e);
-    el.focus();
-    try {
-      el.setSelectionRange(s, s + sel.length);
-    } catch (err) {}
+  function normalizeUrl(u) {
+    u = String(u == null ? '' : u).replace(/^\s+|\s+$/g, '');
+    if (!u) return null;
+    if (/^(https?:\/\/|mailto:|tel:|#)/i.test(u)) return u;
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(u)) return 'https://' + u;
+    if (/^\//.test(u)) return u;
+    return null;
   }
 
   var ACTIONS = {
-    bold: function (el) { surround(el, '**', '**', 'গাঢ় পাঠ'); },
-    italic: function (el) { surround(el, '*', '*', 'তির্যক পাঠ'); },
-    heading: function (el) { lineAction(el, 'h', 'শিরোনাম'); },
-    list: function (el) { lineAction(el, 'li', 'তালিকার আইটেম'); },
-    link: function (el) { surround(el, '[', '](https://)', 'লিংকের পাঠ'); },
-    clear: function (el) { clearFormat(el); }
+    bold: function () { exec('bold'); },
+    italic: function () { exec('italic'); },
+    underline: function () { exec('underline'); },
+    heading: function () { exec('formatBlock', 'h3'); },
+    para: function () { exec('formatBlock', 'p'); },
+    list: function () { exec('insertUnorderedList'); },
+    link: function () {
+      var u = null;
+      try { u = window.prompt('লিংকের ঠিকানা দিন (https://…)', 'https://'); } catch (e) {}
+      if (u === null || u === undefined) return;
+      u = normalizeUrl(u);
+      if (!u) return;
+      exec('createLink', u);
+    },
+    clear: function () { exec('removeFormat'); }
   };
 
   var BUTTONS = [
     { act: 'bold', label: 'B', title: 'গাঢ় (bold)', cls: 'b' },
     { act: 'italic', label: 'I', title: 'তির্যক (italic)', cls: 'i' },
+    { act: 'underline', label: 'U', title: 'নিচে দাগ (underline)', cls: 'u' },
     { act: 'heading', label: 'H', title: 'শিরোনাম', cls: '' },
+    { act: 'para', label: 'P', title: 'সাধারণ প্যারা', cls: '' },
     { act: 'list', label: '•', title: 'বুলেট তালিকা', cls: '' },
     { act: 'link', label: 'লিংক', title: 'লিংক যোগ করুন', cls: '' },
     { act: 'clear', label: '✕', title: 'ফরম্যাট মুছুন', cls: '' }
   ];
 
-  function buildBar(el, barClass) {
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* Legacy plain/markdown -> formatted HTML for the editing view. */
+  function seedHtml(raw) {
+    raw = String(raw == null ? '' : raw);
+    if (/<\/?[a-zA-Z][^<>]*>/.test(raw)) return raw;
+    if (window.BnFormat && window.BnFormat.renderHtml) {
+      try {
+        return window.BnFormat.renderHtml(raw);
+      } catch (e) {}
+    }
+    return esc(raw).replace(/\n/g, '<br>');
+  }
+
+  function setupEditor(area) {
+    if (area.getAttribute('data-rich') === '1') return area._richEditor || null;
+    area.setAttribute('data-rich', '1');
+    /* native required + display:none = unsubmittable form; server validates */
+    area.removeAttribute('required');
+    area.style.display = 'none';
+    var ed = document.createElement('div');
+    ed.className = 'rich-editor';
+    ed.contentEditable = 'true';
+    ed.setAttribute('spellcheck', 'true');
+    ed.setAttribute('lang', 'bn');
+    ed.setAttribute('role', 'textbox');
+    ed.setAttribute('aria-multiline', 'true');
+    ed.setAttribute('data-placeholder', 'এখানে লিখুন…');
+    ed.innerHTML = seedHtml(area.value);
+    area.parentNode.insertBefore(ed, area);
+    ed.addEventListener('paste', function (e) {
+      var text = '';
+      try {
+        text = ((e.clipboardData || window.clipboardData) || {}).getData
+          ? (e.clipboardData || window.clipboardData).getData('text/plain') : '';
+      } catch (err) {}
+      if (!text) return;
+      e.preventDefault();
+      try {
+        if (document.execCommand('insertText', false, text)) return;
+      } catch (err2) {}
+      try {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+          var r = sel.getRangeAt(0);
+          r.deleteContents();
+          r.insertNode(document.createTextNode(text));
+          r.collapse(false);
+        } else {
+          ed.appendChild(document.createTextNode(text));
+        }
+      } catch (err3) {}
+    });
+    ed.addEventListener('keyup', saveRange);
+    ed.addEventListener('mouseup', saveRange);
+    area._richEditor = ed;
+    ed._textarea = area;
+    return ed;
+  }
+
+  function syncAll(form) {
+    var eds = form.querySelectorAll('.rich-editor');
+    for (var i = 0; i < eds.length; i++) {
+      if (eds[i]._textarea) eds[i]._textarea.value = eds[i].innerHTML;
+    }
+  }
+
+  function forEachTarget(fn) {
+    var forms = document.querySelectorAll('form.form');
+    for (var i = 0; i < forms.length; i++) {
+      var action = forms[i].getAttribute('action') || '';
+      if (!CONTENT_RE.test(action)) continue;
+      var areas = forms[i].querySelectorAll(TARGET_SEL);
+      for (var j = 0; j < areas.length; j++) fn(areas[j]);
+    }
+  }
+
+  function buildBar(getEd, barClass) {
     var bar = document.createElement('div');
     bar.className = barClass;
     bar.setAttribute('role', 'toolbar');
@@ -118,36 +177,23 @@
     bar.innerHTML = html;
     var btns = bar.querySelectorAll('button');
     for (var j = 0; j < btns.length; j++) {
-      /* keep textarea focus + selection while tapping buttons */
       btns[j].addEventListener('mousedown', function (ev) { ev.preventDefault(); });
       btns[j].addEventListener('touchstart', function (ev) { ev.preventDefault(); }, { passive: false });
       btns[j].addEventListener('click', function (ev) {
         ev.preventDefault();
+        var ed = getEd();
+        if (!ed) return;
+        restoreRange(ed);
         var act = this.getAttribute('data-act');
-        var target = el;
-        /* floating bar: resolve the field holding the selection */
-        if (!target) {
-          var ae = document.activeElement;
-          if (isTarget(ae)) target = ae;
-        }
-        if (target && ACTIONS[act]) ACTIONS[act](target);
+        if (ACTIONS[act]) ACTIONS[act]();
+        saveRange();
+        try { ed.focus(); } catch (e) {}
       });
     }
     return bar;
   }
 
-  function forEachTarget(fn) {
-    var forms = document.querySelectorAll('form.form');
-    for (var i = 0; i < forms.length; i++) {
-      var action = forms[i].getAttribute('action') || '';
-      if (!CONTENT_RE.test(action)) continue;
-      var areas = forms[i].querySelectorAll(TARGET_SEL);
-      for (var j = 0; j < areas.length; j++) fn(areas[j]);
-    }
-  }
-
-  /* Touch = coarse pointer ONLY (phones/tablets). Touchscreen laptops have
-     a fine pointer too — they get the desktop static toolbar. */
+  /* Touch = coarse pointer ONLY (phones/tablets). */
   function coarsePointerOnly() {
     try {
       if (!window.matchMedia) return false;
@@ -157,32 +203,35 @@
       return false;
     }
   }
-  function touchCapable() {
-    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  }
-  var isTouch;
-  if (window.matchMedia) {
-    isTouch = coarsePointerOnly();
-  } else {
-    isTouch = touchCapable(); /* very old browsers: best guess */
-  }
+  var isTouch = window.matchMedia ? coarsePointerOnly()
+    : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+
+  /* editors first (all devices) */
+  forEachTarget(setupEditor);
 
   if (isTouch) {
     /* ---- mobile: floating bar, selection-এই শুধু দেখায় ---- */
-    var floatBar = buildBar(null, 'fmt-bar fmt-float');
+    var floatBar = buildBar(function () {
+      if (lastEditor && lastEditor.parentNode) return lastEditor;
+      var ae = document.activeElement;
+      if (ae && ae.className && String(ae.className).indexOf('rich-editor') >= 0) return ae;
+      return null;
+    }, 'fmt-bar fmt-float');
     floatBar.style.display = 'none';
     document.body.appendChild(floatBar);
     var rafId = null;
     function evalSel() {
       rafId = null;
-      var ae = document.activeElement;
       var show = false;
-      if (isTarget(ae)) {
+      var ae = document.activeElement;
+      if (ae && ae.className && String(ae.className).indexOf('rich-editor') >= 0) {
         try {
-          show = ae.selectionStart != null && ae.selectionStart !== ae.selectionEnd;
-        } catch (e) {
-          show = false;
-        }
+          var sel = window.getSelection();
+          if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+            show = true;
+            lastEditor = ae;
+          }
+        } catch (e) {}
       }
       floatBar.style.display = show ? 'flex' : 'none';
     }
@@ -199,14 +248,27 @@
       floatBar.style.display = 'none';
     }, true);
   } else {
-    /* ---- desktop: static toolbar above each field ---- */
+    /* ---- desktop: static toolbar above each editor ---- */
     forEachTarget(function (area) {
-      if (area.previousElementSibling && area.previousElementSibling.className &&
-          area.previousElementSibling.className.indexOf('fmt-bar') >= 0) return;
-      var bar = buildBar(area, 'fmt-bar');
-      area.parentNode.insertBefore(bar, area);
+      var ed = area._richEditor;
+      if (!ed) return;
+      if (ed.previousElementSibling && ed.previousElementSibling.className &&
+          String(ed.previousElementSibling.className).indexOf('fmt-bar') >= 0) return;
+      (function (editor) {
+        var bar = buildBar(function () { return editor; }, 'fmt-bar');
+        editor.parentNode.insertBefore(bar, editor);
+      })(ed);
     });
   }
+
+  /* submit: editors -> textareas FIRST (admin-bijoy converts after) */
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || f.tagName !== 'FORM') return;
+    var action = f.getAttribute('action') || '';
+    if (!CONTENT_RE.test(action)) return;
+    syncAll(f);
+  }, true);
 
   /* ---------- spellcheck (browser-native, Bangla) ---------- */
   (function spellcheck() {

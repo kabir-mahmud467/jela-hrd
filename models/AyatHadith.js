@@ -10,6 +10,7 @@ const ayatHadithSchema = new mongoose.Schema({
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   kind: { type: String, enum: ['ayat','hadis'], required: true, index: true },
   topic: { type: String, default: '', trim: true, maxlength: 100 },
+  order: { type: Number, default: 0, index: true },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -41,7 +41,11 @@ const BIJOY_FIELDS = {
 function autoBijoy(body, kind) {
   if (!BijoyConverter || !body || !BIJOY_FIELDS[kind]) return;
   BIJOY_FIELDS[kind].forEach((f) => {
-    if (typeof body[f] === 'string' && BijoyConverter.looksLikeBijoy(body[f])) {
+    if (typeof body[f] !== 'string' || !body[f]) return;
+    if (/<[a-zA-Z][^<>]*>/.test(body[f])) {
+      /* editor HTML: text nodes only */
+      body[f] = BijoyConverter.convertHtmlMixed(body[f]);
+    } else if (BijoyConverter.looksLikeBijoy(body[f])) {
       body[f] = BijoyConverter.convertBijoyToUnicode(body[f]);
     }
   });
@@ -290,10 +294,12 @@ router.post('/security/clear', requireAdmin, adminWriteLimiter, async (req, res,
 });
 
 // ---------- Generic CRUD (books/notes/dars/duas/ayathadith/surah/bibidh) ----------
+// Serial order: admin list + live site both sort {order:1, ...}. Arrows rewrite
+// the whole visible sequence (bulkWrite), so ties/gaps self-heal.
 function crudRoutes({ path, Model, viewPrefix, kind }) {
   router.get(`/${path}`, requireAdmin, async (req, res, next) => {
     try {
-      const items = await Model.find().sort({ createdAt: -1 }).limit(500).lean();
+      const items = await Model.find().sort({ order: 1, createdAt: -1 }).limit(500).lean();
       res.render(`admin/${viewPrefix}-list`, { items, admin: req.session.admin });
     } catch (err) {
       next(err);
@@ -311,6 +317,16 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       });
     }
     try {
+      // নতুন আইটেমের স্বাভাবিক জায়গা ধরে রাখো: desc-সেকশনে সবার উপরে,
+      // asc-সেকশনে (duas/surah/ayathadith) সবার নিচে — আগের আচরণই থাকে।
+      const appendLast = kind === 'dua' || kind === 'surah' || kind === 'ayathadith';
+      try {
+        const edge = await Model.findOne().sort({ order: appendLast ? -1 : 1 }).select('order').lean();
+        const edgeOrder = edge && typeof edge.order === 'number' ? edge.order : 0;
+        data.order = appendLast ? edgeOrder + 1 : edgeOrder - 1;
+      } catch {
+        data.order = 0;
+      }
       await Model.create(data);
       res.redirect(`/admin/${path}`);
     } catch (e) {
@@ -349,6 +365,28 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
     try {
       if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
       await Model.findByIdAndDelete(req.params.id);
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
+  // Serial up/down — ডানে উপরে/নিচে arrow; পুরো ক্রমটাই সংরক্ষণ হয়।
+  router.post(`/${path}/:id/move/:dir`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
+      const step = req.params.dir === 'down' ? 1 : -1;
+      const ids = await Model.find().sort({ order: 1, createdAt: -1 }).select('_id').lean();
+      const pos = ids.findIndex((d) => String(d._id) === req.params.id);
+      const swap = pos + step;
+      if (pos < 0 || swap < 0 || swap >= ids.length) return res.redirect(`/admin/${path}`);
+      const seq = ids.map((d) => d._id);
+      const moved = seq.splice(pos, 1)[0];
+      seq.splice(swap, 0, moved);
+      if (seq.length) {
+        await Model.bulkWrite(
+          seq.map((id, n) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: n } } } }))
+        );
+      }
       res.redirect(`/admin/${path}`);
     } catch (err) {
       next(err);
