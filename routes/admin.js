@@ -8,7 +8,6 @@ const Ban = require('../models/Ban');
 const Important = require('../models/Important');
 const Book = require('../models/Book');
 const Note = require('../models/Note');
-const Question = require('../models/Question');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
 const AyatHadith = require('../models/AyatHadith');
@@ -95,11 +94,10 @@ router.get('/logout', (req, res) => {
 // ---------- Dashboard (remake: stats + recent + live attacks + system) ----------
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
-    const [cImportant, cBook, cNote, cQuestion, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
+    const [cImportant, cBook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
       Important.countDocuments(),
       Book.countDocuments(),
       Note.countDocuments(),
-      Question.countDocuments(),
       Dars.countDocuments(),
       Dua.countDocuments(),
       AyatHadith.countDocuments(),
@@ -108,8 +106,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
       Ban.countDocuments()
     ]);
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [recentQ, recentB, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, recentImp, events24h] = await Promise.all([
-      Question.find().sort({ createdAt: -1 }).limit(3).select('question createdAt').lean().catch(() => []),
+    const [recentB, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, recentImp, events24h] = await Promise.all([
       Book.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Note.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Dars.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
@@ -121,7 +118,6 @@ router.get('/', requireAdmin, async (req, res, next) => {
       SecurityEvent.countDocuments({ createdAt: { $gte: since24h } }).catch(() => 0)
     ]);
     const recent = [
-      ...recentQ.map(r => ({ type: 'প্রশ্ন', title: r.question, when: r.createdAt, adminUrl: '/admin/questions' })),
       ...recentB.map(r => ({ type: 'বই', title: r.title, when: r.createdAt, adminUrl: '/admin/books' })),
       ...recentN.map(r => ({ type: 'নোট', title: r.title, when: r.createdAt, adminUrl: '/admin/notes' })),
       ...recentDars.map(r => ({ type: 'দারস', title: r.title, when: r.createdAt, adminUrl: '/admin/dars' })),
@@ -144,7 +140,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     };
     res.render('admin/dashboard', {
       admin: req.session.admin,
-      counts: { important: cImportant, book: cBook, note: cNote, question: cQuestion, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
+      counts: { important: cImportant, book: cBook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
       recent,
       topIps,
       events24h,
@@ -161,8 +157,7 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     const q = escRegex(req.query.q);
     if (!q) return res.redirect('/admin');
     const rx = new RegExp(q, 'i');
-    const [questions, books, notes, dars, duas, importants] = await Promise.all([
-      Question.find({ $or: [{ question: rx }, { answer: rx }] }).limit(20).select('question subject').lean().catch(() => []),
+    const [books, notes, dars, duas, importants] = await Promise.all([
       Book.find({ $or: [{ title: rx }, { author: rx }] }).limit(20).select('title author').lean().catch(() => []),
       Note.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dars.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
@@ -172,7 +167,7 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     res.render('admin/search', {
       admin: req.session.admin,
       q: req.query.q,
-      results: { questions, books, notes, dars, duas, importants }
+      results: { books, notes, dars, duas, importants }
     });
   } catch (err) {
     next(err);
@@ -193,8 +188,7 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
       return send('security-events', events);
     }
     if (t === 'all') {
-      const [questions, books, notes, dars, duas, importants, bans] = await Promise.all([
-        Question.find().limit(2000).lean(),
+      const [books, notes, dars, duas, importants, bans] = await Promise.all([
         Book.find().limit(2000).lean(),
         Note.find().limit(2000).lean(),
         Dars.find().limit(2000).lean(),
@@ -202,7 +196,7 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
         Important.find().limit(2000).lean(),
         Ban.find().lean()
       ]);
-      return send('backup', { questions, books, notes, dars, duas, importants, bans, exportedAt: new Date() });
+      return send('backup', { books, notes, dars, duas, importants, bans, exportedAt: new Date() });
     }
     return res.redirect('/admin');
   } catch (err) {
@@ -341,81 +335,7 @@ crudRoutes({ path: 'ayathadith', Model: AyatHadith, viewPrefix: 'ayathadith', ki
 crudRoutes({ path: 'surah', Model: Surah, viewPrefix: 'surah', kind: 'surah' });
 crudRoutes({ path: 'bibidh', Model: Bibidh, viewPrefix: 'bibidh', kind: 'bibidh' });
 
-// ---------- Questions CRUD (প্রশ্ন + উত্তর যোগ/এডিট/ডিলিট — slug-safe) ----------
-router.get('/questions', requireAdmin, async (req, res, next) => {
-  try {
-    const items = await Question.find().sort({ createdAt: -1 }).limit(500).lean();
-    res.render('admin/question-list', { items, admin: req.session.admin });
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get('/questions/new', requireAdmin, (req, res) => {
-  res.render('admin/question-form', { item: {}, admin: req.session.admin, error: null });
-});
-
-router.post('/questions', requireAdmin, adminWriteLimiter, async (req, res) => {
-  const { errors, data } = validateBody('question', req.body);
-  if (errors.length) {
-    return res.status(400).render('admin/question-form', {
-      item: req.body, admin: req.session.admin, error: errors.join(' ')
-    });
-  }
-  try {
-    const created = new Question(data);
-    await created.save(); // slug hook চলবে
-    res.redirect('/admin/questions');
-  } catch (e) {
-    res.status(400).render('admin/question-form', {
-      item: req.body, admin: req.session.admin, error: e.message
-    });
-  }
-});
-
-router.get('/questions/:id/edit', requireAdmin, async (req, res, next) => {
-  try {
-    if (!isId(req.params.id)) return res.redirect('/admin/questions');
-    const item = await Question.findById(req.params.id).lean();
-    if (!item) return res.redirect('/admin/questions');
-    res.render('admin/question-form', { item, admin: req.session.admin, error: null });
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.post('/questions/:id', requireAdmin, adminWriteLimiter, async (req, res, next) => {
-  try {
-    if (!isId(req.params.id)) return res.redirect('/admin/questions');
-    const { errors, data } = validateBody('question', req.body);
-    if (errors.length) {
-      return res.status(400).render('admin/question-form', {
-        item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: errors.join(' ')
-      });
-    }
-    const doc = await Question.findById(req.params.id);
-    if (!doc) return res.redirect('/admin/questions');
-    doc.question = data.question;
-    doc.answer = data.answer;
-    doc.subject = data.subject;
-    doc.chapter = data.chapter;
-    doc.phase = data.phase;
-    await doc.save(); // slug প্রয়োজনে রিজেনারেট হবে
-    res.redirect('/admin/questions');
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.post('/questions/:id/delete', requireAdmin, adminWriteLimiter, async (req, res, next) => {
-  try {
-    if (!isId(req.params.id)) return res.redirect('/admin/questions');
-    await Question.findByIdAndDelete(req.params.id);
-    res.redirect('/admin/questions');
-  } catch (err) {
-    next(err);
-  }
-});
+// ---------- IP Bans (নিরাপত্তা — IP ব্যান / মুক্ত) ----------
 
 // ---------- IP Bans (নিরাপত্তা — IP ব্যান / মুক্ত) ----------
 router.get('/bans', requireAdmin, async (req, res, next) => {

@@ -1,23 +1,22 @@
 <% /* Shared Q&A accordion. Params: items (array), prefix (string, unique id prefix) */ %>
 <div class="qa-list">
-  <% if (!items || items.length === 0) { %><p class="empty">কোনো প্রশ্ন পাওয়া যায়নি।</p><% } %>
+  <% if (!items || items.length === 0) { %><p class="empty">কোনো আইটেম পাওয়া যায়নি।</p><% } %>
   <% (items || []).forEach((item, idx) => { %>
     <div class="qa-item reveal">
       <button class="qa-q" data-toggle-target="<%= prefix %>-<%= idx %>" aria-expanded="false">
-        <span><span class="q-no"><%= idx + 1 %>.</span> <%= item.question %></span>
+        <span><span class="q-no"><%= idx + 1 %>.</span> <%= item.question || item.title %></span>
         <svg class="icon chev"><use href="#i-chev"/></svg>
       </button>
       <div id="<%= prefix %>-<%= idx %>" class="qa-a hidden">
         <div class="ans-meta">
-          <span class="badge"><%= item.subject %></span>
+          <span class="badge"><%= item.subject || item.category || '' %></span>
           <% if (item.chapter) { %><span class="badge light"><%= item.chapter %></span><% } %>
           <% if (item.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
           <% if (item.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
           <% if (item.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
         </div>
         <strong><svg class="icon sm"><use href="#i-check"/></svg> উত্তর:</strong>
-        <p><%= item.answer %></p>
-        <a href="/questions/<%= item.slug || item._id %>" class="more">শেয়ার লিংক <svg class="icon sm"><use href="#i-arrow"/></svg></a>
+        <p><%= item.answer || item.content || item.translation %></p>
       </div>
     </div>
   <% }) %>
