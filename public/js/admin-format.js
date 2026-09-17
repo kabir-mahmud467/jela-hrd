@@ -146,7 +146,26 @@
     }
   }
 
-  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  /* Touch = coarse pointer ONLY (phones/tablets). Touchscreen laptops have
+     a fine pointer too — they get the desktop static toolbar. */
+  function coarsePointerOnly() {
+    try {
+      if (!window.matchMedia) return false;
+      return window.matchMedia('(pointer: coarse)').matches &&
+        !window.matchMedia('(pointer: fine)').matches;
+    } catch (e) {
+      return false;
+    }
+  }
+  function touchCapable() {
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  }
+  var isTouch;
+  if (window.matchMedia) {
+    isTouch = coarsePointerOnly();
+  } else {
+    isTouch = touchCapable(); /* very old browsers: best guess */
+  }
 
   if (isTouch) {
     /* ---- mobile: floating bar, selection-এই শুধু দেখায় ---- */
