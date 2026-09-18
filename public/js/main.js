@@ -138,13 +138,20 @@ function toggleAnswer(id) {
 
 // Checklist: homepage localStorage progress handled in /js/checklist.js (index.ejs only)
 
-// Bibidh category dropdown: CSP-safe auto-submit (inline onchange not allowed)
+// Category dropdowns (bibidh/note): CSP-safe auto-submit on change
+// (inline onchange not allowed) — URL বদলায়, তাই সঠিক তালিকা দেখায়।
+// দেখুন বাটন no-JS fallback হিসেবে থাকে।
 (function () {
-  var sel = document.getElementById('bibidh-cat');
-  if (sel && sel.form) {
-    sel.addEventListener('change', function () {
-      sel.form.submit();
-    });
+  var ids = ['bibidh-cat', 'note-cat'];
+  for (var i = 0; i < ids.length; i++) {
+    (function (id) {
+      var sel = document.getElementById(id);
+      if (sel && sel.form) {
+        sel.addEventListener('change', function () {
+          sel.form.submit();
+        });
+      }
+    })(ids[i]);
   }
 })();
 

@@ -1,11 +1,9 @@
 <%- include('partials/header', { title: note.title }) %>
 <a href="/note?cat=<%= note.category || 'alochona' %>" class="back"><svg class="icon sm"><use href="#i-back"/></svg> সব নোট</a>
 <article class="detail reveal in">
-  <span class="badge"><%= note.subject %></span>
   <span class="badge light"><%= (typeof cats !== 'undefined' && cats && cats[note.category]) || (note.category === 'boi' ? 'বই নোট' : 'আলোচনা নোট') %></span>
   <% if (note.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
   <% if (note.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-  <% if (note.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
   <h1><%= note.title %></h1>
   <small class="muted"><svg class="icon sm"><use href="#i-clock"/></svg> <%= note.createdAt ? new Date(note.createdAt).toLocaleDateString('bn-BD') : '' %></small>
   <p class="content pre"><%= note.content %></p>

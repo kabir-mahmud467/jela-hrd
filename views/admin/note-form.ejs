@@ -16,7 +16,6 @@
 <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
 <form method="POST" action="<%= item && item._id ? '/admin/notes/' + item._id : '/admin/notes' %>" class="form">
 <label for="f-title">শিরোনাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
-<label for="f-subject">বিষয়</label><input id="f-subject" name="subject" value="<%= item.subject || 'সাধারণ' %>" maxlength="100">
 <label for="f-category">ধরন *</label><select id="f-category" name="category">
   <option value="alochona" <%= (!item.category || item.category === 'alochona') ? 'selected' : '' %>>আলোচনা নোট</option>
   <option value="boi" <%= item.category === 'boi' ? 'selected' : '' %>>বই নোট</option>
@@ -24,7 +23,6 @@
 <label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
   <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
   <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
-  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
 </select>
 <label for="f-content">বিস্তারিত</label><textarea id="f-content" name="content" rows="8" required maxlength="10000"><%= item.content || '' %></textarea>
 <div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/notes" class="btn">বাতিল</a></div>

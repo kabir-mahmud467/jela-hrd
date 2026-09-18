@@ -38,6 +38,7 @@ router.get('/offline-manifest.json', async (req, res, next) => {
       '/ayat-hadith',
       '/offline.html',
       '/manifest.webmanifest',
+      `/css/theme.css?v=${v}`,
       `/css/style.css?v=${v}`,
       `/js/main.js?v=${v}`,
       '/icons/icon-192.png',
@@ -48,11 +49,14 @@ router.get('/offline-manifest.json', async (req, res, next) => {
     const phases = PHASE_VALUES;
     phases.forEach((p) => {
       urls.add(`/books/phase/${p}`);
-      urls.add(`/note/phase/${p}`);
       urls.add(`/dars/porbo/${p}`);
       urls.add(`/dua/porbo/${p}`);
       urls.add(`/surah/porbo/${p}`);
       urls.add(`/ayat-hadith/porbo/${p}`);
+    });
+    // নোটে শপথ পর্ব নেই — শুধু ২ পর্ব
+    ['abedonpotrer-purbe', 'proshnopotrer-purbe'].forEach((p) => {
+      urls.add(`/note/phase/${p}`);
     });
     Note.NOTE_VALUES.forEach((c) => {
       urls.add(`/note?cat=${c}`);
@@ -126,8 +130,9 @@ router.get('/books/phase/:phase', async (req, res, next) => {
   }
 });
 
-// নোট — ধরন (আলোচনা/বই) + ৩ পর্ব ফিল্টারসহ
+// নোট — ধরন (আলোচনা/বই) + ২ পর্ব ফিল্টারসহ (নোটে শপথ পর্ব নেই)।
 // পুরনো ডকুমেন্টে category না থাকলে আলোচনা ধরা হয়।
+const NOTE_PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe'];
 function noteFilter(cat, q, phase) {
   const and = [];
   if (cat === 'boi') {
@@ -137,9 +142,9 @@ function noteFilter(cat, q, phase) {
   }
   if (q) {
     const rx = new RegExp(escapeRegex(q), 'i');
-    and.push({ $or: [{ title: rx }, { subject: rx }] });
+    and.push({ $or: [{ title: rx }, { content: rx }] });
   }
-  if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
+  if (phase && NOTE_PHASE_VALUES.includes(phase)) and.push({ phase });
   return { $and: and };
 }
 
@@ -156,7 +161,7 @@ router.get('/note', async (req, res, next) => {
     const phase = (req.query.phase || '').toString().slice(0, 50);
     const notes = await Note.find(noteFilter(cat, q, phase)).sort({ createdAt: -1 }).limit(200).lean();
     res.render('note', {
-      notes, q, phase: PHASE_VALUES.includes(phase) ? phase : '',
+      notes, q, phase: NOTE_PHASE_VALUES.includes(phase) ? phase : '',
       cat, cats: Note.NOTE_CATS, phases: PHASES
     });
   } catch (err) {
@@ -176,11 +181,11 @@ router.get('/note/cat/:cat', async (req, res, next) => {
   }
 });
 
-// নোট — পর্বভিত্তিক (ধরন query-তে, default আলোচনা)
+// নোট — পর্বভিত্তিক (ধরন query-তে, default আলোচনা; শপথ পর্ব নোটে নেই → 404)
 router.get('/note/phase/:phase', async (req, res, next) => {
   try {
     const phase = req.params.phase.slice(0, 50);
-    if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
+    if (!NOTE_PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const cat = validNoteCat(req.query.cat);
     const notes = await Note.find(noteFilter(cat, '', phase)).sort({ createdAt: -1 }).limit(200).lean();
     res.render('note', { notes, q: '', phase, cat, cats: Note.NOTE_CATS, phases: PHASES });

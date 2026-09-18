@@ -10,6 +10,7 @@ const TTL = 5000;
 function compute() {
   try {
     const css = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const theme = path.join(__dirname, '..', 'public', 'css', 'theme.css');
     const js = path.join(__dirname, '..', 'public', 'js', 'main.js');
     const pkg = path.join(__dirname, '..', 'package.json');
     const mt = (p) => {
@@ -25,7 +26,7 @@ function compute() {
     } catch {
       // ignore
     }
-    return `${pkgVer}.${mt(css)}.${mt(js)}`;
+    return `${pkgVer}.${mt(css)}.${mt(theme)}.${mt(js)}`;
   } catch {
     return String(Date.now());
   }
