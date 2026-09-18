@@ -12,7 +12,8 @@ const BIBIDH_CATS = {
   'guruttopurno-ghotonaboli': 'গুরুত্বপূর্ণ ঘটনাবলী',
   'jatiyo-antorjatik': 'জাতীয় ও আন্তর্জাতিক',
   'onnanno-proshno': 'অন্যান্য প্রশ্ন',
-  'samprotik-proshno': 'সাম্প্রতিক প্রশ্ন'
+  'samprotik-proshno': 'সাম্প্রতিক প্রশ্ন',
+  'likhito-porikkhar-proshno': 'লিখিত পরীক্ষার প্রশ্ন'
 };
 const BIBIDH_VALUES = Object.keys(BIBIDH_CATS);
 

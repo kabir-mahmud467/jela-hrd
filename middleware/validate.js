@@ -38,9 +38,12 @@ function validateBody(kind, body) {
     if (!isValidUrl(data.link)) errors.push('সঠিক লিংক দিন (http/https)।');
   } else if (kind === 'note') {
     const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
+    const NOTE_VALUES = ['alochona', 'boi'];
     data.title = str(body.title, 300);
     data.subject = str(body.subject, 100) || 'সাধারণ';
     data.content = str(body.content, 10000);
+    data.category = str(body.category, 50) || 'alochona';
+    if (!NOTE_VALUES.includes(data.category)) data.category = 'alochona';
     data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
     if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
@@ -91,7 +94,7 @@ function validateBody(kind, body) {
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
   } else if (kind === 'bibidh') {
-    const BIBIDH_VALUES = ['ilmul-quran','ilmul-hadis','ilmut-tajbid','masala-masayel','shane-nuzul','jiboni','dibosh','motobad','guruttopurno-ghotonaboli','jatiyo-antorjatik','onnanno-proshno','samprotik-proshno'];
+    const BIBIDH_VALUES = ['ilmul-quran','ilmul-hadis','ilmut-tajbid','masala-masayel','shane-nuzul','jiboni','dibosh','motobad','guruttopurno-ghotonaboli','jatiyo-antorjatik','onnanno-proshno','samprotik-proshno','likhito-porikkhar-proshno'];
     data.title = str(body.title, 300);
     data.content = str(body.content, 10000);
     data.category = str(body.category, 50) || 'ilmul-quran';

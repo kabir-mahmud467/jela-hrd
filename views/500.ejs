@@ -3,6 +3,7 @@
   <svg class="icon big"><use href="#i-alert"/></svg>
   <h1>৫০০</h1>
   <p>সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।</p>
+  <% if (typeof retryAfter !== 'undefined' && retryAfter) { %><p class="muted">ডাটাবেজ ব্যস্ত আছে — একটু অপেক্ষা করে পেজটি রিফ্রেশ করুন, স্বয়ংক্রিয়ভাবে ঠিক হয়ে যাবে।</p><% } %>
   <% if (typeof hint !== 'undefined' && hint) { %><p class="alert error"><%= hint %></p><% } %>
   <a href="/" class="btn primary"><svg class="icon"><use href="#i-back"/></svg> হোমে ফিরুন</a>
 </div>

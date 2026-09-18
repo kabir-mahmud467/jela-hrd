@@ -27,7 +27,7 @@ config/db.js           Cached mongoose connect (serverless-safe). bufferTimeoutM
                        serverSelectionTimeoutMS=5000. Single shared promise.
 config/assets.js       Asset version (?v=) from CSS/JS mtimes + package version. Exposed as
                        `assetVer` to ALL EJS — edit CSS/JS and version changes automatically.
-routes/index.js        Public: /, /gurutto, /books (+/phase/:phase), /notes (+/phase/:phase, :id detail).
+routes/index.js        Public: /, /books (+/phase/:phase), /note (+/cat/:cat, /phase/:phase, :id detail; old /notes/* 301).
 routes/dars.js         Public দারস: /dars, /dhara/:kind (2 ধারা), /:id detail.
 routes/dua.js          Public দুআ (SEPARATE): /dua, /dhara/:cat (3 ভাগ), /:id detail.
 routes/questions.js    Public Q&A: /questions, /subject/:subject, /phase/:phase, /id/:id, /:slugOrId.
@@ -147,8 +147,8 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/questions/:slugOrId` | Detail: slug first, then ObjectId fallback. Increments `views` best-effort. Id-URL → 301 slug. |
 | GET | `/gurutto`, `/gurutto/:id` | Notices (pinned first). `:id` validates ObjectId. |
 | GET | `/books?q=&phase=`, `/books/phase/:phase` | Books, ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)। Max 200. |
-| GET | `/notes?q=&phase=`, `/notes/phase/:phase` | আলোচনা নোট — ONE route, পর্ব ফিল্টারসহ। Max 200. |
-| GET | `/notes/:id` | ObjectId validated. |
+| GET | `/note?q=&cat=&phase=`, `/note/cat/:cat`, `/note/phase/:phase` | নোট — ধরন (আলোচনা/বই) + ৩ পর্ব ফিল্টারসহ। Max 200. |
+| GET | `/note/:id` | ObjectId validated. |
 | GET | `/dars?q=&kind=&phase=`, `/dars/dhara/:kind`, `/dars/porbo/:phase`, `/dars/:id` | দারস — ২ ধারা + ৩ পর্ব (প্রশ্নের পর্ব)। ধারা পেজে `?phase=`, পর্ব পেজে `?kind=` চলে। Max 200. |
 | GET | `/dua?q=&cat=&phase=`, `/dua/dhara/:cat`, `/dua/porbo/:phase`, `/dua/:id` | মাসনুন দুআ — SEPARATE route, ৩ ভাগ + ৩ পর্ব। ভাগ পেজে `?phase=`, পর্ব পেজে `?cat=` চলে। Max 200. |
 | GET | `/healthz` | No auth/ban/limit. `{"ok":true,"db":"up\|down"}`. |
@@ -191,8 +191,8 @@ shopother-purbe     = শপথের পূর্বে
 
 **Books + আলোচনা নোট share the same 3 phases** (single source: `PHASE_VALUES` in
 `models/Question.js`, imported by `models/Book.js` + `models/Note.js`):
-`routes/index.js` (`/books`, `/books/phase/:phase`, `/notes`, `/notes/phase/:phase`) →
-`views/books.ejs` + `views/notes.ejs` (phase tabs) + `views/admin/book-form.ejs` +
+`routes/index.js` (`/books`, `/books/phase/:phase`, `/note`, `/note/cat/:cat`, `/note/phase/:phase`) →
+`views/books.ejs` + `views/note.ejs` (ধরন dropdown + phase tabs) + `views/admin/book-form.ejs` +
 `views/admin/note-form.ejs` (`<select>`) → `middleware/validate.js` (kind `book`/`note`).
 
 **Dars kinds** (defined ONCE in `models/Dars.js` as `DARS`/`DARS_VALUES`):

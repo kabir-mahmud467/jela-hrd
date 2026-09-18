@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Bibidh = require('../models/Bibidh');
+const { isDBError } = require('../config/db');
 
 function esc(s){ return (s||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&').slice(0,100); }
 
@@ -26,7 +27,7 @@ router.get('/cat/:cat', async (req,res,next)=>{
   }catch(e){ next(e); }
 });
 
-router.get('/:id', async (req,res)=>{
+router.get('/:id', async (req,res,next)=>{
   try{
     const id=req.params.id;
     const mongoose=require('mongoose');
@@ -34,7 +35,11 @@ router.get('/:id', async (req,res)=>{
     const item=await Bibidh.findById(id).lean();
     if(!item) return res.status(404).render('404');
     res.render('bibidh-details', { item, cats: Bibidh.BIBIDH_CATS });
-  }catch{ return res.status(404).render('404'); }
+  }catch(err){
+    // DB blip হলে 404 নয় — 503 retry পেজ (error handler দেখো)
+    if(isDBError(err)) return next(err);
+    return res.status(404).render('404');
+  }
 });
 
 module.exports = router;

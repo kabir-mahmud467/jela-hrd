@@ -56,7 +56,18 @@ async function ipBanCheck(req, res, next) {
       } catch {
         // ignore
       }
-      return res.status(403).render('403', { ip: req.clientIp });
+      try {
+        return res.status(403).render('403', { ip: req.clientIp }, (rErr, html) => {
+          if (rErr || !html) {
+            if (!res.headersSent) return res.status(403).send('এই IP থেকে প্রবেশ নিষিদ্ধ।');
+            return;
+          }
+          res.send(html);
+        });
+      } catch {
+        if (!res.headersSent) return res.status(403).send('এই IP থেকে প্রবেশ নিষিদ্ধ।');
+        return;
+      }
     }
   } catch {
     // fail-open: চেক ব্যর্থ হলে request আটকিও না

@@ -13,7 +13,7 @@ async function connectDB() {
   if (!uri) {
     throw new Error('MONGODB_URI is missing. .env / Vercel env এ সেট করুন।');
   }
-  if (cached.conn) return cached.conn;
+  if (cached.conn && mongoose.connection.readyState === 1) return cached.conn;
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(uri, {
@@ -24,11 +24,47 @@ async function connectDB() {
       .then(m => m)
       .catch(err => {
         cached.promise = null; // পরের request আবার retry করতে পারবে
+        cached.conn = null;
         throw err;
       });
   }
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.conn = null;
+    throw err;
+  }
   return cached.conn;
 }
 
+function isDBReady() {
+  return mongoose.connection.readyState === 1;
+}
+
+// DB reconnect-এর জন্য অপেক্ষা করো (shared promise — concurrent request একসাথে wait করে)।
+// timeoutMs-এর মধ্যে ready না হলে false (500 নয় — caller 503/retry সিদ্ধান্ত নেবে)।
+async function waitForDB(timeoutMs = 7000) {
+  if (isDBReady()) return true;
+  try {
+    await Promise.race([
+      connectDB().catch(() => null),
+      new Promise(resolve => setTimeout(resolve, timeoutMs))
+    ]);
+  } catch {
+    // ignore — নিচে readyState দেখে সিদ্ধান্ত
+  }
+  return isDBReady();
+}
+
+// Transient DB/connection সমস্যা চেনো — এগুলোতে 500 নয়, 503 + Retry-After।
+function isDBError(err) {
+  return /buffering|timed out|timedout|ECONNREFUSED|ENOTFOUND|EPIPE|ETIMEDOUT|topology|server selection|Mongo|Mongoose/i.test(
+    (err && err.message) || ''
+  );
+}
+
 module.exports = connectDB;
+module.exports.connectDB = connectDB;
+module.exports.isDBReady = isDBReady;
+module.exports.waitForDB = waitForDB;
+module.exports.isDBError = isDBError;

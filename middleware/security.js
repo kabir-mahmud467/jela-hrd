@@ -28,14 +28,26 @@ function securityMiddleware(app) {
     })
   );
 
-  // NoSQL injection প্রতিরোধ
-  app.use(mongoSanitize());
+  // NOTE: mongoSanitize + hpp এখানে নয় — body parser-এর পরে sanitizeMiddleware
+  // হিসেবে বসে (app.js দেখো)। আগে বসালে req.body তখনও undefined থাকে,
+  // ফলে POST body sanitize হতো না।
+}
 
-  // HTTP Parameter Pollution প্রতিরোধ
-  app.use(hpp());
-
-  // JSON/URL body সাইজ সীমা
-  // (app.js এ express.json({limit}) ব্যবহার হবে)
+// Body parser-এর পরে বসে — NoSQL injection + HPP প্রতিরোধ (body সহ)।
+// Express 4-এ req.query writable, তাই সরাসরি assign নিরাপদ।
+function sanitizeMiddleware(req, res, next) {
+  try {
+    mongoSanitize()(req, res, (err) => {
+      if (err) return next(err);
+      try {
+        hpp()(req, res, next);
+      } catch (e) {
+        next(e);
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
 }
 
 // Rate limit ভাঙলে plain text নয় — সুন্দর 429 পেজ (+ DB-তে attack log)
@@ -54,7 +66,17 @@ function tooMany(req, res) {
   } catch {
     // logging ব্যর্থ হলেও 429 দেখাও
   }
-  res.status(429).render('429');
+  try {
+    res.status(429).render('429', (rErr, html) => {
+      if (rErr || !html) {
+        if (!res.headersSent) res.status(429).send('অনেক বেশি রিকোয়েস্ট — কিছুক্ষণ পরে আবার চেষ্টা করুন।');
+        return;
+      }
+      res.send(html);
+    });
+  } catch {
+    if (!res.headersSent) res.status(429).send('অনেক বেশি রিকোয়েস্ট — কিছুক্ষণ পরে আবার চেষ্টা করুন।');
+  }
 }
 
 // Global IP rate limit: প্রতি IP, 15 মিনিটে 300 req
@@ -85,4 +107,4 @@ const adminWriteLimiter = rateLimit({
   handler: tooMany
 });
 
-module.exports = { securityMiddleware, globalLimiter, loginLimiter, adminWriteLimiter };
+module.exports = { securityMiddleware, sanitizeMiddleware, globalLimiter, loginLimiter, adminWriteLimiter };

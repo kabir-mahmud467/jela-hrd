@@ -15,7 +15,7 @@
 </div>
 <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
 <form method="POST" action="<%= item && item._id ? '/admin/bibidh/' + item._id : '/admin/bibidh' %>" class="form">
-<% var cats = {'ilmul-quran':'ইলমূল কুরআন','ilmul-hadis':'ইলমূল হাদিস','ilmut-tajbid':'ইলমুত তাজবীদ','masala-masayel':'মাসআলা-মাসায়েল','shane-nuzul':'শানে নুযুল','jiboni':'জীবনী','dibosh':'দিবস','motobad':'মতবাদ','guruttopurno-ghotonaboli':'গুরুত্বপূর্ণ ঘটনাবলী','jatiyo-antorjatik':'জাতীয় ও আন্তর্জাতিক','onnanno-proshno':'অন্যান্য প্রশ্ন','samprotik-proshno':'সাম্প্রতিক প্রশ্ন'}; %>
+<% var cats = {'ilmul-quran':'ইলমূল কুরআন','ilmul-hadis':'ইলমূল হাদিস','ilmut-tajbid':'ইলমুত তাজবীদ','masala-masayel':'মাসআলা-মাসায়েল','shane-nuzul':'শানে নুযুল','jiboni':'জীবনী','dibosh':'দিবস','motobad':'মতবাদ','guruttopurno-ghotonaboli':'গুরুত্বপূর্ণ ঘটনাবলী','jatiyo-antorjatik':'জাতীয় ও আন্তর্জাতিক','onnanno-proshno':'অন্যান্য প্রশ্ন','samprotik-proshno':'সাম্প্রতিক প্রশ্ন','likhito-porikkhar-proshno':'লিখিত পরীক্ষার প্রশ্ন'}; %>
 <label for="f-cat">বিষয় *</label><select id="f-cat" name="category">
   <% Object.keys(cats).forEach(function(val){ %>
     <option value="<%= val %>" <%= ((!item.category && val === 'ilmul-quran') || item.category === val) ? 'selected' : '' %>><%= cats[val] %></option>

@@ -6,6 +6,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const connectDB = require('./config/db');
+const { isDBReady, waitForDB, isDBError } = require('./config/db');
 const Admin = require('./models/Admin');
 
 const indexRoutes = require('./routes/index');
@@ -15,7 +16,7 @@ const ayatHadithRoutes = require('./routes/ayathadith');
 const surahRoutes = require('./routes/surah');
 const bibidhRoutes = require('./routes/bibidh');
 const adminRoutes = require('./routes/admin');
-const { securityMiddleware, globalLimiter } = require('./middleware/security');
+const { securityMiddleware, sanitizeMiddleware, globalLimiter } = require('./middleware/security');
 const { ipBanCheck } = require('./middleware/ipBan');
 const { trafficMiddleware, flagEvent } = require('./middleware/traffic');
 const { getAssetVer } = require('./config/assets');
@@ -24,35 +25,52 @@ const app = express();
 
 let dbReady = false;
 let dbLastError = null;
-let dbConnecting = false;
 let dbRetryCount = 0;
 let dbFixLogged = false;
 let lastRetryAt = 0;
+// Shared in-flight promise: concurrent caller-রা নতুন connect না ছুঁড়ে একই
+// promise-এ wait করে — নাহলে startup/blip-এর সময় সব request একসাথে 500 খেত।
+let dbPromise = null;
 async function ensureDB() {
   if (dbReady && mongoose.connection.readyState === 1) return;
-  if (dbConnecting) return; // single-flight: overlapping caller (startup + interval + guard) একবারই connect করবে
-  dbConnecting = true;
-  try {
-    await connectDB();
-    await Admin.ensureDefaultAdmin();
-    dbReady = true;
-    dbLastError = null;
-    dbRetryCount = 0;
-    dbFixLogged = false;
-    console.log('MongoDB ready');
-  } catch (err) {
-    dbLastError = err;
-    dbRetryCount += 1;
-    // Spam প্রতিরোধ: প্রথমবার পূর্ণ fix দেখাও, পরে শুধু এক লাইনে retry count
-    if (!dbFixLogged) {
-      console.error('MongoDB NOT connected:', err.message);
-      console.error('Fix: systemctl --user start jela-mongo (service: ~/.config/systemd/user/jela-mongo.service, dbpath ~/mongodb-data) অথবা .env-এ সঠিক MONGODB_URI দিন। auto-retry চলছে...');
-      dbFixLogged = true;
-    } else {
-      console.error(`MongoDB retry #${dbRetryCount} failed: ${err.message}`);
+  if (dbPromise) {
+    try {
+      await dbPromise;
+    } catch {
+      // in-flight attempt ব্যর্থ — caller নিচের readyState দেখে সিদ্ধান্ত নেবে
     }
-  } finally {
-    dbConnecting = false;
+    return;
+  }
+  dbPromise = (async () => {
+    try {
+      await connectDB();
+      await Admin.ensureDefaultAdmin();
+      dbReady = true;
+      dbLastError = null;
+      dbRetryCount = 0;
+      dbFixLogged = false;
+      console.log('MongoDB ready');
+    } catch (err) {
+      dbReady = false;
+      dbLastError = err;
+      dbRetryCount += 1;
+      // Spam প্রতিরোধ: প্রথমবার পূর্ণ fix দেখাও, পরে শুধু এক লাইনে retry count
+      if (!dbFixLogged) {
+        console.error('MongoDB NOT connected:', err.message);
+        console.error('Fix: systemctl --user start jela-mongo (service: ~/.config/systemd/user/jela-mongo.service, dbpath ~/mongodb-data) অথবা .env-এ সঠিক MONGODB_URI দিন। auto-retry চলছে...');
+        dbFixLogged = true;
+      } else {
+        console.error(`MongoDB retry #${dbRetryCount} failed: ${err.message}`);
+      }
+      throw err;
+    } finally {
+      dbPromise = null;
+    }
+  })();
+  try {
+    await dbPromise;
+  } catch {
+    // logged above — caller readyState/503 পথে যাবে, crash নয়
   }
 }
 function scheduleRetry() {
@@ -125,14 +143,20 @@ app.use(
 );
 
 // IP ban check (DB + BANNED_IPS) — rate limit-এর আগেই ব্যানড IP বিদায়
-app.use(ipBanCheck);
+// (async rejection কখনো ঝুলে থাকবে না — fail-open + forward)
+app.use((req, res, next) => {
+  Promise.resolve(ipBanCheck(req, res, next)).catch(next);
+});
 // Live traffic counter (in-memory, per-IP) — attacker IP দেখার জন্য
 app.use(trafficMiddleware);
 app.use(globalLimiter);
 
-// Body parsers (size limit সহ)
+// Body parsers (size limit সহ) — sanitize-এর আগেই, যাতে POST body-ও sanitize হয়
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(express.json({ limit: '100kb' }));
+
+// NoSQL injection + HPP — body parser-এর পরে (body সহ sanitize হয়)
+app.use(sanitizeMiddleware);
 
 const isProd = process.env.NODE_ENV === 'production';
 // COOKIE_SECURE: 'true'/'false' দিয়ে override করা যায়; default production-এ true.
@@ -153,50 +177,114 @@ if (process.env.MONGODB_URI) {
       collectionName: 'sessions',
       ttl: 60 * 60 * 6
     });
+    // 'error' listener না থাকলে store emit করলেই process crash করে —
+    // তাই সবসময় listener রাখো (fail-open)।
+    sessionStore.on('error', (err) => {
+      console.error('Session store error (ignored, fail-open):', err && err.message);
+    });
   } catch (err) {
     console.warn('MongoStore unavailable, MemoryStore fallback:', err.message);
   }
 }
-app.use(
-  session({
-    name: 'jela_hrd_sid',
-    secret: process.env.SESSION_SECRET || 'jela_hrd_secret_change_me',
-    resave: false,
-    saveUninitialized: false,
-    proxy: isProd,
-    ...(sessionStore ? { store: sessionStore } : {}),
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 6,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: cookieSecure
-    }
-  })
-);
+const sessionMiddleware = session({
+  name: 'jela_hrd_sid',
+  secret: process.env.SESSION_SECRET || 'jela_hrd_secret_change_me',
+  resave: false,
+  saveUninitialized: false,
+  proxy: isProd,
+  ...(sessionStore ? { store: sessionStore } : {}),
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 6,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: cookieSecure
+  }
+});
+// Session store (Mongo) blip হলে 500 নয় — session ছাড়াই এগিয়ে যাও (fail-open)।
+// Public পেজে session লাগে না; admin লগিন DB ছাড়া এমনিতেই সম্ভব নয়।
+app.use((req, res, next) => {
+  try {
+    sessionMiddleware(req, res, (err) => {
+      if (!err) return next();
+      console.error(
+        `Session store error on ${req.method} ${req.path} (fail-open): ${err.message}`
+      );
+      if (!req.session) {
+        req.session = {
+          regenerate: (cb) => { if (typeof cb === 'function') cb(); },
+          save: (cb) => { if (typeof cb === 'function') cb(); },
+          destroy: (cb) => { if (typeof cb === 'function') cb(); }
+        };
+      }
+      next();
+    });
+  } catch (err) {
+    console.error(`Session middleware threw (fail-open): ${err.message}`);
+    next();
+  }
+});
+
+// EJS safe defaults — কোনো route ভুলে variable না পাঠালেও
+// ReferenceError → 500 হবে না (render-এর explicit মান অগ্রাধিকার পায়)।
+app.use((req, res, next) => {
+  res.locals.q = '';
+  res.locals.phase = '';
+  res.locals.kind = '';
+  res.locals.phases = res.locals.phases || {};
+  res.locals.cats = res.locals.cats || {};
+  res.locals.items = [];
+  res.locals.groups = [];
+  res.locals.books = [];
+  res.locals.notes = [];
+  res.locals.lessons = [];
+  res.locals.duas = [];
+  res.locals.hint = null;
+  res.locals.retryAfter = 0;
+  next();
+});
 
 // Health check (Vercel/Uptime) — DB ছাড়াই কাজ করে, db status জানায়
 // (উপরে ban/limit-এর আগেই সংজ্ঞায়িত — এখানে ডুপ্লিকেট নয়)
 
-// DB guard — mongoose পুরোপুরি disconnected (0) থাকলে সঙ্গে সঙ্গে 500,
-// "connecting" (2) হলে request-কে যেতে দাও (bufferTimeout 3s-এ fail হবে)।
-// Throttle: প্রতি request-এ ensureDB() ডাকলে thundering herd + log spam হয়,
-// তাই 10s-এ সর্বোচ্চ একবার background retry ট্রিগার করো।
+// DB guard — DB-নির্ভর route-এ যাওয়ার আগে shared reconnect-এর জন্য অপেক্ষা করো.
+// Blip/connecting অবস্থায় সঙ্গে সঙ্গে 500 না দিয়ে ~7s wait — transient
+// সমস্যায় request নিজেই সেরে যায়। DB-ছাড়া পেজ (/, /healthz,
+// login ফর্ম) সবসময় চলে। অজানা path DB ছাড়াই 404 হয়। সত্যিই DB
+// unreachable থাকলে DB-নির্ভর route-এ 503 + Retry-After (500 নয়)।
+const DB_FREE_GET = new Set(['/', '/admin/login']);
+const DB_PREFIXES = [
+  '/books', '/note', '/dars', '/dua', '/ayat-hadith',
+  '/surah', '/bibidh', '/admin', '/offline-manifest.json'
+];
 app.use((req, res, next) => {
-  if (mongoose.connection.readyState === 0 && req.path !== '/healthz') {
+  if (isDBReady()) return next();
+  if (req.path === '/healthz' || req.path === '/favicon.ico') return next();
+  if (req.method === 'GET' && DB_FREE_GET.has(req.path)) return next();
+  if (!DB_PREFIXES.some((p) => req.path === p || req.path.startsWith(p + '/'))) {
+    return next(); // কোনো router-এই মিলবে না → DB ছাড়াই 404
+  }
+  waitForDB(7000).then((ok) => {
+    if (ok || isDBReady()) return next();
     const now = Date.now();
     if (now - lastRetryAt > 10000) {
       lastRetryAt = now;
       ensureDB().catch(() => {});
     }
+    res.set('Retry-After', '5');
     const msg = dbLastError ? dbLastError.message : 'Database disconnected';
-    if (process.env.NODE_ENV === 'production') {
-      return res.status(500).render('500', { hint: null });
-    }
-    return res.status(500).render('500', {
-      hint: `সম্ভবত Database সমস্যা: ${msg} — mongod চালু আছে কি না দেখুন।`
+    const hint =
+      process.env.NODE_ENV === 'production'
+        ? 'ডাটাবেজ ব্যস্ত আছে — একটু পরে স্বয়ংক্রিয়ভাবে আবার চেষ্টা করুন।'
+        : `ডাটাবেজ ব্যস্ত/বন্ধ: ${msg} — একটু পরে আবার চেষ্টা করুন।`;
+    res.status(503).render('500', { hint, retryAfter: 5 }, (rErr, html) => {
+      if (rErr) {
+        console.error('503 page render failed:', rErr.message);
+        if (!res.headersSent) res.status(503).send('Service busy — please retry shortly.');
+        return;
+      }
+      res.send(html);
     });
-  }
-  next();
+  }).catch(next);
 });
 
 // Routes
@@ -227,22 +315,50 @@ app.use((req, res) => {
   } catch {
     // ignore
   }
-  res.status(404).render('404');
+  res.status(404).render('404', (rErr, html) => {
+    if (rErr) {
+      console.error('404 page render failed:', rErr.message);
+      if (!res.headersSent) res.status(404).send('দুঃখিত, পেজটি পাওয়া যায়নি।');
+      return;
+    }
+    res.send(html);
+  });
 });
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   // DB buffering stack trace spam প্রতিরোধ: এক লাইনে সংক্ষেপে
-  if (/buffering|timed out|ECONNREFUSED|ENOTFOUND|Mongo/i.test(err.message || '')) {
-    console.error(`Request ${req.method} ${req.path} failed: ${err.message}`);
-  } else {
-    console.error(err);
+  if (err && isDBError(err)) {
+    console.error(`Request ${req.method} ${req.path} failed (DB, 503): ${err.message}`);
+    res.set('Retry-After', '5');
+    const hint =
+      process.env.NODE_ENV === 'production'
+        ? 'ডাটাবেজ ব্যস্ত আছে — একটু পরে স্বয়ংক্রিয়ভাবে আবার চেষ্টা করুন।'
+        : `ডাটাবেজ ব্যস্ত/বন্ধ: ${err.message} — একটু পরে আবার চেষ্টা করুন।`;
+    res.status(503).render('500', { hint, retryAfter: 5 }, (rErr, html) => {
+      if (rErr) {
+        console.error('503 page render failed:', rErr.message);
+        if (!res.headersSent) res.status(503).send('Service busy — please retry shortly.');
+        return;
+      }
+      res.send(html);
+    });
+    return;
   }
+  console.error(err);
   const hint =
     process.env.NODE_ENV === 'production'
       ? null
-      : /Signature|session|Mongo|Mongoose|buffering|timed out|ECONNREFUSED/i.test(err.message || '')
+      : /Signature|session|Mongo|Mongoose|buffering|timed out|ECONNREFUSED/i.test((err && err.message) || '')
         ? `সম্ভবত Database/Session সমস্যা: ${err.message} — mongod চালু আছে কি না দেখুন।`
-        : err.message;
-  res.status(500).render('500', { hint });
+        : (err && err.message);
+  res.status(500).render('500', { hint, retryAfter: 0 }, (rErr, html) => {
+    if (rErr) {
+      console.error('500 page render failed:', rErr.message);
+      if (!res.headersSent) res.status(500).send('সার্ভারে সমস্যা হয়েছে।');
+      return;
+    }
+    res.send(html);
+  });
 });
 
 module.exports = app;

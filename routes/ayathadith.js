@@ -4,6 +4,7 @@ const router = express.Router();
 
 const AyatHadith = require('../models/AyatHadith');
 const Question = require('../models/Question');
+const { isDBError } = require('../config/db');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
@@ -71,13 +72,17 @@ router.get('/kind/:kind', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).render('404');
     const item = await AyatHadith.findById(req.params.id).lean();
     if (!item) return res.status(404).render('404');
     res.render('ayat-hadith-details', { item, phases: Question.PHASES });
-  } catch { return res.status(404).render('404'); }
+  } catch (err) {
+    // DB blip হলে 404 নয় — 503 retry পেজ (error handler দেখো)
+    if (isDBError(err)) return next(err);
+    return res.status(404).render('404');
+  }
 });
 
 module.exports = router;

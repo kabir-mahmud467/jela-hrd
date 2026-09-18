@@ -4,6 +4,7 @@ const router = express.Router();
 
 const Dars = require('../models/Dars');
 const Question = require('../models/Question');
+const { isDBError } = require('../config/db');
 
 function escapeRegex(s) {
   return (s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100);
@@ -52,7 +53,7 @@ router.get('/porbo/:phase', async (req, res, next) => {
 });
 
 // GET /dars/:id — বিস্তারিত
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).render('404');
     const lesson = await Dars.findById(req.params.id).lean();
@@ -63,7 +64,9 @@ router.get('/:id', async (req, res) => {
       .limit(5)
       .lean();
     res.render('dars-details', { lesson, related, phases: Question.PHASES });
-  } catch {
+  } catch (err) {
+    // DB blip হলে 404 নয় — 503 retry পেজ (error handler দেখো)
+    if (isDBError(err)) return next(err);
     return res.status(404).render('404');
   }
 });
