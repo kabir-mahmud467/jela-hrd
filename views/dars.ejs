@@ -1,4 +1,5 @@
 <%- include('partials/header', { title: 'দারস' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
 <section class="sec-note">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
@@ -18,28 +19,28 @@
     <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="feed">
+  <div class="qa-list">
     <% if (lessons.length === 0) { %><p class="empty">কোনো দারস পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
     <% lessons.forEach((l, idx) => { %>
-      <article class="card social reveal">
-        <div class="post-head">
-          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (l.title || 'দ').charAt(0) %></span>
-          <div class="post-id">
-            <a href="/dars/<%= l._id %>" class="post-title"><%= l.title %></a>
-            <div class="post-meta">দারস • <%= l.createdAt ? new Date(l.createdAt).toLocaleDateString('bn-BD') : '' %></div>
+      <div class="qa-item reveal">
+        <button class="qa-q" data-toggle-target="dars-<%= idx %>" aria-expanded="false">
+          <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= l.title %></span>
+          <svg class="icon chev"><use href="#i-chev"/></svg>
+        </button>
+        <div id="dars-<%= idx %>" class="qa-a hidden">
+          <div class="ans-meta">
+            <% if (l.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+            <% if (l.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+            <% if (l.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+            <% if (l.reference) { %><span class="muted"><%= l.reference %></span><% } %>
+            <% if (l.createdAt) { %><span class="muted"><%= new Date(l.createdAt).toLocaleDateString('bn-BD') %></span><% } %>
+          </div>
+          <p class="post-text"><%= bnText(l.content || '').substring(0, 220) %>...</p>
+          <div style="margin-top:10px">
+            <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
           </div>
         </div>
-        <div class="post-tags">
-          <% if (l.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-          <% if (l.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-          <% if (l.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-          <% if (l.reference) { %><span class="muted"><%= l.reference %></span><% } %>
-        </div>
-        <p class="post-text"><%= bnText(l.content || '').substring(0, 220) %>...</p>
-        <div class="post-foot">
-          <a href="/dars/<%= l._id %>" class="more">বিস্তারিত পড়ুন <svg class="icon sm"><use href="#i-arrow"/></svg></a>
-        </div>
-      </article>
+      </div>
     <% }) %>
   </div>
 </section>

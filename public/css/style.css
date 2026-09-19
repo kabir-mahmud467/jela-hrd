@@ -22,7 +22,10 @@ body::after {
   content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
-main.container, header.navbar, footer { position: relative; z-index: 2; }
+main.container, footer { position: relative; z-index: 2; }
+/* Navbar must stay above all page content (sticky book stage, cards):
+   keep its z-index above the grain/content layer. */
+header.navbar { position: sticky; z-index: 50; }
 ::selection { background: var(--sky-pale); }
 /* Focus ring — সব ইন্টার‌্যাক্টিভ উপাদানে (কখনো সরাবেন না) */
 a:focus-visible, button:focus-visible, input:focus-visible,
@@ -150,6 +153,7 @@ span.post-title { color: var(--ink); }
 /* Rich description inside social cards (books/dua/bibidh) — align with card padding */
 .card.social > .content { padding: 0 16px 6px; }
 .post-text { font-size: 14.5px; color: var(--ink); margin: 2px 0 0; padding: 0 16px 4px; line-height: 1.8; }
+.qa-a .post-text { padding: 0; }
 .post-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 14px; margin-top: 8px; border-top: 1px solid var(--line-soft); }
 .post-foot:empty { display: none; }
 /* পুরনো সাধারণ কার্ড (admin/বিবিধ) */
