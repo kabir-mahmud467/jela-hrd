@@ -3,7 +3,9 @@
  * ES5, no dependencies). Saved HTML is sanitized server-side; legacy
  * plain/markdown content is upgraded to formatted view on first edit.
  * Static toolbar above each field — SAME on desktop and mobile.
- * Paste is forced to plain text (keeps DB clean, Bijoy-safe).
+ * Paste keeps formatting (bold/lists/headings/links) via a tag allowlist
+ * matching the server sanitizer; Word/span junk is unwrapped. Bijoy text
+ * in the paste is auto-converted; marker-less Bijoy uses the বি button.
  * Browser spellcheck (lang="bn") on editors + plain fields.
  * ES5 ONLY, CSP-safe (no inline handlers).
  */
@@ -83,6 +85,7 @@
     { act: 'indent', label: '⇥', title: 'ভেতরে সরান (indent)', cls: '' },
     { act: 'outdent', label: '⇤', title: 'বাইরে আনুন (outdent)', cls: '' },
     { act: 'link', label: 'লিংক', title: 'লিংক যোগ করুন', cls: '' },
+    { act: 'bijoy', label: 'বি', title: 'বিজয় থেকে ইউনিকোডে রূপান্তর (পুরো লেখা — চেনা না গেলে চাপুন)', cls: '' },
     { act: 'clear', label: '✕', title: 'ফরম্যাট মুছুন', cls: '' }
   ];
 
@@ -106,6 +109,107 @@
     return esc(raw).replace(/\n/g, '<br>');
   }
 
+  /* ---------- formatted paste (allowlist mirrors lib/rich-html.js) ---------- */
+  var PASTE_KEEP = { P: 1, H3: 1, BR: 1, STRONG: 1, EM: 1, U: 1, S: 1, STRIKE: 1, DEL: 1, UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, A: 1 };
+  var PASTE_TOP = { DIV: 'P', SECTION: 'P', ARTICLE: 'P', HEADER: 'P', FOOTER: 'P', MAIN: 'P', NAV: 'P', ASIDE: 'P', H1: 'H3', H2: 'H3', H4: 'H3', H5: 'H3', H6: 'H3', B: 'STRONG', I: 'EM' };
+  var PASTE_DROP = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, FORM: 1, INPUT: 1, BUTTON: 1, SELECT: 1, TEXTAREA: 1, IMG: 1, VIDEO: 1, AUDIO: 1, META: 1, LINK: 1 };
+
+  function pasteRename(node, tag) {
+    var fresh = document.createElement(tag);
+    while (node.firstChild) fresh.appendChild(node.firstChild);
+    node.parentNode.replaceChild(fresh, node);
+    return fresh;
+  }
+  function pasteUnwrap(node) {
+    var parent = node.parentNode;
+    while (node.firstChild) parent.insertBefore(node.firstChild, node);
+    parent.removeChild(node);
+  }
+  function pasteClean(node) {
+    var kids = node.childNodes;
+    var i, n, tag, href;
+    for (i = kids.length - 1; i >= 0; i--) {
+      n = kids[i];
+      if (n.nodeType === 8) { node.removeChild(n); continue; } /* comment */
+      if (n.nodeType !== 1) continue; /* text stays */
+      tag = n.tagName;
+      if (PASTE_DROP[tag]) { node.removeChild(n); continue; }
+      if (tag === 'A') {
+        href = n.getAttribute('href');
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        href = normalizeUrl(href);
+        /* server keeps http(s) links only — other schemes become plain text */
+        if (href && !/^https?:\/\//i.test(href)) href = null;
+        if (href) n.setAttribute('href', href);
+        else {
+          pasteClean(n);
+          pasteUnwrap(n);
+          continue;
+        }
+        pasteClean(n);
+        continue;
+      }
+      if (PASTE_KEEP[tag]) {
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        pasteClean(n);
+        continue;
+      }
+      if (PASTE_TOP[tag]) {
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        n = pasteRename(n, PASTE_TOP[tag]);
+        pasteClean(n);
+        continue;
+      }
+      /* Word spans, table cells, o:p, unknown tags: keep text, drop wrapper */
+      pasteClean(n);
+      pasteUnwrap(n);
+    }
+  }
+  function sanitizePasteHtml(html) {
+    var tmp = null;
+    try {
+      tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      pasteClean(tmp);
+      return tmp.innerHTML.replace(/^\s+|\s+$/g, '');
+    } catch (e) {
+      return '';
+    }
+  }
+  function insertHtmlAtCaret(html) {
+    try {
+      if (document.execCommand('insertHTML', false, html)) return;
+    } catch (e) {}
+    try {
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        var r = sel.getRangeAt(0);
+        r.deleteContents();
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        r.insertNode(frag);
+        r.collapse(false);
+      }
+    } catch (e2) {}
+  }
+
+  /* ---------- manual Bijoy button (pure-ASCII has no markers to detect) ---------- */
+  function forceBijoy(ed) {
+    if (!window.BijoyConverter || !window.BijoyConverter.forceHtmlMixed) return;
+    try {
+      ed.focus();
+      var html = window.BijoyConverter.forceHtmlMixed(ed.innerHTML);
+      if (!html || html === ed.innerHTML) return;
+      try {
+        if (document.execCommand('selectAll', false, null) &&
+            document.execCommand('insertHTML', false, html)) return;
+      } catch (e) {}
+      ed.innerHTML = html;
+    } catch (e2) {}
+  }
+
   function setupEditor(area) {
     if (area.getAttribute('data-rich') === '1') return area._richEditor || null;
     area.setAttribute('data-rich', '1');
@@ -123,16 +227,30 @@
     ed.innerHTML = seedHtml(area.value);
     area.parentNode.insertBefore(ed, area);
     ed.addEventListener('paste', function (e) {
+      var cd = null;
+      try { cd = e.clipboardData || window.clipboardData; } catch (err) {}
+      if (!cd || !cd.getData) return;
+      var html = '';
+      try { html = cd.getData('text/html'); } catch (err1) {}
+      if (html) {
+        /* formatted paste: allowlist close to server sanitizer, then Bijoy */
+        var clean = sanitizePasteHtml(html);
+        if (clean) {
+          if (window.BijoyConverter && window.BijoyConverter.convertHtmlMixed) {
+            try { clean = window.BijoyConverter.convertHtmlMixed(clean); } catch (err2) {}
+          }
+          e.preventDefault();
+          insertHtmlAtCaret(clean);
+          return;
+        }
+      }
       var text = '';
-      try {
-        text = ((e.clipboardData || window.clipboardData) || {}).getData
-          ? (e.clipboardData || window.clipboardData).getData('text/plain') : '';
-      } catch (err) {}
+      try { text = cd.getData('text/plain'); } catch (err3) {}
       if (!text) return;
       e.preventDefault();
       try {
         if (document.execCommand('insertText', false, text)) return;
-      } catch (err2) {}
+      } catch (err4) {}
       try {
         var sel = window.getSelection();
         if (sel && sel.rangeCount) {
@@ -143,7 +261,7 @@
         } else {
           ed.appendChild(document.createTextNode(text));
         }
-      } catch (err3) {}
+      } catch (err5) {}
     });
     ed.addEventListener('keyup', saveRange);
     ed.addEventListener('mouseup', saveRange);
@@ -188,6 +306,12 @@
       if (!ed) return;
       restoreRange(ed);
       var act = btn.getAttribute('data-act');
+      if (act === 'bijoy') {
+        forceBijoy(ed);
+        saveRange();
+        try { ed.focus(); } catch (e) {}
+        return;
+      }
       if (ACTIONS[act]) ACTIONS[act]();
       saveRange();
       try { ed.focus(); } catch (e) {}
