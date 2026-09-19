@@ -2,8 +2,7 @@
  * Target long-text fields become contenteditable editors (execCommand based,
  * ES5, no dependencies). Saved HTML is sanitized server-side; legacy
  * plain/markdown content is upgraded to formatted view on first edit.
- * Desktop: static toolbar above each field.
- * Touch/mobile: NO static toolbar — floating bar only while text selected.
+ * Static toolbar above each field — SAME on desktop and mobile.
  * Paste is forced to plain text (keeps DB clean, Bijoy-safe).
  * Browser spellcheck (lang="bn") on editors + plain fields.
  * ES5 ONLY, CSP-safe (no inline handlers).
@@ -20,9 +19,8 @@
     }
   }
 
-  /* mobile selection restore */
+  /* selection restore (static bar taps blur the editor, esp. on touch) */
   var savedRange = null;
-  var lastEditor = null;
   function saveRange() {
     try {
       var sel = window.getSelection();
@@ -212,92 +210,42 @@
     return bar;
   }
 
-  /* Touch = coarse pointer ONLY (phones/tablets). */
-  function coarsePointerOnly() {
-    try {
-      if (!window.matchMedia) return false;
-      return window.matchMedia('(pointer: coarse)').matches &&
-        !window.matchMedia('(pointer: fine)').matches;
-    } catch (e) {
-      return false;
+  /* Static toolbar above every editor — desktop + mobile, same system.
+     (Floating selection-bar on touch proved flaky: tapping it lost the
+     selection/keyboard. Static bar + saved-range restore works on both.) */
+  function editorOf(node) {
+    while (node && node !== document) {
+      if (node.className && String(node.className).indexOf('rich-editor') >= 0) return node;
+      node = node.parentNode;
     }
+    return null;
   }
-  var isTouch = window.matchMedia ? coarsePointerOnly()
-    : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+
+  /* Touch keyboards rarely fire keyup/mouseup — keep the range fresh on
+     every selection change, but only when it sits inside an editor. */
+  document.addEventListener('selectionchange', function () {
+    try {
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+        if (editorOf(sel.anchorNode)) saveRange();
+      }
+    } catch (e) {}
+  });
 
   /* editors first (all devices) */
   forEachTarget(setupEditor);
 
-  if (isTouch) {
-    /* ---- mobile: floating bar, selection-এই শুধু দেখায় ----
-       activeElement-এর উপর নির্ভর নয় — iOS-এ selection থাকলেও focus
-       body-তে থাকতে পারে, তাই anchorNode থেকে editor খুঁজি। */
-    var floatBar = buildBar(function () { return lastEditor; }, 'fmt-bar fmt-float');
-    floatBar.style.display = 'none';
-    document.body.appendChild(floatBar);
-    function editorOf(node) {
-      while (node && node !== document) {
-        if (node.className && String(node.className).indexOf('rich-editor') >= 0) return node;
-        node = node.parentNode;
-      }
-      return null;
-    }
-    function currentEditor() {
-      try {
-        var sel = window.getSelection();
-        if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
-          var ed = editorOf(sel.anchorNode);
-          if (ed) return ed;
-        }
-      } catch (e) {}
-      return null;
-    }
-    var rafId = null;
-    function evalSel() {
-      rafId = null;
-      var ed = currentEditor();
-      if (ed) {
-        lastEditor = ed;
-        floatBar.style.display = 'flex';
-      } else {
-        floatBar.style.display = 'none';
-      }
-    }
-    function schedule() {
-      if (rafId != null) return;
-      if ('requestAnimationFrame' in window) rafId = requestAnimationFrame(evalSel);
-      else evalSel();
-    }
-    /* iOS selection দেরিতে settle হয় — touch-এর পরেও মূল্যায়ন */
-    function scheduleLate() {
-      schedule();
-      setTimeout(schedule, 120);
-      setTimeout(schedule, 400);
-    }
-    document.addEventListener('selectionchange', schedule);
-    document.addEventListener('touchend', scheduleLate, { passive: true });
-    var scrollT = null;
-    document.addEventListener('scroll', function () {
-      floatBar.style.display = 'none';
-      if (scrollT) clearTimeout(scrollT);
-      scrollT = setTimeout(schedule, 250);
-    }, { passive: true });
-    document.addEventListener('submit', function () {
-      floatBar.style.display = 'none';
-    }, true);
-  } else {
-    /* ---- desktop: static toolbar above each editor ---- */
-    forEachTarget(function (area) {
-      var ed = area._richEditor;
-      if (!ed) return;
-      if (ed.previousElementSibling && ed.previousElementSibling.className &&
-          String(ed.previousElementSibling.className).indexOf('fmt-bar') >= 0) return;
-      (function (editor) {
-        var bar = buildBar(function () { return editor; }, 'fmt-bar');
-        editor.parentNode.insertBefore(bar, editor);
-      })(ed);
-    });
-  }
+  /* ---- static toolbar above each editor (all devices) ---- */
+  forEachTarget(function (area) {
+    var ed = area._richEditor;
+    if (!ed) return;
+    if (ed.previousElementSibling && ed.previousElementSibling.className &&
+        String(ed.previousElementSibling.className).indexOf('fmt-bar') >= 0) return;
+    (function (editor) {
+      var bar = buildBar(function () { return editor; }, 'fmt-bar');
+      editor.parentNode.insertBefore(bar, editor);
+    })(ed);
+  });
 
   /* submit: editors -> textareas FIRST (admin-bijoy converts after) */
   document.addEventListener('submit', function (e) {

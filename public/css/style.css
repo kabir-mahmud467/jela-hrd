@@ -440,7 +440,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .content a { color: var(--sky-dark); font-weight: 600; overflow-wrap: anywhere; }
 .content strong { color: var(--ink); }
 
-/* ===== Admin format toolbar ===== */
+/* ===== Admin format toolbar (static above each field, same on desktop + mobile) ===== */
 .fmt-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--soft, #f4f7fb); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; margin-bottom: -4px; }
 .fmt-btn { min-width: 34px; padding: 5px 10px; border-radius: 7px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer; line-height: 1.4; }
 .fmt-btn:hover { border-color: var(--sky); color: var(--sky-light); }
@@ -449,11 +449,6 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .fmt-btn.fmt-i { font-style: italic; }
 .fmt-btn.fmt-u { text-decoration: underline; }
 .fmt-btn.fmt-s { text-decoration: line-through; }
-/* Mobile: static toolbar কখনো নয় — শুধু floating selection bar */
-.fmt-float { display: none; position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 200; box-shadow: var(--shadow-hover); margin-bottom: 0; max-width: calc(100vw - 20px); }
-@media (max-width: 760px) {
-  .fmt-bar:not(.fmt-float) { display: none; }
-}
 
 /* ===== WYSIWYG editor ===== */
 .rich-editor { min-height: 140px; padding: 10px 14px; border-radius: var(--r-xs); border: 1.5px solid var(--line); background: var(--soft); color: var(--ink); font-family: inherit; font-size: 14.5px; line-height: 1.9; overflow-wrap: anywhere; }
