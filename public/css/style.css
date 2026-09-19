@@ -214,6 +214,13 @@ span.post-title { color: var(--ink); }
 .detail { background: var(--card); border: 1px solid var(--line-soft); border-top: 5px solid var(--sky); padding: 22px 24px; border-radius: var(--r); box-shadow: var(--shadow); }
 .detail h1 { margin: 8px 0 5px; line-height: 1.5; font-size: clamp(19px, 3.2vw, 26px); color: var(--ink); }
 .content { line-height: 1.95; font-size: 15.5px; color: var(--ink); overflow-wrap: anywhere; }
+/* ===== Content tables (site view + admin editor, same design) ===== */
+.content table, .rich-editor table { display: block; width: 100%; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 12px 0; border: 1px solid var(--line-soft); font-size: 14.5px; line-height: 1.7; }
+.content caption, .rich-editor caption { caption-side: top; text-align: center; font-weight: 700; color: var(--muted); padding: 6px 8px; }
+.content th, .content td, .rich-editor th, .rich-editor td { border: 1px solid var(--line-soft); padding: 9px 12px; text-align: left; vertical-align: top; min-width: 80px; }
+.content thead th, .content th, .rich-editor thead th, .rich-editor th { background: var(--navy); color: #fff; white-space: nowrap; }
+.content tbody tr:nth-child(even) td, .rich-editor tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.03); }
+.rich-editor td:focus, .rich-editor th:focus { outline: 2px solid var(--sky); outline-offset: -2px; }
 .pre { white-space: pre-line; }
 .arabic { font-size: 26px; line-height: 2.2; text-align: right; color: var(--ink); background: var(--soft); border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 14px 18px; margin: 8px 0; overflow-wrap: anywhere; }
 .arabic.big { font-size: 30px; }
@@ -482,6 +489,8 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .move-col { display: inline-flex; flex-direction: row; gap: 4px; align-items: center; }
 .move-btn { min-width: 32px; padding: 6px 9px; font-size: 13px; line-height: 1.2; }
 .move-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pos-input { width: 52px; padding: 6px 4px; font-size: 13px; text-align: center; border-radius: 7px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); font-family: inherit; }
+.pos-input:focus { outline: none; border-color: var(--sky); }
 /* ===== Bulk delete (admin lists, checkboxes + bar) ===== */
 .bulk-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 9px 12px; margin-bottom: 10px; font-size: 13.5px; font-weight: 600; }
 .bulk-bar[hidden] { display: none; }

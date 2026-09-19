@@ -439,6 +439,31 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       next(err);
     }
   });
+  // Direct serial number: jump a row to position N (1-based). Same bulkWrite
+  // pattern as move/:dir; invalid id/pos just redirects back unchanged.
+  router.post(`/${path}/move-to`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      const id = (req.body.id || '').toString().trim();
+      let n = parseInt((req.body.pos || '').toString().trim(), 10);
+      if (!isId(id)) return res.redirect(`/admin/${path}`);
+      const docs = await Model.find().sort({ order: 1, createdAt: -1 }).select('_id').lean();
+      const seq = docs.map((d) => String(d._id));
+      const from = seq.indexOf(id);
+      if (from < 0) return res.redirect(`/admin/${path}`);
+      if (isNaN(n)) n = from + 1;
+      n = Math.max(1, Math.min(seq.length, n));
+      seq.splice(from, 1);
+      seq.splice(n - 1, 0, id);
+      if (seq.length) {
+        await Model.bulkWrite(
+          seq.map((one, k) => ({ updateOne: { filter: { _id: one }, update: { $set: { order: k } } } }))
+        );
+      }
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
 }
 
 crudRoutes({ path: 'books', Model: Book, viewPrefix: 'book', kind: 'book' });

@@ -67,7 +67,32 @@
         if (i === r.length - 1) dn.setAttribute('disabled', 'disabled');
         else dn.removeAttribute('disabled');
       }
+      /* serial input mirrors live position (skip while typing) */
+      var pos = r[i].querySelector('input.pos-input');
+      if (pos && document.activeElement !== pos) pos.value = String(i + 1);
     }
+  }
+  /* Jump a row straight to serial N (instant DOM move + draft, like arrows). */
+  function moveTo(tr, n) {
+    var r = rows();
+    var arr = [];
+    for (var i = 0; i < r.length; i++) arr.push(r[i]);
+    var from = arr.indexOf(tr);
+    if (from < 0) return;
+    if (isNaN(n)) n = from + 1;
+    n = Math.max(1, Math.min(arr.length, n));
+    if (n === from + 1) {
+      refreshArrows();
+      syncBar();
+      return;
+    }
+    arr.splice(from, 1);
+    var ref = arr[n - 1] || null;
+    if (ref) tbody.insertBefore(tr, ref);
+    else tbody.appendChild(tr);
+    refreshArrows();
+    storeDraft(curIds());
+    syncBar();
   }
   function applyOrder(list) {
     var map = {};
@@ -138,7 +163,19 @@
     var f = e.target;
     if (!f || !f.getAttribute) return;
     var act = f.getAttribute('action') || '';
-    if (act.indexOf('/move/') < 0) return;
+    if (act.indexOf('/move-to') >= 0) {
+      /* serial jump: instant, no reload (no-JS posts the form natively) */
+      e.preventDefault();
+      var num = f.querySelector('input.pos-input');
+      var n = num ? parseInt(num.value, 10) : NaN;
+      var row = f;
+      while (row && row !== table && !(row.tagName === 'TR' && row.getAttribute('data-id'))) {
+        row = row.parentNode;
+      }
+      if (!row || row === table) return;
+      moveTo(row, n);
+      return;
+    }    if (act.indexOf('/move/') < 0) return;
     e.preventDefault();
     var tr = f;
     while (tr && tr !== table && !(tr.tagName === 'TR' && tr.getAttribute('data-id'))) {

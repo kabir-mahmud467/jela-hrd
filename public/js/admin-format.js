@@ -70,6 +70,12 @@
       if (!u) return;
       exec('createLink', u);
     },
+    table: function () {
+      var dims = null;
+      try { dims = window.prompt('টেবিলের সারি ও কলাম দিন (যেমন ৩x২)', '৩x২'); } catch (e) {}
+      if (dims === null || dims === undefined) return;
+      insertTable(dims);
+    },
     clear: function () { exec('removeFormat'); }
   };
 
@@ -82,6 +88,7 @@
     { act: 'para', label: 'P', title: 'সাধারণ প্যারা', cls: '' },
     { act: 'list', label: '•', title: 'বুলেট তালিকা', cls: '' },
     { act: 'ordered', label: '1.', title: 'নম্বর তালিকা (auto numbering)', cls: '' },
+    { act: 'table', label: '▦', title: 'টেবিল যোগ করুন (সারি×কলাম)', cls: '' },
     { act: 'indent', label: '⇥', title: 'ভেতরে সরান (indent)', cls: '' },
     { act: 'outdent', label: '⇤', title: 'বাইরে আনুন (outdent)', cls: '' },
     { act: 'link', label: 'লিংক', title: 'লিংক যোগ করুন', cls: '' },
@@ -110,7 +117,7 @@
   }
 
   /* ---------- formatted paste (allowlist mirrors lib/rich-html.js) ---------- */
-  var PASTE_KEEP = { P: 1, H3: 1, BR: 1, STRONG: 1, EM: 1, U: 1, S: 1, STRIKE: 1, DEL: 1, UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, A: 1 };
+  var PASTE_KEEP = { P: 1, H3: 1, BR: 1, STRONG: 1, EM: 1, U: 1, S: 1, STRIKE: 1, DEL: 1, UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, A: 1, TABLE: 1, CAPTION: 1, THEAD: 1, TBODY: 1, TFOOT: 1, TR: 1, TH: 1, TD: 1 };
   var PASTE_TOP = { DIV: 'P', SECTION: 'P', ARTICLE: 'P', HEADER: 'P', FOOTER: 'P', MAIN: 'P', NAV: 'P', ASIDE: 'P', H1: 'H3', H2: 'H3', H4: 'H3', H5: 'H3', H6: 'H3', B: 'STRONG', I: 'EM' };
   var PASTE_DROP = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, FORM: 1, INPUT: 1, BUTTON: 1, SELECT: 1, TEXTAREA: 1, IMG: 1, VIDEO: 1, AUDIO: 1, META: 1, LINK: 1 };
 
@@ -193,6 +200,36 @@
         r.collapse(false);
       }
     } catch (e2) {}
+  }
+
+  /* ---------- table builder (toolbar ▦ button) ---------- */
+  function bnToEnDigits(s) {
+    return String(s == null ? '' : s).replace(/[০-৯]/g, function (d) {
+      return String('০১২৩৪৫৬৭৮৯'.indexOf(d));
+    });
+  }
+  function insertTable(dims) {
+    var parts = bnToEnDigits(dims).split(/[^0-9]+/);
+    var nums = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] !== '') nums.push(parseInt(parts[i], 10));
+    }
+    var rows = nums.length > 0 && !isNaN(nums[0]) ? nums[0] : 0;
+    var cols = nums.length > 1 && !isNaN(nums[1]) ? nums[1] : 0;
+    if (!rows || !cols) return;
+    rows = Math.max(1, Math.min(10, rows));
+    cols = Math.max(1, Math.min(6, cols));
+    var h = '<table><thead><tr>';
+    var r, c;
+    for (c = 0; c < cols; c++) h += '<th>শিরোনাম</th>';
+    h += '</tr></thead><tbody>';
+    for (r = 1; r < rows; r++) {
+      h += '<tr>';
+      for (c = 0; c < cols; c++) h += '<td></td>';
+      h += '</tr>';
+    }
+    h += '</tbody></table><p><br></p>';
+    insertHtmlAtCaret(h);
   }
 
   /* ---------- manual Bijoy button (pure-ASCII has no markers to detect) ---------- */
