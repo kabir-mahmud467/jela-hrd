@@ -13,8 +13,9 @@
   <h2>বই তালিকা</h2>
   <a href="/admin/books/new" class="btn primary small">+ নতুন</a>
 </div>
-<div class="table-wrap"><table class="table" data-reorder="books"><tr><th>শিরোনাম</th><th>লেখক</th><th>পর্ব</th><th>লিংক</th><th>অ্যাকশন</th></tr>
-<% items.forEach((i, idx) => { %><tr data-id="<%= i._id %>"><td><%= i.title %></td><td><%= i.author %></td><td><%= i.phase === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : i.phase === 'shopother-purbe' ? 'শপথের পূর্বে' : 'আবেদনপত্রের পূর্বে' %></td><td><a href="<%= i.link %>" target="_blank" rel="noopener">লিংক</a></td>
+<div class="bulk-bar" data-bulk-bar hidden><span class="bulk-count" data-bulk-count></span><button type="button" class="btn small danger" data-bulk-delete>সিলেক্ট করা ডিলিট</button></div>
+<div class="table-wrap"><table class="table" data-reorder="books"><tr><th class="bulk-col"><input type="checkbox" class="bulk-all" data-bulk-all title="সব সিলেক্ট"></th><th>শিরোনাম</th><th>লেখক</th><th>পর্ব</th><th>লিংক</th><th>অ্যাকশন</th></tr>
+<% items.forEach((i, idx) => { %><tr data-id="<%= i._id %>"><td><input type="checkbox" class="bulk-check" value="<%= i._id %>" aria-label="সিলেক্ট"></td><td><%= i.title %></td><td><%= i.author %></td><td><%= i.phase === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : i.phase === 'shopother-purbe' ? 'শপথের পূর্বে' : 'আবেদনপত্রের পূর্বে' %></td><td><a href="<%= i.link %>" target="_blank" rel="noopener">লিংক</a></td>
 <td><div class="table-actions"><a href="/admin/books/<%= i._id %>/edit" class="btn small">এডিট</a>
 <form method="POST" action="/admin/books/<%= i._id %>/delete" class="inline-form" data-confirm="ডিলিট করবেন?"><button class="btn small danger" type="submit">ডিলিট</button></form><span class="move-col"><form method="POST" action="/admin/books/<%= i._id %>/move/up" class="inline-form"><button class="btn small move-btn" type="submit" title="উপরে তুলুন"<%= idx === 0 ? ' disabled' : '' %>>▲</button></form><form method="POST" action="/admin/books/<%= i._id %>/move/down" class="inline-form"><button class="btn small move-btn" type="submit" title="নিচে নামান"<%= idx === items.length - 1 ? ' disabled' : '' %>>▼</button></form></span></div></td></tr><% }) %>
 </table></div>

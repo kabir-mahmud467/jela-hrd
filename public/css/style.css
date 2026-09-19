@@ -415,7 +415,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .card.stat p { margin: 2px 0 10px; font-weight: 700; color: var(--ink); }
 .stat-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .admin-main { padding-bottom: 24px; }
-.table-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.table-actions { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
 .form-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .form label.check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .sec-head .badge { margin: 0; }
@@ -517,7 +517,13 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .check-item { display: flex; gap: 8px; align-items: flex-start; padding: 7px 8px; border: 1px solid var(--line-soft); border-radius: 8px; margin-bottom: 6px; background: var(--card); cursor: pointer; }
 .check-item input { margin-top: 3px; accent-color: var(--sky); }
 .check-item span { font-size: 14px; line-height: 1.5; color: var(--ink); }
-/* ===== Serial move buttons (admin lists, right side stacked) ===== */
-.move-col { display: inline-flex; flex-direction: column; gap: 3px; }
-.move-btn { min-width: 30px; padding: 2px 8px; font-size: 12px; line-height: 1.5; }
+/* ===== Serial move buttons (admin lists, one row beside Edit/Delete) ===== */
+.move-col { display: inline-flex; flex-direction: row; gap: 4px; align-items: center; }
+.move-btn { min-width: 32px; padding: 6px 9px; font-size: 13px; line-height: 1.2; }
 .move-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+/* ===== Bulk delete (admin lists, checkboxes + bar) ===== */
+.bulk-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 9px 12px; margin-bottom: 10px; font-size: 13.5px; font-weight: 600; }
+.bulk-bar[hidden] { display: none; }
+.bulk-bar .bulk-count { color: var(--muted); }
+.bulk-check, .bulk-all { width: 16px; height: 16px; accent-color: var(--red, #d33); cursor: pointer; }
+tr.row-selected td { background: var(--red-soft, #fdecec); }

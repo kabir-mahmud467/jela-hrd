@@ -372,6 +372,23 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       next(err);
     }
   });
+  // Batch delete — admin ticks checkboxes, ONE deleteMany (max 500 ids).
+  router.post(`/${path}/bulk-delete`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      const raw = req.body.ids;
+      const arr = Array.isArray(raw) ? raw : (raw || '').toString().split(',');
+      const ids = [];
+      const seen = {};
+      for (let k = 0; k < arr.length && ids.length < 500; k++) {
+        const id = (arr[k] || '').toString().trim();
+        if (id && isId(id) && !seen[id]) { seen[id] = 1; ids.push(id); }
+      }
+      if (ids.length) await Model.deleteMany({ _id: { $in: ids } });
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
   // Batch reorder — admin sorts freely in the browser (localStorage draft,
   // admin-reorder.js), ONE save writes the whole sequence: single bulkWrite,
   // single reload. Per-arrow move route below stays as no-JS fallback.
