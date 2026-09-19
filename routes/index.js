@@ -1,4 +1,6 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 
 const Book = require('../models/Book');
@@ -19,6 +21,31 @@ function escapeRegex(s) {
 // হোমপেজ — সদস্য মানোন্নয়ন চেকলিস্ট (static data, DB লাগে না)
 router.get('/', (req, res) => {
   res.render('index', { checklistData });
+});
+
+// অ্যাপ ডাউনলোড পেজ — DB লাগে না (APK ফাইলের তথ্য দেখায়)
+const APK_FILE = path.join(__dirname, '..', 'android', 'Hrd.apk');
+const APP_VER = '১.২';
+function apkInfo() {
+  try {
+    const st = fs.statSync(APK_FILE);
+    const kb = Math.max(1, Math.round(st.size / 1024));
+    return {
+      size: String(kb).split('').map((c) => '০১২৩৪৫৬৭৮৯'[c] || c).join('') + ' কিলোবাইট',
+      date: st.mtime.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })
+    };
+  } catch {
+    return { size: '', date: '' };
+  }
+}
+router.get('/app', (req, res) => {
+  const info = apkInfo();
+  res.render('app', { appVer: APP_VER, appSize: info.size, appDate: info.date });
+});
+// APK ডাউনলোড — সরাসরি ফাইল (শুধু সাইটে; অ্যাপের ভেতরে এই পেজ নেই)
+router.get('/app/download', (req, res, next) => {
+  if (!fs.existsSync(APK_FILE)) return res.status(404).render('404');
+  res.download(APK_FILE, 'Hrd.apk');
 });
 
 // বই — ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)

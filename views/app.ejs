@@ -1,0 +1,43 @@
+<%- include('partials/header', { title: 'অ্যাপ ডাউনলোড' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
+<section class="sec-book">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-download"/></svg></span>
+    <h2>অ্যাপ ডাউনলোড</h2>
+  </div>
+  <p class="page-sub">জেলা এইচআরডি এখন ফোনে — ইন্টারনেট ছাড়াই সব পড়া।</p>
+
+  <div class="panel">
+    <div class="dl-top">
+      <span class="dl-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+      <div class="dl-text">
+        <strong>Hrd — জেলা এইচআরডি (Android)</strong>
+        <span class="muted">সংস্করণ <%= appVer %> • <%= appSize %> • Android ৬.০ বা উপরে</span>
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <a href="/app/download" class="btn primary"><svg class="icon sm"><use href="#i-download"/></svg> APK ডাউনলোড</a>
+    </div>
+    <p class="muted" style="margin-top:10px">সর্বশেষ হালনাগাদ: <%= appDate %></p>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <h3>অ্যাপে যা আছে</h3>
+    <ul class="content">
+      <li>বই, নোট, দারস, মাসনুন দুআ, সূরা, আয়াত-হাদিস, বিবিধ — <strong>সব অফলাইনে</strong></li>
+      <li>সদস্য মানোন্নয়ন চেকলিস্ট (অগ্রগতি ফোনেই থাকে)</li>
+      <li>ইন্টারনেট থাকলে নতুন কন্টেন্ট <strong>স্বয়ংক্রিয় আপডেট</strong></li>
+    </ul>
+  </div>
+
+  <div class="panel" style="margin-top:12px">
+    <h3>ইনস্টল করবেন যেভাবে</h3>
+    <ol class="content">
+      <li>উপরের বোতামে APK ডাউনলোড করুন।</li>
+      <li>ফাইলে ট্যাপ করুন — “অজানা অ্যাপ ইনস্টল” অনুমতি চাইলে <strong>অনুমতি দিন</strong>।</li>
+      <li>Play Protect “অজানা অ্যাপ” বললে <strong>“Install anyway”</strong> চাপুন (অ্যাপ নিরাপদ, আমাদের নিজস্ব সাইনে সিল করা)।</li>
+      <li>প্রথমবার খুললে সব কন্টেন্ট এমনিই থাকবে — ইন্টারনেট লাগবে না।</li>
+    </ol>
+  </div>
+</section>
+<%- include('partials/footer') %>

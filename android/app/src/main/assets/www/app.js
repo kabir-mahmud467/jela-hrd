@@ -118,11 +118,20 @@
     for (var i = 0; i < SECTIONS.length; i++) if (SECTIONS[i].id === id) return SECTIONS[i];
     return null;
   }
+  /* website parity: notes + bibidh always have one ধরন/বিষয় selected */
+  function catOf(sec) {
+    var f = state.f[sec.id] || {};
+    if (f.c) return f.c;
+    if (sec.id === 'notes') return 'alochona';
+    if (sec.id === 'bibidh') return 'ilmul-quran';
+    return null;
+  }
   function matchPhase(sec, it) {
-    var f = state.f[sec.id];
+    var f = state.f[sec.id] || {};
     if (!f) return true;
     if (f.p && it.phase !== f.p) return false;
-    if (f.c && it.category !== f.c) return false;
+    var c = catOf(sec);
+    if (c && it.category !== c) return false;
     if (f.k && it.kind !== f.k) return false;
     return true;
   }
@@ -270,13 +279,24 @@
       }
       h += '</div>';
     }
+    /* website parity: notes ধরন + bibidh বিষয় use <select> dropdowns */
     if (sec.cats) {
-      h += '<div class="row"><button class="chip' + (!f.c ? ' on' : '') + '" data-fc="">সব ধরন</button>';
-      for (var c in sec.cats) {
-        h += '<button class="chip' + (f.c === c ? ' on' : '') + '" data-fc="' + c + '">' +
-          esc(sec.cats[c]) + '</button>';
+      if (sec.id === 'notes' || sec.id === 'bibidh') {
+        var cur = catOf(sec);
+        h += '<select id="catSel" class="search">';
+        for (var c in sec.cats) {
+          h += '<option value="' + c + '"' + (cur === c ? ' selected' : '') + '>' +
+            esc(sec.cats[c]) + '</option>';
+        }
+        h += '</select>';
+      } else {
+        h += '<div class="row"><button class="chip' + (!f.c ? ' on' : '') + '" data-fc="">সব ধরন</button>';
+        for (var c2 in sec.cats) {
+          h += '<button class="chip' + (f.c === c2 ? ' on' : '') + '" data-fc="' + c2 + '">' +
+            esc(sec.cats[c2]) + '</button>';
+        }
+        h += '</div>';
       }
-      h += '</div>';
     }
     if (sec.id === 'ayathadith') {
       h += '<div class="row"><button class="chip' + (!f.k ? ' on' : '') + '" data-fk="">সব</button>' +
@@ -304,6 +324,14 @@
     h += '</div>';
     v.innerHTML = h;
     wireChips(sec);
+    var catSel = document.getElementById('catSel');
+    if (catSel) {
+      catSel.addEventListener('change', function () {
+        state.f[sec.id] = state.f[sec.id] || {};
+        state.f[sec.id].c = this.value;
+        viewList(sec);
+      });
+    }
     $('q').addEventListener('input', function () {
       state.q[sec.id] = this.value;
       var pos = this.selectionStart;

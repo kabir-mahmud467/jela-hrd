@@ -7,6 +7,8 @@ When online, the app pulls newly added content from the site database.
 - Framework only — no AndroidX, no external dependencies
 - `assets/www/` = offline reader (checklist, 7 sections, search, phase filters)
 - `assets/www/snapshot.json` = content bundled at build time (first-run data)
+- Launcher icon source: `android/hrd-icon.jpg` (regenerate `mipmap-*` from it
+  if the icon ever changes, then rebuild)
 - `SyncManager` = version probe (`/api/content.json?check=1`) → full pull on
   change → saved to internal `content.json` → reader refreshes, all offline
 - ⟳ button (or auto-sync on launch when online) refreshes from DB
