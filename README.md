@@ -55,13 +55,10 @@ views/                 EJS. partials/{header,footer,icons,qa-list}. admin/partia
                        shared admin shell. admin/{dashboard,security,search,ban-list}. Error: 403/404/429/500.
 public/css|js          Static (served BEFORE rate limiter). main.js = accordion + data-confirm + nav.
                         Loaded with ?v=<%= assetVer %> — CSS/JS edits show up without hard-refresh.
-                        PWA: public/manifest.webmanifest + public/icons/*.png (installable),
-                        public/sw.js (shell precache on install, network-first pages,
-                        SWR static, JELA_PREFETCH full-pack), public/offline.html (fallback).
-                        SW registration + install button (#installBtn) in public/js/main.js.
-                        Full-content download lives ONLY in the installed app: #dlBanner/#dlBtn
-                        card in header (standalone-only, progress bar, resume, "অ্যাপ আপডেট").
-                        /offline-manifest.json (routes/index.js) lists every public URL for the pack.
+                        No PWA/service-worker (removed) — installable app ships as native APK
+                        (see `android/`). main.js keeps a one-time cleanup that unregisters
+                        any service worker left on old installs.
+android/               Native WebView wrapper (minSdk 23 = Android 6). Build: see `android/README.md`.
 .env / .env.example    Secrets/config. .env is gitignored — NEVER commit it.
 ```
 
@@ -289,13 +286,10 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
    New admin pages MUST use `views/admin/partials/{head,nav,foot}` (shared shell, versioned, mobile toggle included).
    Never add an unversioned `/css/style.css` or `/js/main.js` URL.
 7. **Secrets:** never commit `.env`; never log secrets; session password changes via `/admin/settings`.
-8. **PWA/offline:** new public pages MUST be added to `/offline-manifest.json` (`routes/index.js`)
-   or the in-app download pack misses them. SW caching logic changes → bump `CACHE`
-   (`public/sw.js`). `/sw.js` is served `no-store` (see `app.js` setHeaders) — keep it that way.
-   `public/js/main.js` + `public/sw.js` MUST stay **ES5** (var/function/Promise chains —
+8. **Site JS MUST stay ES5** (`public/js/main.js`: var/function/Promise chains —
    no arrows, const/let, async/await, template literals, optional chaining,
-   includes/startsWith, classList.toggle-force) so old-Android Chrome can parse
-   them, otherwise install breaks on those devices.
+   includes/startsWith, classList.toggle-force) so old-Android WebView (API 23+)
+   inside the APK can parse it.
 8. **Vercel:** `api/index.js` has no `app.listen` (`server.js` guards with `require.main`); routing
    via `vercel.json` rewrites; sessions need `connect-mongo` (already wired) on serverless.
 

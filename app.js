@@ -271,7 +271,7 @@ app.use((req, res, next) => {
 const DB_FREE_GET = new Set(['/', '/admin/login']);
 const DB_PREFIXES = [
   '/books', '/note', '/dars', '/dua', '/ayat-hadith',
-  '/surah', '/bibidh', '/admin', '/offline-manifest.json'
+  '/surah', '/bibidh', '/admin'
 ];
 app.use((req, res, next) => {
   if (isDBReady()) return next();

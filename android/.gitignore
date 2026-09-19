@@ -1,0 +1,11 @@
+# SDK location (machine-specific, do not commit)
+local.properties
+# Gradle + build outputs
+.gradle/
+build/
+app/build/
+# Final installable APK is committed on purpose (see README.md)
+!Hrd.apk
+# Keystore (never commit release keys)
+*.jks
+*.keystore
