@@ -24,9 +24,9 @@
     { id: 'books', name: 'বই', fields: ['title', 'author', 'description'] },
     { id: 'notes', name: 'নোট', fields: ['title', 'subject', 'content'], cats: NOTE_CATS, phases: ['abedonpotrer-purbe', 'proshnopotrer-purbe'] },
     { id: 'dars', name: 'দারস', fields: ['title', 'content', 'reference'] },
-    { id: 'duas', name: 'মাসনুন দুআ', fields: ['title', 'transliteration', 'content', 'reference'] },
-    { id: 'ayathadith', name: 'আয়াত-হাদিস', fields: ['title', 'transliteration', 'translation', 'reference', 'topic'] },
-    { id: 'surah', name: 'সূরা', fields: ['title', 'transliteration', 'translation', 'reference'] },
+    { id: 'duas', name: 'মাসনুন দুআ', fields: ['title', 'arabic', 'transliteration', 'content', 'reference'] },
+    { id: 'ayathadith', name: 'আয়াত-হাদিস', fields: ['title', 'arabic', 'transliteration', 'translation', 'reference', 'topic'] },
+    { id: 'surah', name: 'সূরা', fields: ['title', 'arabic', 'transliteration', 'translation', 'reference'] },
     { id: 'bibidh', name: 'বিবিধ', fields: ['title', 'content', 'reference'], cats: BIBIDH_CATS }
   ];
   var BN_DIG = '০১২৩৪৫৬৭৮৯';
@@ -170,16 +170,84 @@
 
   function detailBody(sec, it) {
     var h = '<h3>' + esc(it.title) + '</h3>' + metaLine(sec, it);
-    if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
-    if (it.transliteration) h += '<div class="muted">' + esc(it.transliteration) + '</div>';
-    var body = it.content || it.translation || it.description || '';
-    if (body) h += '<div class="content">' + body + '</div>';
+    if (sec.id === 'surah') {
+      /* site parity (surah.ejs): ayat-by-ayat arabic + উচ্চারণ + অর্থ */
+      h += surahAyatHtml(it);
+    } else {
+      if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      var body = it.content || it.translation || it.description || '';
+      if (body) h += '<div class="content"><strong>অর্থ:</strong> ' + body + '</div>';
+    }
     if (sec.id === 'books' && it.link) {
       var ok = /^https?:\/\//i.test(it.link);
       h += '<div style="margin-top:10px">' +
         (ok ? '<a class="btn" href="' + esc(it.link) + '">পড়ুন / ডাউনলোড</a>'
             : '<span class="muted">লিংক নেই</span>') + '</div>';
     }
+    return h;
+  }
+
+  /* ---------- site parity: surah ayat-by-ayat (surah.ejs lines 38-47) ---------- */
+  function splitLines(s) {
+    return String(s == null ? '' : s).split(/\r?\n/);
+  }
+  function surahAyatHtml(it) {
+    var h = '';
+    var aRaw = splitLines(it.arabic);
+    var aLines = [];
+    for (var i = 0; i < aRaw.length; i++) {
+      if (aRaw[i].replace(/^\s+|\s+$/g, '')) aLines.push(aRaw[i]);
+    }
+    if (!aLines.length) {
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
+      return h;
+    }
+    var tLines = splitLines(it.transliteration);
+    var mLines = splitLines(it.translation);
+    for (var j = 0; j < aLines.length; j++) {
+      h += '<div class="ayat-card"><div class="ayat-head"><span class="badge">' + bn(j + 1) +
+        '</span> <span class="muted">আয়াত ' + bn(j + 1) + '</span></div>' +
+        '<div class="arabic">' + esc(aLines[j]) + '</div>';
+      if (tLines[j] && tLines[j].replace(/^\s+|\s+$/g, '')) {
+        h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(tLines[j]) + '</div>';
+      }
+      if (mLines[j] && mLines[j].replace(/^\s+|\s+$/g, '')) {
+        h += '<div class="ayat-meaning"><strong>অর্থ:</strong> ' + esc(mLines[j]) + '</div>';
+      }
+      h += '</div>';
+    }
+    return h;
+  }
+
+  /* ---------- site parity: ayat-hadith grouped by topic (ayathadith.js renderList) ---------- */
+  function groupAyatHadith(list) {
+    var groups = [], byTopic = {};
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i];
+      var t = it.topic || 'সাধারণ';
+      if (!byTopic[t]) {
+        var g = { topic: t, ayat: [], hadis: [] };
+        byTopic[t] = g;
+        groups.push(g);
+      }
+      if (it.kind === 'hadis') byTopic[t].hadis.push(it);
+      else byTopic[t].ayat.push(it);
+    }
+    return groups;
+  }
+  function ahItemHtml(it, tid, no, kindLabel) {
+    var h = '<div class="card ah-item"><button class="ah-q" data-t="' + tid + '">' +
+      '<span>' + bn(no) + '. ' + esc(it.title) + '</span><span class="chev">›</span></button>' +
+      '<div id="' + tid + '" class="ah-a" style="display:none">' +
+      '<div><span class="badge">' + kindLabel + '</span>' +
+      (it.reference ? '<span class="muted">' + esc(it.reference) + '</span>' : '') + '</div>';
+    if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
+    if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+    if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
+    h += '<div style="margin-top:8px"><a class="back" href="#/ayathadith/' + it._id + '">স্থায়ী লিংক ›</a></div>';
+    h += '</div></div>';
     return h;
   }
 
@@ -279,16 +347,18 @@
       }
       h += '</div>';
     }
-    /* website parity: notes ধরন + bibidh বিষয় use <select> dropdowns */
+    /* website parity: notes ধরন + bibidh বিষয় use <select> dropdowns (note.ejs/bibidh.ejs) */
     if (sec.cats) {
       if (sec.id === 'notes' || sec.id === 'bibidh') {
         var cur = catOf(sec);
-        h += '<select id="catSel" class="search">';
+        var lab = sec.id === 'notes' ? 'ধরন নির্বাচন:' : 'বিষয় নির্বাচন:';
+        h += '<div class="sel-row"><label class="sel-label" for="catSel">' + lab + '</label>' +
+          '<select id="catSel" class="sel">';
         for (var c in sec.cats) {
           h += '<option value="' + c + '"' + (cur === c ? ' selected' : '') + '>' +
             esc(sec.cats[c]) + '</option>';
         }
-        h += '</select>';
+        h += '</select></div>';
       } else {
         h += '<div class="row"><button class="chip' + (!f.c ? ' on' : '') + '" data-fc="">সব ধরন</button>';
         for (var c2 in sec.cats) {
@@ -311,19 +381,24 @@
     var list = DATA ? (DATA[sec.id] || []) : [];
     var h = '<input id="q" class="search" placeholder="খুঁজুন…" value="' + esc(state.q[sec.id] || '') + '">';
     h += filterChips(sec);
-    h += '<div id="rows">';
-    var shown = 0;
-    for (var i = 0; i < list.length; i++) {
-      if (!matchPhase(sec, list[i]) || !matchQuery(sec, list[i])) continue;
-      shown++;
-      h += '<div class="card"><a class="t" href="#/' + sec.id + '/' + list[i]._id + '"><h3>' +
-        bn(shown) + '. ' + esc(list[i].title) + '</h3></a>' + metaLine(sec, list[i]) + '</div>';
-      if (shown >= 300) break;
+    if (sec.id === 'surah') { h += viewSurahList(list, sec); }
+    else if (sec.id === 'ayathadith') { h += viewAyatHadithList(list, sec); }
+    else {
+      h += '<div id="rows">';
+      var shown = 0;
+      for (var i = 0; i < list.length; i++) {
+        if (!matchPhase(sec, list[i]) || !matchQuery(sec, list[i])) continue;
+        shown++;
+        h += '<div class="card"><a class="t" href="#/' + sec.id + '/' + list[i]._id + '"><h3>' +
+          bn(shown) + '. ' + esc(list[i].title) + '</h3></a>' + metaLine(sec, list[i]) + '</div>';
+        if (shown >= 300) break;
+      }
+      if (!shown) h += '<p class="empty">কিছু পাওয়া যায়নি।</p>';
+      h += '</div>';
     }
-    if (!shown) h += '<p class="empty">কিছু পাওয়া যায়নি।</p>';
-    h += '</div>';
     v.innerHTML = h;
     wireChips(sec);
+    wireAccordion(v);
     var catSel = document.getElementById('catSel');
     if (catSel) {
       catSel.addEventListener('change', function () {
@@ -340,6 +415,62 @@
       q2.focus();
       try { q2.setSelectionRange(pos, pos); } catch (e) {}
     });
+  }
+
+  /* site parity: surah list = accordion, open = ayat-by-ayat cards (surah.ejs) */
+  function viewSurahList(list, sec) {
+    var h = '<div id="rows">';
+    var shown = 0;
+    for (var i = 0; i < list.length; i++) {
+      if (!matchPhase(sec, list[i]) || !matchQuery(sec, list[i])) continue;
+      shown++;
+      var tid = 'surah-' + shown;
+      h += '<div class="card ah-item"><button class="ah-q" data-t="' + tid + '">' +
+        '<span>' + bn(shown) + '. ' + esc(list[i].title) + '</span><span class="chev">›</span></button>' +
+        '<div id="' + tid + '" class="ah-a" style="display:none">' + metaLine(sec, list[i]) +
+        surahAyatHtml(list[i]) +
+        '<div style="margin-top:8px"><a class="back" href="#/surah/' + list[i]._id + '">স্থায়ী লিংক ›</a></div>' +
+        '</div></div>';
+      if (shown >= 300) break;
+    }
+    if (!shown) h += '<p class="empty">কোনো সূরা পাওয়া যায়নি।</p>';
+    h += '</div>';
+    return h;
+  }
+
+  /* site parity: ayat-hadith list = topic panels, ayat ১,২… then hadis ১,২… (ayat-hadith.ejs) */
+  function viewAyatHadithList(list, sec) {
+    var kept = [];
+    for (var i = 0; i < list.length; i++) {
+      if (matchPhase(sec, list[i]) && matchQuery(sec, list[i])) kept.push(list[i]);
+    }
+    var groups = groupAyatHadith(kept);
+    var h = '<div id="rows">';
+    for (var gi = 0; gi < groups.length; gi++) {
+      var g = groups[gi];
+      h += '<div class="card topic"><h3>' + esc(g.topic) +
+        ' <span class="badge">' + bn(g.ayat.length + g.hadis.length) + '</span></h3></div>';
+      for (var a = 0; a < g.ayat.length; a++) {
+        h += ahItemHtml(g.ayat[a], 'g' + gi + 'a' + a, a + 1, 'আয়াত');
+      }
+      for (var d = 0; d < g.hadis.length; d++) {
+        h += ahItemHtml(g.hadis[d], 'g' + gi + 'h' + d, d + 1, 'হাদিস');
+      }
+    }
+    if (!kept.length) h += '<p class="empty">কোনো আয়াত/হাদিস পাওয়া যায়নি। অন্য পর্ব বা ধরন চেষ্টা করুন।</p>';
+    h += '</div>';
+    return h;
+  }
+
+  function wireAccordion(v) {
+    var btns = v.querySelectorAll('[data-t]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var el = document.getElementById(this.getAttribute('data-t'));
+        if (!el) return;
+        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+      });
+    }
   }
 
   function wireChips(sec) {
