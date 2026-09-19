@@ -1,12 +1,64 @@
 <%- include('partials/header', { title: 'হোম' }) %>
 
+<section class="hero reveal in" aria-label="জেলা এইচআরডি">
+  <span class="hero-badge">জেলা এইচআরডি • সম্পূর্ণ বাংলায়</span>
+  <h1>সব পড়া,<br><span class="hl">এক ঠিকানায়।</span></h1>
+  <p>বই, নোট, দারস, মাসনুন দুআ, সূরা ও আয়াত-হাদিস — পর্ব অনুযায়ী সাজানো।</p>
+  <div class="hero-btns">
+    <a class="btn primary" href="/books">বই দেখুন</a>
+    <a class="btn" href="/dars">দারস দেখুন</a>
+  </div>
+</section>
+
+<!-- 3D বই — নিচে স্ক্রল করলে মলাট খুলবে (book3d.js: স্ক্রল-স্ক্রাব, rAF lerp) -->
+<section class="book-film" id="bookFilm" aria-label="বই খুলে দেখুন">
+  <div class="book-stage">
+    <div class="book3d-wrap" id="bookWrap">
+      <div class="book3d" id="book3d">
+        <div class="b-back"></div>
+        <div class="b-pages"></div>
+        <div class="b-rightpage">
+          <strong>সদস্য কেন হবো?</strong>
+          <ul>
+            <li>১. পর্ব অনুযায়ী সাজানো পাঠ</li>
+            <li>২. চেকলিস্টে অগ্রগতির হিসাব</li>
+            <li>৩. সব পড়া সম্পূর্ণ বাংলায়</li>
+          </ul>
+        </div>
+        <div class="b-sheet" id="bSheet2"></div>
+        <div class="b-sheet" id="bSheet1"></div>
+        <div class="b-spine"></div>
+        <div class="b-cover" id="bookCover">
+          <div class="cov cov-out">
+            <span class="cov-mark"></span>
+            <strong>জেলা এইচআরডি</strong>
+            <span class="cov-sub">পড়াশোনা • সহজ ভাষায়</span>
+          </div>
+          <div class="cov cov-in">
+            <strong>ভেতরে যা আছে</strong>
+            <ul>
+              <li>বই</li>
+              <li>নোট</li>
+              <li>দারস</li>
+              <li>মাসনুন দুআ</li>
+              <li>সূরা মুখস্থ</li>
+              <li>আয়াত-হাদিস</li>
+              <li>বিবিধ</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="sec-star" id="checklist-sec">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
     <h2>সদস্য মানোন্নয়ন চেকলিস্ট</h2>
     <span class="badge" id="checklist-progress">0% সম্পন্ন</span>
   </div>
-  <p class="page-sub">৩ পর্বের সব আইটেম — টিক দিলে ব্রাউজারে সংরক্ষিত থাকবে (localStorage)। <a href="/ayat-hadith">আয়াত-হাদিসের আলাদা পাতা</a></p>
+  <p class="page-sub">টিক দিলে ব্রাউজারে সংরক্ষিত থাকবে (localStorage)।</p>
   <div class="chips" id="checklist-tabs">
     <button type="button" class="chip active" data-check-phase="abedonpotrer-purbe">আবেদনপত্রের পূর্বে</button>
     <button type="button" class="chip" data-check-phase="proshnopotrer-purbe">প্রশ্নপত্রের পূর্বে</button>
@@ -21,8 +73,8 @@
     <div id="checklist-list" class="qa-list">
       <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; var _catNum=0; %>
       <% _initial.forEach(function(it,i){ %>
-        <% if(it.c !== _last){ _catNum=1; %><div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px"><%= it.c %></div><% _last=it.c; } else { _catNum++; } %>
-        <label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>" style="margin-top:3px"> <span style="font-size:14px;line-height:1.5"><%= _catNum %>. <%= it.t %></span></label>
+        <% if(it.c !== _last){ _catNum=1; %><div class="check-cat"><%= it.c %></div><% _last=it.c; } else { _catNum++; } %>
+        <label class="check-item"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>"> <span><%= _catNum %>. <%= it.t %></span></label>
       <% }) %>
     </div>
   </div>
@@ -30,4 +82,5 @@
 
 <script type="application/json" id="checklist-data"><%- JSON.stringify(typeof checklistData !== 'undefined' ? checklistData : {}).replace(/</g, '\\u003c') %></script>
 <script src="/js/checklist.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script>
+<script src="/js/book3d.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script>
 <%- include('partials/footer') %>

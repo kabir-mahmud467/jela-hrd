@@ -161,7 +161,7 @@ mongorestore ~/backups/jela-<date>/
 | GET/POST | `/admin/login` | `loginLimiter` (10/15min, skips successful). Regenerates session on success. Falls back to `.env` creds only when DB has no such user. |
 | GET | `/admin/logout` | Destroys session. |
 | GET | `/admin` | Dashboard counts (5 parallel `countDocuments`). |
-| CRUD | `/admin/importants`, `/books`, `/notes`, `/dars`, `/duas` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. |
+| CRUD | `/admin/importants`, `/books`, `/notes`, `/dars`, `/duas` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. Serial order: arrows move rows instantly in-DOM (`public/js/admin-reorder.js`, ES5, localStorage draft `jela_order_<path>`); ONE save POSTs `ids` to `/:path/reorder` (single `bulkWrite`, single reload). Per-click `:id/move/up\|down` stays as no-JS fallback. Tables need `data-reorder="<crud-path>"` + `data-id` rows or the JS stays dormant. |
 | CRUD | `/admin/questions` | Same shape; create/update go through `validateBody('question')`; updates use `doc.save()` so slug hooks run. |
 | GET/POST | `/admin/bans` | `net.isIP`-validated. Cannot ban own IP (`req.clientIp`). Duplicate → friendly error. Clears ban cache. POST from `/admin/security` redirects back there. `?ip=` prefills the form. |
 | POST | `/admin/bans/:id/delete` | Unban + clear cache. |
@@ -214,12 +214,20 @@ Chain: `models/Dua.js` → `middleware/validate.js` (kind `dua`) → `routes/dua
 `views/dua.ejs` + `views/dua-details.ejs` → `views/admin/dua-form.ejs` +
 `dua-list.ejs` → `routes/admin.js` (crudRoutes duas + dashboard count) → `seed.js`.
 
-**UI tokens** (`public/css/style.css` `:root`): SolaimanLipi-first font stack,
+**UI tokens** (`public/css/theme.css` `:root`): SolaimanLipi-first font stack,
 radius `15/12/10px`, focus ring `rgb(0,179,241) 0 0 0 2px` on ALL interactive
-elements (keyboard users — never remove). Palette: navy `#0a2c48`, blue `#114575`,
-sky `#00a9e0`, paper `#f2f6fa`, red `#e93e3f` (accents only). Light theme:
-frosted-white sticky navbar (admin keeps navy `.admin-nav`), white cards with
-soft shadows, navy section headings (no full-navy bars on public pages).
+elements (keyboard users — never remove). Palette: near-black paper `#05070b`,
+card `#0c1420`, line `#1c2c44`, accent sky `#00a9e0`, red `#e93e3f` (accents
+only). Dark premium cinematic theme (scroll-film system): huge tight-tracked
+display type (`clamp(44px,7.5vw,92px)` hero), generous section rhythm,
+fade+rise 24px scroll reveals (`.reveal` + IntersectionObserver in
+`public/js/main.js`), film-grain overlay.
+Homepage (`views/index.ejs`) is compact: hero → scroll-scrubbed 3D book
+(`.book-film` 260vh track + sticky stage, cover angle driven by
+`public/js/book3d.js` with rAF lerp — ES5, `prefers-reduced-motion` snaps
+open) → member checklist. Token NAMES in
+`theme.css` are unchanged (admin shell shares them); text colors use
+`var(--ink)`, never `var(--navy)` on dark surfaces.
 Content lists use SOCIAL cards (`.feed` + `.card.social`: avatar + title + meta +
 tags + excerpt + footer action) — NOT plain boxes. Buttons must stay visually
 distinct: `.btn.primary` (ভরাট নীল) vs `.btn` (আউটলাইন) vs `.search button`

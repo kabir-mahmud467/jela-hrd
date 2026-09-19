@@ -18,13 +18,11 @@
 <label for="f-title">বইয়ের নাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
 <label for="f-author">লেখক</label><input id="f-author" name="author" value="<%= item.author || '' %>" maxlength="200">
 <label for="f-link">লিংক (PDF/Drive)</label><input id="f-link" name="link" value="<%= item.link || '' %>" required placeholder="https://..." inputmode="url" maxlength="2000">
-<label for="f-category">ক্যাটাগরি</label><input id="f-category" name="category" value="<%= item.category || 'সাধারণ' %>" maxlength="100">
 <label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
   <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
   <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
   <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
 </select>
-<label for="f-desc">বিবরণ</label><textarea id="f-desc" name="description" rows="3" maxlength="2000"><%= item.description || '' %></textarea>
 <div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/books" class="btn">বাতিল</a></div>
 </form>
 </main>

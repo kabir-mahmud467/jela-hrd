@@ -1,4 +1,5 @@
 <%- include('partials/header', { title: 'বই' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
 <section class="sec-book">
   <div class="sec-head">
     <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
@@ -18,29 +19,28 @@
     <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
     <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
   </form>
-  <div class="feed">
+  <div class="qa-list">
     <% if (books.length === 0) { %><p class="empty">কোনো বই পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
     <% books.forEach((b, idx) => { %>
-      <article class="card social reveal">
-        <div class="post-head">
-          <span class="avatar av<%= (idx % 3) + 1 %>"><%= (b.title || 'ব').charAt(0) %></span>
-          <div class="post-id">
-            <span class="post-title"><%= b.title %></span>
-            <div class="post-meta"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'লেখক অজানা' %> • <%= b.category || 'বই' %></div>
+      <div class="qa-item reveal">
+        <button class="qa-q" data-toggle-target="book-<%= idx %>" aria-expanded="false">
+          <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= b.title %></span>
+          <svg class="icon chev"><use href="#i-chev"/></svg>
+        </button>
+        <div id="book-<%= idx %>" class="qa-a hidden">
+          <div class="ans-meta">
+            <span class="muted"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'লেখক অজানা' %></span>
+            <% if (b.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+            <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+            <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
           </div>
+          <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
+          <div style="margin-top:10px">
+            <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন / ডাউনলোড</a>
+          </div>
+          <% } %>
         </div>
-        <div class="post-tags">
-          <% if (b.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
-          <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
-          <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
-        </div>
-        <% if (b.description) { %><div class="content"><%- bnHtml(b.description) %></div><% } %>
-        <% if (b.link && (b.link.startsWith('http://') || b.link.startsWith('https://'))) { %>
-        <div class="post-foot">
-          <a href="<%= b.link %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-download"/></svg> পড়ুন / ডাউনলোড</a>
-        </div>
-        <% } %>
-      </article>
+      </div>
     <% }) %>
   </div>
 </section>

@@ -155,7 +155,7 @@ function toggleAnswer(id) {
   }
 })();
 
-// Reveal on scroll
+// Reveal on scroll — fade + rise 24px (CSS handles motion; JS only adds .in)
 (function () {
   var els = document.querySelectorAll('.reveal');
   if (!els.length) return;
@@ -170,6 +170,18 @@ function toggleAnswer(id) {
         io.unobserve(entries[j].target);
       }
     }
-  }, { threshold: 0.08 });
+  }, { threshold: 0.12 });
   for (var k = 0; k < els.length; k++) io.observe(els[k]);
+})();
+
+// Scroll cue — fades once the user leaves the opening title (film cue language)
+(function () {
+  var cue = document.getElementById('scrollCue');
+  if (!cue) return;
+  function onScroll() {
+    if (window.scrollY > 120) cue.classList.add('gone');
+    else cue.classList.remove('gone');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();

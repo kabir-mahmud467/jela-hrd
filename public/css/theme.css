@@ -1,55 +1,58 @@
 /* ===== Jela HRD — theme tokens (single source of truth) =====
-   রঙ/ফন্ট/সাইজ বদলাতে শুধু এই ফাইল সম্পাদনা করুন — style.css স্বয়ংক্রিয়ভাবে
-   নতুন থিম পাবে। Palette:
-     navy #0a2c48 / deep #071f33, blue #114575 / vivid #166095 / dark #0c3454,
-     sky #00a9e0 / dark #0288b5 / light #7fd4f7 / pale #bfe6f7,
-     red #e93e3f / dark #c22e2f, amber text #9a5b00 / vivid #d99a00,
-     green #1d9e6b / dark #0f6b46, violet #7c5cd6 / dark #4a34a0 (admin stats only).
+   DARK PREMIUM cinematic theme (scroll-film system: near-black bg, one sky
+   accent, huge display type, generous space). Token NAMES unchanged so
+   style.css + admin shell keep working — only values remapped for dark.
+   Palette:
+     page #05070b / surfaces #0a1018/#0c1420, lines #1c2c44/#132032,
+     brand navy #0a2c48 (bands/nav active) / blue #4f8fc7 (links on dark),
+     accent sky #00a9e0 (glows/CTAs only), text ink #eef4fa / muted #9db4c9.
    Font: Noto Sans Bengali (Google Fonts) + system Bengali fallbacks.
+   FILM-READY: future AI film frames target this bg (#05070b) contain-fit +
+   vignette — see style.css .film-stage / .caption / .img-blend.
 */
 :root {
   --font-stack: 'Noto Sans Bengali', SolaimanLipi, 'Hind Siliguri', Roboto, NotoKufiArabic, Arial, Helvetica, sans-serif;
   --fs-base: 16px;
   --navy: #0a2c48;
-  --blue: #114575;
-  --blue-dark: #0c3454;
+  --blue: #4f8fc7;
+  --blue-dark: #9cc8ee;
   --sky: #00a9e0;
-  --sky-dark: #0288b5;
-  --paper: #e3edf5;
-  --soft: #e4eef7;
-  --card: #ffffff;
-  --ink: #16324a;
+  --sky-dark: #4fc3f0;
+  --paper: #05070b;
+  --soft: #0a1018;
+  --card: #0c1420;
+  --ink: #eef4fa;
   --ink-inv: #c9dcee;
-  --muted: #486072;
+  --muted: #9db4c9;
   --muted-inv: #9fc3dd;
-  --faint: #8ba0b4;
-  --line: #dce7f1;
-  --line-soft: #e9f0f7;
+  --faint: #8ba3b8;
+  --line: #1c2c44;
+  --line-soft: #132032;
   --red: #e93e3f;
-  --red-dark: #c22e2f;
-  --red-soft: #fdecec;
-  --amber: #9a5b00;
-  --amber-soft: #fdf1dc;
-  --blue-soft: #e3f0f9;
-  --green: #1d9e6b;
-  --green-soft: #e3f5ec;
-  --green-dark: #0f6b46;
-  --green-border: #a9dcc2;
+  --red-dark: #ff8a8b;
+  --red-soft: #2a1214;
+  --amber: #e0aa3e;
+  --amber-soft: #241a08;
+  --blue-soft: #0e1c2e;
+  --green: #34c98a;
+  --green-soft: #0a2018;
+  --green-dark: #5fe0a8;
+  --green-border: #1d4d38;
   --amber-vivid: #d99a00;
-  --amber-border: #ecd3a3;
-  --red-border: #f0a3a4;
+  --amber-border: #5a4415;
+  --red-border: #5c2225;
   --red-inv: #ffc9ca;
-  --blue-border: #b9d2e5;
-  --blue-vivid: #166095;
-  --navy-deep: #071f33;
-  --sky-light: #7fd4f7;
-  --sky-pale: #bfe6f7;
-  --violet: #7c5cd6;
-  --violet-dark: #4a34a0;
+  --blue-border: #23405f;
+  --blue-vivid: #2f6ea3;
+  --navy-deep: #030509;
+  --sky-light: #9be2ff;
+  --sky-pale: #12394d;
+  --violet: #a78bfa;
+  --violet-dark: #c4b5fd;
   --focus-ring: rgb(0, 179, 241) 0 0 0 2px;
   --r: 16px;
   --r-sm: 12px;
   --r-xs: 10px;
-  --shadow: 0 1px 2px rgba(10, 44, 72, 0.06), 0 4px 16px rgba(10, 44, 72, 0.06);
-  --shadow-hover: 0 2px 4px rgba(10, 44, 72, 0.08), 0 10px 28px rgba(10, 44, 72, 0.12);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 28px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.55), 0 16px 44px rgba(0, 0, 0, 0.55);
 }

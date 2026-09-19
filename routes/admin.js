@@ -294,8 +294,10 @@ router.post('/security/clear', requireAdmin, adminWriteLimiter, async (req, res,
 });
 
 // ---------- Generic CRUD (books/notes/dars/duas/ayathadith/surah/bibidh) ----------
-// Serial order: admin list + live site both sort {order:1, ...}. Arrows rewrite
-// the whole visible sequence (bulkWrite), so ties/gaps self-heal.
+// Serial order: admin list + live site both sort {order:1, ...}. Arrows move
+// rows instantly in the DOM (admin-reorder.js, localStorage draft); ONE save
+// POSTs the sequence to /:path/reorder (single bulkWrite), so ties/gaps
+// self-heal. Per-click .../move/up|down stays as the no-JS fallback.
 function crudRoutes({ path, Model, viewPrefix, kind }) {
   router.get(`/${path}`, requireAdmin, async (req, res, next) => {
     try {
@@ -370,7 +372,28 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       next(err);
     }
   });
-  // Serial up/down — ডানে উপরে/নিচে arrow; পুরো ক্রমটাই সংরক্ষণ হয়।
+  // Batch reorder — admin sorts freely in the browser (localStorage draft,
+  // admin-reorder.js), ONE save writes the whole sequence: single bulkWrite,
+  // single reload. Per-arrow move route below stays as no-JS fallback.
+  router.post(`/${path}/reorder`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      const raw = (req.body.ids || '').toString().split(',');
+      const seen = {};
+      const seq = [];
+      for (let k = 0; k < raw.length && seq.length < 500; k++) {
+        const id = raw[k].trim();
+        if (id && isId(id) && !seen[id]) { seen[id] = 1; seq.push(id); }
+      }
+      if (seq.length) {
+        await Model.bulkWrite(
+          seq.map((id, n) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: n } } } }))
+        );
+      }
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
   router.post(`/${path}/:id/move/:dir`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
     try {
       if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);

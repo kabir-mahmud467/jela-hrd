@@ -55,12 +55,12 @@
       var checked = store[key] ? 'checked' : '';
       if (it.c !== lastCat) {
         catNum = 1;
-        html += '<div style="margin:10px 0 4px;font-weight:700;color:var(--navy);font-size:13px;border-left:3px solid var(--sky);padding-left:8px">' + esc(it.c) + '</div>';
+        html += '<div class="check-cat">' + esc(it.c) + '</div>';
         lastCat = it.c;
       } else {
         catNum++;
       }
-      html += '<label style="display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border:1px solid var(--line-soft);border-radius:8px;margin-bottom:6px;background:#fff;cursor:pointer"><input type="checkbox" data-k="' + key + '" ' + checked + ' style="margin-top:3px"> <span style="font-size:14px;line-height:1.5">' + catNum + '. ' + esc(it.t) + '</span></label>';
+      html += '<label class="check-item"><input type="checkbox" data-k="' + key + '" ' + checked + '> <span>' + catNum + '. ' + esc(it.t) + '</span></label>';
     }
     listEl.innerHTML = html;
     updateProgress();
