@@ -311,6 +311,7 @@ app.use('/dua', duaRoutes);
 app.use('/ayat-hadith', ayatHadithRoutes);
 app.use('/surah', surahRoutes);
 app.use('/bibidh', bibidhRoutes);
+app.use('/api', require('./routes/sync'));
 app.use('/admin', adminRoutes);
 
 // 404 / 500

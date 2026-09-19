@@ -1,41 +1,47 @@
 package com.jelahrd.app;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.DownloadListener;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
-/** Hrd — thin WebView shell over https://hrd.kabirmahmud.xyz/ (minSdk 23). */
+/**
+ * Hrd — offline-first app (minSdk 23).
+ * Local reader (assets/www) renders bundled/stored content with zero network.
+ * When online, SyncManager pulls fresh content from /api/content.json.
+ */
 public class MainActivity extends Activity {
-
-    private static final int REQ_STORAGE = 1001;
 
     private WebView web;
     private View loader;
     private View errorbox;
-    private String pendingDownloadUrl;
-    private String pendingDownloadAgent;
-    private String pendingDownloadDisposition;
-    private String pendingDownloadMime;
+    private boolean firstPage = true;
+
+    private final SyncManager.Listener syncListener = new SyncManager.Listener() {
+        @Override
+        public void onStatus(final String msg) {
+            pushSync(msg);
+            if (loader != null) loader.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onData(final String base64) {
+            if (base64 != null && web != null) {
+                web.evaluateJavascript("App.setData('" + base64 + "');", null);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +60,8 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
         s.setMediaPlaybackRequiresUserGesture(false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
-            s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        }
+
+        web.addJavascriptInterface(new JsApi(), "Android");
 
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -66,47 +70,46 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null
-                        && request.getUrl() != null) {
+            public boolean shouldOverrideUrlLoading(WebView view,
+                                                    android.webkit.WebResourceRequest request) {
+                if (android.os.Build.VERSION.SDK_INT
+                        >= android.os.Build.VERSION_CODES.LOLLIPOP
+                        && request != null && request.getUrl() != null) {
                     return handleUrl(request.getUrl().toString());
                 }
                 return false;
             }
 
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                errorbox.setVisibility(View.GONE);
-            }
-
-            @Override
             public void onPageFinished(WebView view, String url) {
-                loader.setVisibility(View.GONE);
+                if (firstPage) {
+                    firstPage = false;
+                    // 1) instant offline paint  2) sync when online
+                    SyncManager.pushLocal(MainActivity.this, web, syncListener);
+                    if (isOnline()) {
+                        SyncManager.sync(MainActivity.this, web, syncListener);
+                    } else {
+                        syncListener.onStatus("ইন্টারনেট নেই — ফোনের কন্টেন্ট দেখাচ্ছে।");
+                    }
+                }
             }
 
             @Override
             @SuppressWarnings("deprecation")
             public void onReceivedError(WebView view, int errorCode,
                                         String description, String failingUrl) {
-                showError();
+                if (firstPage) showError();
             }
 
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request,
-                                        WebResourceError error) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                        && request != null && request.isForMainFrame()) {
+            public void onReceivedError(WebView view,
+                                        android.webkit.WebResourceRequest request,
+                                        android.webkit.WebResourceError error) {
+                if (android.os.Build.VERSION.SDK_INT
+                        >= android.os.Build.VERSION_CODES.M
+                        && request != null && request.isForMainFrame() && firstPage) {
                     showError();
                 }
-            }
-        });
-
-        web.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent,
-                                        String contentDisposition, String mimeType,
-                                        long contentLength) {
-                startDownload(url, userAgent, contentDisposition, mimeType);
             }
         });
 
@@ -114,51 +117,45 @@ public class MainActivity extends Activity {
         retry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                reloadSite();
+                errorbox.setVisibility(View.GONE);
+                loader.setVisibility(View.VISIBLE);
+                firstPage = true;
+                web.loadUrl("file:///android_asset/www/index.html");
             }
         });
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
+            firstPage = false;
         } else {
-            reloadSite();
+            web.loadUrl("file:///android_asset/www/index.html");
         }
     }
 
     private boolean handleUrl(String url) {
         if (url == null) return false;
-        String host = getString(R.string.site_host);
+        if (url.startsWith("file://") || url.charAt(0) == '#') return false;
         Uri uri = Uri.parse(url);
         String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-        if (("http".equals(scheme) || "https".equals(scheme))
-                && host.equalsIgnoreCase(uri.getHost())) {
-            return false; // site pages stay inside the app
+        if ("http".equals(scheme) || "https".equals(scheme)) {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, uri));
+            } catch (Exception ignored) {
+            }
+            return true;
         }
-        try {
-            Intent i = new Intent(Intent.ACTION_VIEW, uri);
-            startActivity(i);
-        } catch (Exception ignored) {
-        }
-        return true;
+        return false;
     }
 
-    private void reloadSite() {
-        if (!isOnline()) {
-            showError();
-            return;
-        }
-        loader.setVisibility(View.VISIBLE);
-        errorbox.setVisibility(View.GONE);
-        web.loadUrl(getString(R.string.start_url));
+    private void pushSync(final String msg) {
+        if (web == null) return;
+        final String safe = msg.replace("\\", "\\\\").replace("'", "\\'");
+        web.evaluateJavascript("App.setSync('" + safe + "');", null);
     }
 
     private void showError() {
-        if (web.getProgress() < 10 && web.getUrl() == null) {
-            loader.setVisibility(View.GONE);
-            errorbox.setVisibility(View.VISIBLE);
-        } else {
-            loader.setVisibility(View.GONE);
-        }
+        loader.setVisibility(View.GONE);
+        errorbox.setVisibility(View.VISIBLE);
     }
 
     private boolean isOnline() {
@@ -173,63 +170,29 @@ public class MainActivity extends Activity {
         }
     }
 
-    // ---- Book PDF downloads via system DownloadManager ----
-
-    private void startDownload(String url, String userAgent,
-                               String contentDisposition, String mimeType) {
-        pendingDownloadUrl = url;
-        pendingDownloadAgent = userAgent;
-        pendingDownloadDisposition = contentDisposition;
-        pendingDownloadMime = mimeType;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
-                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_STORAGE);
-            return;
-        }
-        enqueueDownload();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        if (requestCode == REQ_STORAGE
-                && grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            enqueueDownload();
-        }
-    }
-
-    private void enqueueDownload() {
-        if (pendingDownloadUrl == null) return;
-        try {
-            DownloadManager.Request req =
-                    new DownloadManager.Request(Uri.parse(pendingDownloadUrl));
-            String fileName = android.webkit.URLUtil.guessFileName(
-                    pendingDownloadUrl, pendingDownloadDisposition, pendingDownloadMime);
-            req.setTitle(fileName);
-            req.setDescription(getString(R.string.app_name));
-            req.setMimeType(pendingDownloadMime);
-            req.addRequestHeader("Cookie", CookieManager.getInstance().getCookie(
-                    pendingDownloadUrl));
-            if (pendingDownloadAgent != null) {
-                req.addRequestHeader("User-Agent", pendingDownloadAgent);
+    private class JsApi {
+        @JavascriptInterface
+        public void refresh() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    pushSync("আপডেট দেখা হচ্ছে…");
+                    Toast.makeText(MainActivity.this,
+                            "নতুন কন্টেন্ট দেখা হচ্ছে…", Toast.LENGTH_SHORT).show();
+                }
+            });
+            if (!isOnline()) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        syncListener.onStatus("ইন্টারনেট নেই — ফোনের কন্টেন্ট দেখাচ্ছে।");
+                    }
+                });
+                return;
             }
-            req.setNotificationVisibility(
-                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            req.setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_DOWNLOADS, fileName);
-            DownloadManager dm = (DownloadManager) getSystemService(
-                    Context.DOWNLOAD_SERVICE);
-            if (dm != null) dm.enqueue(req);
-        } catch (Exception ignored) {
-        } finally {
-            pendingDownloadUrl = null;
+            SyncManager.sync(MainActivity.this, web, syncListener);
         }
     }
-
-    // ---- Lifecycle ----
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
