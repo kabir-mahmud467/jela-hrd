@@ -6,6 +6,7 @@ const router = express.Router();
 const Admin = require('../models/Admin');
 const Ban = require('../models/Ban');
 const Book = require('../models/Book');
+const Audiobook = require('../models/Audiobook');
 const Note = require('../models/Note');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
@@ -31,6 +32,7 @@ try {
 // kind অনুযায়ী বাংলা ফিল্ড (link/arabic বাদ — এগুলো কখনো convert নয়)
 const BIJOY_FIELDS = {
   book: ['title', 'author', 'description', 'category'],
+  audiobook: ['title', 'author'],
   note: ['title', 'content'],
   dars: ['title', 'content', 'reference'],
   dua: ['title', 'transliteration', 'content', 'reference'],
@@ -125,8 +127,9 @@ router.get('/logout', (req, res) => {
 // ---------- Dashboard (remake: stats + recent + live attacks + system) ----------
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
-    const [cBook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
+    const [cBook, cAudiobook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
       Book.countDocuments(),
+      Audiobook.countDocuments(),
       Note.countDocuments(),
       Dars.countDocuments(),
       Dua.countDocuments(),
@@ -136,8 +139,9 @@ router.get('/', requireAdmin, async (req, res, next) => {
       Ban.countDocuments()
     ]);
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [recentB, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, events24h] = await Promise.all([
+    const [recentB, recentAudio, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, events24h] = await Promise.all([
       Book.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
+      Audiobook.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Note.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Dars.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
       Dua.find().sort({ createdAt: -1 }).limit(2).select('title createdAt').lean().catch(() => []),
@@ -148,6 +152,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     ]);
     const recent = [
       ...recentB.map(r => ({ type: 'বই', title: r.title, when: r.createdAt, adminUrl: '/admin/books' })),
+      ...recentAudio.map(r => ({ type: 'অডিওবুক', title: r.title, when: r.createdAt, adminUrl: '/admin/audiobooks' })),
       ...recentN.map(r => ({ type: 'নোট', title: r.title, when: r.createdAt, adminUrl: '/admin/notes' })),
       ...recentDars.map(r => ({ type: 'দারস', title: r.title, when: r.createdAt, adminUrl: '/admin/dars' })),
       ...recentDua.map(r => ({ type: 'দুআ', title: r.title, when: r.createdAt, adminUrl: '/admin/duas' })),
@@ -168,7 +173,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     };
     res.render('admin/dashboard', {
       admin: req.session.admin,
-      counts: { book: cBook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
+      counts: { book: cBook, audiobook: cAudiobook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
       recent,
       topIps,
       events24h,
@@ -185,8 +190,9 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     const q = escRegex(req.query.q);
     if (!q) return res.redirect('/admin');
     const rx = new RegExp(q, 'i');
-    const [books, notes, dars, duas, ayatHadith, surah, bibidh] = await Promise.all([
+    const [books, audiobooks, notes, dars, duas, ayatHadith, surah, bibidh] = await Promise.all([
       Book.find({ $or: [{ title: rx }, { author: rx }] }).limit(20).select('title author').lean().catch(() => []),
+      Audiobook.find({ $or: [{ title: rx }, { author: rx }] }).limit(20).select('title author').lean().catch(() => []),
       Note.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dars.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
       Dua.find({ $or: [{ title: rx }, { content: rx }] }).limit(20).select('title').lean().catch(() => []),
@@ -197,7 +203,7 @@ router.get('/search', requireAdmin, async (req, res, next) => {
     res.render('admin/search', {
       admin: req.session.admin,
       q: req.query.q,
-      results: { books, notes, dars, duas, ayatHadith, surah, bibidh }
+      results: { books, audiobooks, notes, dars, duas, ayatHadith, surah, bibidh }
     });
   } catch (err) {
     next(err);
@@ -218,8 +224,9 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
       return send('security-events', events);
     }
     if (t === 'all') {
-      const [books, notes, dars, duas, ayatHadith, surah, bibidh, bans] = await Promise.all([
+      const [books, audiobooks, notes, dars, duas, ayatHadith, surah, bibidh, bans] = await Promise.all([
         Book.find().limit(2000).lean(),
+        Audiobook.find().limit(2000).lean(),
         Note.find().limit(2000).lean(),
         Dars.find().limit(2000).lean(),
         Dua.find().limit(2000).lean(),
@@ -228,7 +235,7 @@ router.get('/export/:type', requireAdmin, async (req, res, next) => {
         Bibidh.find().limit(2000).lean(),
         Ban.find().lean()
       ]);
-      return send('backup', { books, notes, dars, duas, ayatHadith, surah, bibidh, bans, exportedAt: new Date() });
+      return send('backup', { books, audiobooks, notes, dars, duas, ayatHadith, surah, bibidh, bans, exportedAt: new Date() });
     }
     return res.redirect('/admin');
   } catch (err) {
@@ -435,6 +442,7 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
 }
 
 crudRoutes({ path: 'books', Model: Book, viewPrefix: 'book', kind: 'book' });
+crudRoutes({ path: 'audiobooks', Model: Audiobook, viewPrefix: 'audiobook', kind: 'audiobook' });
 crudRoutes({ path: 'notes', Model: Note, viewPrefix: 'note', kind: 'note' });
 crudRoutes({ path: 'dars', Model: Dars, viewPrefix: 'dars', kind: 'dars' });
 crudRoutes({ path: 'duas', Model: Dua, viewPrefix: 'dua', kind: 'dua' });

@@ -22,6 +22,7 @@
   };
   var SECTIONS = [
     { id: 'books', name: 'বই', fields: ['title', 'author', 'description'] },
+    { id: 'audiobooks', name: 'অডিওবুক', fields: ['title', 'author'] },
     { id: 'notes', name: 'নোট', fields: ['title', 'subject', 'content'], cats: NOTE_CATS, phases: ['abedonpotrer-purbe', 'proshnopotrer-purbe'] },
     { id: 'dars', name: 'দারস', fields: ['title', 'content', 'reference'] },
     { id: 'duas', name: 'মাসনুন দুআ', fields: ['title', 'arabic', 'transliteration', 'content', 'reference'] },
@@ -147,7 +148,11 @@
 
   function metaLine(sec, it) {
     var h = '';
-    if (sec.id === 'books' && it.author) h += '<div class="muted">' + esc(it.author) + '</div>';
+    if (sec.id === 'books' || sec.id === 'audiobooks') {
+      h += '<div>' +
+        (it.author ? '<div class="muted">' + esc(it.author) + '</div>' : '') +
+        (it.phase ? '<span class="badge">' + esc(phaseName(it.phase)) + '</span>' : '') + '</div>';
+    }
     if (sec.id === 'notes') {
       h += '<div><span class="badge">' + esc(NOTE_CATS[it.category] || 'আলোচনা নোট') + '</span>' +
         (it.phase ? '<span class="badge">' + esc(phaseName(it.phase)) + '</span>' : '') +
@@ -168,24 +173,49 @@
     return h;
   }
 
-  function detailBody(sec, it) {
-    var h = '<h3>' + esc(it.title) + '</h3>' + metaLine(sec, it);
-    if (sec.id === 'surah') {
-      /* site parity (surah.ejs): ayat-by-ayat arabic + উচ্চারণ + অর্থ */
-      h += surahAyatHtml(it);
-    } else {
+  /* site parity: every list opens inline (dropdown) with FULL content —
+     books.ejs / audiobooks.ejs / note.ejs / dua.ejs / bibidh.ejs show all
+     inside the accordion; dars shows full text too (no excerpt link). */
+  function extLink(url) {
+    return /^https?:\/\//i.test(url || '');
+  }
+  function fullBody(sec, it) {
+    var h = '';
+    if (sec.id === 'books') {
+      if (it.description) h += '<div class="content">' + it.description + '</div>';
+      h += '<div class="row" style="margin-top:10px">' +
+        (extLink(it.link) ? '<a class="btn" href="' + esc(it.link) + '">পড়ুন / ডাউনলোড</a>'
+          : '<span class="muted">লিংক নেই</span>') + '</div>';
+    } else if (sec.id === 'audiobooks') {
+      h += '<div class="row" style="margin-top:10px">' +
+        (extLink(it.audioLink) ? '<a class="btn" href="' + esc(it.audioLink) + '">অডিও শুনুন</a>'
+          : '<span class="muted">লিংক নেই</span>') + '</div>';
+    } else if (sec.id === 'notes' || sec.id === 'dars' || sec.id === 'bibidh') {
+      if (it.content) h += '<div class="content">' + it.content + '</div>';
+    } else if (sec.id === 'duas') {
       if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
       if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
-      var body = it.content || it.translation || it.description || '';
-      if (body) h += '<div class="content"><strong>অর্থ:</strong> ' + body + '</div>';
-    }
-    if (sec.id === 'books' && it.link) {
-      var ok = /^https?:\/\//i.test(it.link);
-      h += '<div style="margin-top:10px">' +
-        (ok ? '<a class="btn" href="' + esc(it.link) + '">পড়ুন / ডাউনলোড</a>'
-            : '<span class="muted">লিংক নেই</span>') + '</div>';
+      if (it.content) h += '<div class="content"><strong>অর্থ:</strong> ' + it.content + '</div>';
+    } else if (sec.id === 'surah') {
+      h += surahAyatHtml(it);
+    } else if (sec.id === 'ayathadith') {
+      if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
     }
     return h;
+  }
+
+  function detailBody(sec, it) {
+    return '<h3>' + esc(it.title) + '</h3>' + metaLine(sec, it) + fullBody(sec, it);
+  }
+
+  /* generic inline accordion card (dropdown like the site qa-item) */
+  function accItem(sec, it, tid, no) {
+    return '<div class="card ah-item"><button class="ah-q" data-t="' + tid + '">' +
+      '<span>' + bn(no) + '. ' + esc(it.title) + '</span><span class="chev">›</span></button>' +
+      '<div id="' + tid + '" class="ah-a" style="display:none">' +
+      metaLine(sec, it) + fullBody(sec, it) + '</div></div>';
   }
 
   /* ---------- site parity: surah ayat-by-ayat (surah.ejs lines 38-47) ---------- */
@@ -246,7 +276,6 @@
     if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
     if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
     if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
-    h += '<div style="margin-top:8px"><a class="back" href="#/ayathadith/' + it._id + '">স্থায়ী লিংক ›</a></div>';
     h += '</div></div>';
     return h;
   }
@@ -389,8 +418,7 @@
       for (var i = 0; i < list.length; i++) {
         if (!matchPhase(sec, list[i]) || !matchQuery(sec, list[i])) continue;
         shown++;
-        h += '<div class="card"><a class="t" href="#/' + sec.id + '/' + list[i]._id + '"><h3>' +
-          bn(shown) + '. ' + esc(list[i].title) + '</h3></a>' + metaLine(sec, list[i]) + '</div>';
+        h += accItem(sec, list[i], sec.id + '-' + shown, shown);
         if (shown >= 300) break;
       }
       if (!shown) h += '<p class="empty">কিছু পাওয়া যায়নি।</p>';
@@ -428,9 +456,7 @@
       h += '<div class="card ah-item"><button class="ah-q" data-t="' + tid + '">' +
         '<span>' + bn(shown) + '. ' + esc(list[i].title) + '</span><span class="chev">›</span></button>' +
         '<div id="' + tid + '" class="ah-a" style="display:none">' + metaLine(sec, list[i]) +
-        surahAyatHtml(list[i]) +
-        '<div style="margin-top:8px"><a class="back" href="#/surah/' + list[i]._id + '">স্থায়ী লিংক ›</a></div>' +
-        '</div></div>';
+        surahAyatHtml(list[i]) + '</div></div>';
       if (shown >= 300) break;
     }
     if (!shown) h += '<p class="empty">কোনো সূরা পাওয়া যায়নি।</p>';

@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 
 const Book = require('../models/Book');
+const Audiobook = require('../models/Audiobook');
 const Note = require('../models/Note');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
@@ -18,9 +19,11 @@ const CAP = 500;
 const SORT = { order: 1, createdAt: -1 };
 
 async function snapshot() {
-  const [books, notes, dars, duas, ayathadith, surah, bibidh] = await Promise.all([
+  const [books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh] = await Promise.all([
     Book.find().sort(SORT).limit(CAP)
       .select('title author link description category phase order createdAt').lean(),
+    Audiobook.find().sort(SORT).limit(CAP)
+      .select('title author audioLink phase order createdAt').lean(),
     Note.find().sort(SORT).limit(CAP)
       .select('title subject content category phase order createdAt').lean(),
     Dars.find().sort(SORT).limit(CAP)
@@ -34,7 +37,7 @@ async function snapshot() {
     Bibidh.find().sort(SORT).limit(CAP)
       .select('title content category reference order createdAt').lean()
   ]);
-  const cols = { books, notes, dars, duas, ayathadith, surah, bibidh };
+  const cols = { books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh };
   let total = 0;
   let latest = 0;
   Object.keys(cols).forEach((k) => {
@@ -53,7 +56,7 @@ async function snapshot() {
     exportedAt: new Date().toISOString(),
     counts,
     checklist: checklistData,
-    books, notes, dars, duas, ayathadith, surah, bibidh
+    books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh
   };
 }
 

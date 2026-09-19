@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title>অডিওবুক ফর্ম | Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('../partials/icons') %>
+<%- include('partials/nav', { active: 'audiobooks', admin: typeof admin !== 'undefined' ? admin : null }) %>
+<main class="container admin-main">
+<div class="sec-head">
+  <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+  <h2><%= item && item._id ? 'এডিট' : 'নতুন' %> অডিওবুক</h2>
+  <a href="/admin/audiobooks" class="btn small">তালিকা</a>
+</div>
+<% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
+<form method="POST" action="<%= item && item._id ? '/admin/audiobooks/' + item._id : '/admin/audiobooks' %>" class="form">
+<label for="f-title">অডিওবুকের নাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
+<label for="f-author">বক্তা / লেখক</label><input id="f-author" name="author" value="<%= item.author || '' %>" maxlength="200">
+<label for="f-link">অডিও লিংক (MP3/Drive)</label><input id="f-link" name="audioLink" value="<%= item.audioLink || '' %>" required placeholder="https://..." inputmode="url" maxlength="2000">
+<label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
+<div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/audiobooks" class="btn">বাতিল</a></div>
+</form>
+</main>
+<%- include('partials/foot') %>

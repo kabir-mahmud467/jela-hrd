@@ -36,6 +36,15 @@ function validateBody(kind, body) {
     if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
     if (data.title.length < 2) errors.push('বইয়ের নাম আবশ্যক।');
     if (!isValidUrl(data.link)) errors.push('সঠিক লিংক দিন (http/https)।');
+  } else if (kind === 'audiobook') {
+    const PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
+    data.title = str(body.title, 300);
+    data.author = str(body.author, 200);
+    data.audioLink = str(body.audioLink, 2000);
+    data.phase = str(body.phase, 50) || 'abedonpotrer-purbe';
+    if (!PHASE_VALUES.includes(data.phase)) data.phase = 'abedonpotrer-purbe';
+    if (data.title.length < 2) errors.push('অডিওবুকের নাম আবশ্যক।');
+    if (!isValidUrl(data.audioLink)) errors.push('সঠিক অডিও লিংক দিন (http/https)।');
   } else if (kind === 'note') {
     const NOTE_PHASE_VALUES = ['abedonpotrer-purbe', 'proshnopotrer-purbe'];
     const NOTE_VALUES = ['alochona', 'boi'];

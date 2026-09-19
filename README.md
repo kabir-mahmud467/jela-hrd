@@ -27,11 +27,11 @@ config/db.js           Cached mongoose connect (serverless-safe). bufferTimeoutM
                        serverSelectionTimeoutMS=5000. Single shared promise.
 config/assets.js       Asset version (?v=) from CSS/JS mtimes + package version. Exposed as
                        `assetVer` to ALL EJS — edit CSS/JS and version changes automatically.
-routes/index.js        Public: /, /books (+/phase/:phase), /note (+/cat/:cat, /phase/:phase, :id detail; old /notes/* 301).
+routes/index.js        Public: /, /books (+/phase/:phase), /audiobooks (+/phase/:phase), /note (+/cat/:cat, /phase/:phase, :id detail; old /notes/* 301).
 routes/dars.js         Public দারস: /dars, /dhara/:kind (2 ধারা), /:id detail.
 routes/dua.js          Public দুআ (SEPARATE): /dua, /dhara/:cat (3 ভাগ), /:id detail.
 routes/questions.js    Public Q&A: /questions, /subject/:subject, /phase/:phase, /id/:id, /:slugOrId.
-routes/admin.js        Admin: login/logout, dashboard, CRUD (importants/books/notes/questions/dars/duas),
+routes/admin.js        Admin: login/logout, dashboard, CRUD (importants/books/audiobooks/notes/questions/dars/duas),
                        bans, security center, global search, JSON export, settings.
                        All mutating routes use adminWriteLimiter.
 middleware/security.js helmet CSP, mongo-sanitize, hpp, 3 rate limiters (global/login/adminWrite).
@@ -144,12 +144,13 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/questions/:slugOrId` | Detail: slug first, then ObjectId fallback. Increments `views` best-effort. Id-URL → 301 slug. |
 | GET | `/gurutto`, `/gurutto/:id` | Notices (pinned first). `:id` validates ObjectId. |
 | GET | `/books?q=&phase=`, `/books/phase/:phase` | Books, ৩ পর্বে ভাগ (প্রশ্নের পর্বের মতো)। Max 200. |
+| GET | `/audiobooks?q=&phase=`, `/audiobooks/phase/:phase` | অডিওবুক — বই রুটের মতোই, শুধু অডিও লিংক। ৩ পর্ব। Max 200. |
 | GET | `/note?q=&cat=&phase=`, `/note/cat/:cat`, `/note/phase/:phase` | নোট — ধরন (আলোচনা/বই) + ৩ পর্ব ফিল্টারসহ। Max 200. |
 | GET | `/note/:id` | ObjectId validated. |
 | GET | `/dars?q=&kind=&phase=`, `/dars/dhara/:kind`, `/dars/porbo/:phase`, `/dars/:id` | দারস — ২ ধারা + ৩ পর্ব (প্রশ্নের পর্ব)। ধারা পেজে `?phase=`, পর্ব পেজে `?kind=` চলে। Max 200. |
 | GET | `/dua?q=&cat=&phase=`, `/dua/dhara/:cat`, `/dua/porbo/:phase`, `/dua/:id` | মাসনুন দুআ — SEPARATE route, ৩ ভাগ + ৩ পর্ব। ভাগ পেজে `?phase=`, পর্ব পেজে `?cat=` চলে। Max 200. |
 | GET | `/healthz` | No auth/ban/limit. `{"ok":true,"db":"up\|down"}`. |
-| GET | `/api/content.json[?check=1]` | Native APK sync feed (`routes/sync.js`): full public snapshot `{version, checklist, books, notes, dars, duas, ayathadith, surah, bibidh}` (order-sorted, 500/type cap, `no-store`); `?check=1` = light `{version, counts}` probe. DB down → JSON 503 (never HTML). |
+| GET | `/api/content.json[?check=1]` | Native APK sync feed (`routes/sync.js`): full public snapshot `{version, checklist, books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh}` (order-sorted, 500/type cap, `no-store`); `?check=1` = light `{version, counts}` probe. DB down → JSON 503 (never HTML). |
 | GET | `/favicon.ico` | `204` (avoids 404-render + DB hit). |
 
 **Admin** (`routes/admin.js`, all except login behind `requireAdmin`):

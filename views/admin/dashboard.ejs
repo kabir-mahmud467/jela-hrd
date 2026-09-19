@@ -19,11 +19,12 @@
       <input name="q" value="" maxlength="100" placeholder="সব কনটেন্টে খুঁজুন (বই/নোট/দারস/দুআ/আয়াত/সূরা/বিবিধ)…" aria-label="সার্চ">
       <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
     </form>
-    <span class="count badge light">মোট কনটেন্ট: <%= counts.book + counts.note + counts.dars + counts.dua + counts.ayatHadith + counts.surah + counts.bibidh %></span>
+    <span class="count badge light">মোট কনটেন্ট: <%= counts.book + counts.audiobook + counts.note + counts.dars + counts.dua + counts.ayatHadith + counts.surah + counts.bibidh %></span>
   </div>
 
   <div class="admin-grid">
     <div class="card stat a-emerald"><h2><%= counts.book %></h2><p>বই লিংক</p><div class="stat-actions"><a href="/admin/books" class="btn small">পরিচালনা</a><a href="/admin/books/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat a-sky"><h2><%= counts.audiobook %></h2><p>অডিওবুক</p><div class="stat-actions"><a href="/admin/audiobooks" class="btn small">পরিচালনা</a><a href="/admin/audiobooks/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-violet"><h2><%= counts.note %></h2><p>নোট</p><div class="stat-actions"><a href="/admin/notes" class="btn small">পরিচালনা</a><a href="/admin/notes/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-emerald"><h2><%= counts.dars %></h2><p>দারস</p><div class="stat-actions"><a href="/admin/dars" class="btn small">পরিচালনা</a><a href="/admin/dars/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-sky"><h2><%= counts.dua %></h2><p>মাসনুন দুআ</p><div class="stat-actions"><a href="/admin/duas" class="btn small">পরিচালনা</a><a href="/admin/duas/new" class="btn small primary">+ নতুন</a></div></div>
@@ -49,6 +50,7 @@
       </ul>
       <div class="quick-actions mt-16">
         <a href="/admin/books/new" class="btn small primary">+ বই</a>
+        <a href="/admin/audiobooks/new" class="btn small">+ অডিওবুক</a>
         <a href="/admin/notes/new" class="btn small">+ নোট</a>
         <a href="/admin/dars/new" class="btn small">+ দারস</a>
         <a href="/admin/duas/new" class="btn small">+ দুআ</a>

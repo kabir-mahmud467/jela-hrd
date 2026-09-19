@@ -4,6 +4,7 @@ const fs = require('fs');
 const router = express.Router();
 
 const Book = require('../models/Book');
+const Audiobook = require('../models/Audiobook');
 const Note = require('../models/Note');
 const Dars = require('../models/Dars');
 const Dua = require('../models/Dua');
@@ -25,7 +26,7 @@ router.get('/', (req, res) => {
 
 // অ্যাপ ডাউনলোড পেজ — DB লাগে না (APK ফাইলের তথ্য দেখায়)
 const APK_FILE = path.join(__dirname, '..', 'android', 'Hrd.apk');
-const APP_VER = '১.২';
+const APP_VER = '১.৪';
 function apkInfo() {
   try {
     const st = fs.statSync(APK_FILE);
@@ -75,6 +76,38 @@ router.get('/books/phase/:phase', async (req, res, next) => {
     if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
     const books = await Book.find({ phase }).sort({ order: 1, createdAt: -1 }).limit(200).lean();
     res.render('books', { books, q: '', phase, phases: PHASES });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// অডিওবুক — বই রুটের মতোই, শুধু PDF-এর বদলে অডিও লিংক (একই ৩ পর্ব)
+router.get('/audiobooks', async (req, res, next) => {
+  try {
+    const q = (req.query.q || '').toString().slice(0, 100);
+    const phase = (req.query.phase || '').toString().slice(0, 50);
+    const and = [];
+    if (q) {
+      and.push({
+        $or: [{ title: new RegExp(escapeRegex(q), 'i') }, { author: new RegExp(escapeRegex(q), 'i') }]
+      });
+    }
+    if (phase && PHASE_VALUES.includes(phase)) and.push({ phase });
+    const filter = and.length ? { $and: and } : {};
+    const items = await Audiobook.find(filter).sort({ order: 1, createdAt: -1 }).limit(200).lean();
+    res.render('audiobooks', { items, q, phase, phases: PHASES });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// অডিওবুক — পর্বভিত্তিক
+router.get('/audiobooks/phase/:phase', async (req, res, next) => {
+  try {
+    const phase = req.params.phase.slice(0, 50);
+    if (!PHASE_VALUES.includes(phase)) return res.status(404).render('404');
+    const items = await Audiobook.find({ phase }).sort({ order: 1, createdAt: -1 }).limit(200).lean();
+    res.render('audiobooks', { items, q: '', phase, phases: PHASES });
   } catch (err) {
     next(err);
   }

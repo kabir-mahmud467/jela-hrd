@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Book = require('./models/Book');
+const Audiobook = require('./models/Audiobook');
 const Note = require('./models/Note');
 const Question = require('./models/Question');
 const Dars = require('./models/Dars');
@@ -21,6 +22,11 @@ async function seed() {
     await Book.insertMany([
       { title: 'বাংলা ব্যাকরণ বই', author: 'ড. সুনীতিকুমার', link: 'https://example.com/book1.pdf', description: 'ব্যাকরণ শেখার সেরা বই', category: 'বাংলা', phase: 'abedonpotrer-purbe' },
       { title: 'সাধারণ জ্ঞান', author: 'সম্পাদনা পরিষদ', link: 'https://example.com/book2.pdf', description: 'চাকরি পরীক্ষার জন্য', category: 'GK', phase: 'proshnopotrer-purbe' }
+    ]);
+  }
+  if ((await Audiobook.countDocuments()) === 0) {
+    await Audiobook.insertMany([
+      { title: 'সীরাতে নববী (অডিও)', author: 'শায়খ আব্দুল্লাহ', audioLink: 'https://example.com/audio1.mp3', phase: 'abedonpotrer-purbe' }
     ]);
   }
   if ((await Note.countDocuments()) === 0) {

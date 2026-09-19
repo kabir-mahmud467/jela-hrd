@@ -1,0 +1,47 @@
+<%- include('partials/header', { title: 'অডিওবুক' }) %>
+<% function toBengali(n){ return String(n).split('').map(function(c){ return '০১২৩৪৫৬৭৮৯'[c]||c; }).join(''); } %>
+<section class="sec-book">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
+    <h2>অডিওবুক</h2>
+  </div>
+  <p class="page-sub">শুনুন — পর্ব অনুযায়ী সাজানো।</p>
+
+  <div class="chips">
+    <a href="/audiobooks" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
+    <a href="/audiobooks/phase/abedonpotrer-purbe" class="chip <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে</a>
+    <a href="/audiobooks/phase/proshnopotrer-purbe" class="chip <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে</a>
+    <a href="/audiobooks/phase/shopother-purbe" class="chip <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে</a>
+  </div>
+
+  <form method="GET" action="/audiobooks" class="search">
+    <input type="text" name="q" placeholder="অডিওবুক / বক্তা খুঁজুন..." value="<%= q %>" maxlength="100">
+    <% if (phase) { %><input type="hidden" name="phase" value="<%= phase %>"><% } %>
+    <button type="submit"><svg class="icon sm"><use href="#i-search"/></svg> খুঁজুন</button>
+  </form>
+  <div class="qa-list">
+    <% if (!items || items.length === 0) { %><p class="empty">কোনো অডিওবুক পাওয়া যায়নি। অন্য পর্ব বা অন্য কিছু লিখে খুঁজুন।</p><% } %>
+    <% (items || []).forEach((b, idx) => { %>
+      <div class="qa-item reveal">
+        <button class="qa-q" data-toggle-target="audio-<%= idx %>" aria-expanded="false">
+          <span><span class="q-no"><%= toBengali(idx+1) %>.</span> <%= b.title %></span>
+          <svg class="icon chev"><use href="#i-chev"/></svg>
+        </button>
+        <div id="audio-<%= idx %>" class="qa-a hidden">
+          <div class="ans-meta">
+            <span class="muted"><svg class="icon sm"><use href="#i-pen"/></svg> <%= b.author || 'বক্তা অজানা' %></span>
+            <% if (b.phase === 'abedonpotrer-purbe') { %><span class="badge light">আবেদনপত্রের পূর্বে</span><% } %>
+            <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
+            <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
+          </div>
+          <% if (b.audioLink && (b.audioLink.startsWith('http://') || b.audioLink.startsWith('https://'))) { %>
+          <div style="margin-top:10px">
+            <a href="<%= b.audioLink %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-star"/></svg> অডিও শুনুন</a>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>
