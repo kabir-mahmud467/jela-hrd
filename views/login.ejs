@@ -4,10 +4,10 @@
     <span class="sec-ico"><svg class="icon"><use href="#i-lock"/></svg></span>
     <h2>লগিন</h2>
   </div>
-  <p class="page-sub">আপনার ইউজারনেম ও পাসওয়ার্ড দিন </p>
+  <p class="page-sub">একটাই লগিন — ইউজারনেম ও পাসওয়ার্ডই ঠিক করবে কোন ড্যাশবোর্ড খুলবে (অ্যাডমিন হলে অ্যাডমিন প্যানেল, ইউজার হলে আপনার ড্যাশবোর্ড)।</p>
   <div class="panel" style="max-width:440px">
     <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
-    <form method="POST" action="/login">
+    <form method="POST" action="/login" class="form">
       <label for="username">ইউজারনেম</label>
       <input id="username" type="text" name="username" required placeholder="আপনার ইউজারনেম" autocomplete="username" maxlength="30">
       <label for="password">পাসওয়ার্ড</label>
