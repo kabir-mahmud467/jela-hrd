@@ -5,6 +5,10 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+/* Viewport guard: a single overflowing child (long URL, wide table, rotated
+   book page) must never create a sideways-scrollable page on phones.
+   `clip` (with `hidden` fallback) keeps position:sticky working. */
+html, body { overflow-x: hidden; overflow-x: clip; }
 body {
   font-family: var(--font-stack);
   font-size: var(--fs-base);
@@ -34,6 +38,13 @@ select:focus-visible, textarea:focus-visible {
 }
 a { color: var(--blue); }
 img, svg { flex-shrink: 0; }
+/* Responsive media: content images/embeds can never exceed the viewport. */
+img, video, iframe { max-width: 100%; }
+img, video { height: auto; }
+.content img { display: block; margin: 10px auto; border-radius: var(--r-xs); }
+.content iframe { width: 100%; aspect-ratio: 16 / 9; height: auto; border: none; border-radius: var(--r-xs); }
+.content pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-overflow-scrolling: touch; }
+.content table, .rich-editor table { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 
 .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 main.container { padding-top: 28px; padding-bottom: 12px; }
@@ -65,7 +76,7 @@ main.container { padding-top: 28px; padding-bottom: 12px; }
 .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 64% 70% at 50% 46%, transparent 55%, rgba(3, 5, 9, 0.75) 100%); }
 .hero > * { position: relative; }
 .hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky-light); border: 1px solid rgba(0, 169, 224, 0.4); background: rgba(0, 169, 224, 0.1); padding: 5px 15px; border-radius: 999px; margin-bottom: 16px; }
-.hero h1 { font-size: clamp(44px, 7.5vw, 92px); margin: 0 0 10px; line-height: 1.35; color: #fff; letter-spacing: -0.02em; font-weight: 700; text-wrap: balance; }
+.hero h1 { font-size: clamp(32px, 9vw, 92px); margin: 0 0 10px; line-height: 1.35; color: #fff; letter-spacing: -0.02em; font-weight: 700; text-wrap: balance; overflow-wrap: anywhere; }
 .hero h1 .hl { color: var(--sky-light); border-bottom: 3px solid var(--red); }
 .hero p { color: var(--muted); max-width: 620px; margin: 0 auto 20px; font-size: clamp(15px, 1.6vw, 18px); }
 .hero p b { color: #fff; }
@@ -135,7 +146,8 @@ section { margin-bottom: 72px; }
 /* ===== Social cards ===== */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; align-items: start; }
 .feed { display: flex; flex-direction: column; gap: 14px; max-width: 760px; margin: 0 auto; }
-.card { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r); box-shadow: var(--shadow); transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s; }
+.card { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r); box-shadow: var(--shadow); transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s; min-width: 0; }
+.phase-card, .panel, .detail, .post-id, .dl-text { min-width: 0; }
 .card.social { padding: 0; overflow: hidden; }
 .card.social:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--blue-border); }
 .post-head { display: flex; align-items: center; gap: 11px; padding: 14px 16px 10px; }
@@ -154,7 +166,7 @@ span.post-title { color: var(--ink); }
 .card.social > .content { padding: 0 16px 6px; }
 .post-text { font-size: 14.5px; color: var(--ink); margin: 2px 0 0; padding: 0 16px 4px; line-height: 1.8; }
 .qa-a .post-text { padding: 0; }
-.post-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 14px; margin-top: 8px; border-top: 1px solid var(--line-soft); }
+.post-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 16px 14px; margin-top: 8px; border-top: 1px solid var(--line-soft); }
 .post-foot:empty { display: none; }
 /* পুরনো সাধারণ কার্ড (admin/বিবিধ) */
 .card.pad { padding: 16px 17px; display: flex; flex-direction: column; }
@@ -195,6 +207,8 @@ span.post-title { color: var(--ink); }
 .qa-item { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r-sm); overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; }
 .qa-item:has(.qa-q.open) { border-color: var(--sky); box-shadow: var(--shadow); }
 .qa-q { width: 100%; text-align: left; padding: 13px 15px; font-size: 15px; background: transparent; border: none; cursor: pointer; color: var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 600; font-family: inherit; }
+.qa-q > span:first-child { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.qa-q .icon.chev { flex-shrink: 0; }
 .qa-q:hover { background: rgba(255, 255, 255, 0.04); }
 .qa-q.open { background: rgba(255, 255, 255, 0.04); }
 .qa-q.link { text-decoration: none; }
@@ -261,7 +275,7 @@ span.post-title { color: var(--ink); }
 .form input, .form textarea, .form select { padding: 10px 14px; border-radius: var(--r-xs); border: 1.5px solid var(--line); background: var(--soft); color: var(--ink); width: 100%; font-family: inherit; font-size: 14.5px; }
 .form input:focus, .form textarea:focus, .form select:focus { border-color: var(--sky); }
 .form input[type="checkbox"] { width: auto; accent-color: var(--sky); }
-.table-wrap { overflow-x: auto; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--card); box-shadow: var(--shadow); }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--card); box-shadow: var(--shadow); max-width: 100%; }
 .table { width: 100%; min-width: 640px; background: var(--card); border-collapse: collapse; }
 .table th, .table td { padding: 10px 13px; border-bottom: 1px solid var(--line-soft); text-align: left; font-size: 14px; }
 .table th { background: var(--navy); color: #fff; white-space: nowrap; font-weight: 700; }
@@ -336,7 +350,24 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .navbar nav a { padding: 11px 13px; color: var(--ink); }
   .navbar nav a:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
   .navbar nav a.active { color: #fff; }
-  .nav-inner { position: relative; }
+  .book-film { height: 220vh; margin-bottom: 36px; }
+  .book-stage { min-height: 480px; border-radius: 18px; }
+  .book3d { width: 220px; height: 380px; }
+  .cov-out strong { font-size: 38px; }
+  .cov-sub { font-size: 16px; }
+  .cov-mark { width: 60px; height: 60px; }
+  .b-rightpage strong { font-size: 24px; }
+  .b-rightpage li { font-size: 19px; }
+  .nav-inner { position: relative; gap: 8px; }
+  /* Long Bengali brand name + theme button + hamburger must fit 320px:
+     logo shrinks with ellipsis instead of pushing buttons off-screen. */
+  .logo { font-size: 16px; gap: 7px; min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; }
+  .logo-emblem { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; }
+  .nav-toggle { flex-shrink: 0; }
+  /* Theme toggle lives under the menu links on mobile (last dropdown row). */
+  .navbar nav .theme-btn { width: 100%; height: auto; min-height: 44px; margin: 6px 0 0; border-radius: 10px; padding: 10px 13px; justify-content: flex-start; gap: 10px; border-top: 1px solid var(--line-soft); }
+  .navbar nav .theme-btn .theme-label { display: inline; font-size: 13.5px; font-weight: 700; }
+  .navbar nav { z-index: 60; }
   .hero { padding: 24px 18px; }
   .phase-grid { grid-template-columns: 1fr; }
   .grid { grid-template-columns: 1fr; }
@@ -347,6 +378,40 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .search button { border-radius: 999px; justify-content: center; }
   .sec-head .more { margin-left: 0; }
   .foot-bottom { flex-direction: column; text-align: center; justify-content: center; }
+  /* Stacked pill headers look broken as 999px capsules — use cards. */
+  .sec-head { border-radius: var(--r-sm); }
+  section { margin-bottom: 48px; }
+  main.container { padding-top: 20px; }
+  .page-title { overflow-wrap: anywhere; }
+  .arabic { font-size: 22px; padding: 12px 14px; }
+  .arabic.big { font-size: 24px; }
+  .detail h1 { line-height: 1.6; }
+  .foot-links a { padding: 8px 0; }
+  .to-top { right: 12px; bottom: 14px; }
+}
+/* Small phones (≤480px): single-column everything, roomier tap targets. */
+@media (max-width: 480px) {
+  .container { padding: 0 14px; }
+  .hero { border-radius: 18px; margin: 4px 0 20px; padding: 28px 16px 24px; }
+  .hero h1 { line-height: 1.45; }
+  .hero-badge { font-size: 11px; letter-spacing: 0.1em; }
+  .hero-btns .btn { flex: 1 1 140px; padding: 12px 16px; }
+  .phase-tabs { grid-template-columns: 1fr; }
+  .btn { min-height: 44px; }
+  .btn.small { min-height: 36px; }
+  .chip { min-height: 36px; display: inline-flex; align-items: center; }
+  .qa-q { padding: 12px; font-size: 14.5px; }
+  .detail { padding: 15px 14px; }
+  .content { font-size: 15px; }
+  .panel { padding: 14px; }
+  .card.stat h2 { font-size: 28px; }
+  .page-sub { font-size: 13.5px; }
+}
+/* Landscape phones: sticky stage taller than the viewport breaks the
+   scroll-scrub, so cap the stage height. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .book-stage { min-height: 420px; }
+  .book-film { height: 200vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -389,9 +454,25 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .admin-panels { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; align-items: start; }
 @media (max-width: 760px) { .admin-panels { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
-  .admin-nav nav { background: var(--navy); border-color: rgba(255,255,255,0.15); }
-.admin-nav nav a { color: var(--ink-inv); }
+  .admin-nav nav { background: var(--navy); border-color: rgba(255,255,255,0.15); max-height: calc(100dvh - 70px); overflow-y: auto; }
+  .admin-nav nav a { color: var(--ink-inv); }
   .admin-nav nav a:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  /* Long admin menu (15 links): keep toggle reachable, list scrolls inside. */
+  .navbar nav.open { max-height: calc(100dvh - 70px); overflow-y: auto; }
+}
+/* Admin nav holds 15 links + the theme icon: below ~1100px the row
+   overflows the container and the toggle gets pushed off the page.
+   Collapse to the hamburger dropdown early (theme sits under the links). */
+@media (max-width: 1100px) {
+  .admin-nav .nav-toggle { display: inline-flex; }
+  .admin-nav .nav-inner { position: relative; gap: 8px; }
+  .admin-nav .logo { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; }
+  .admin-nav nav { display: none; position: absolute; top: 100%; left: 10px; right: 10px; background: var(--navy); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--r-sm); flex-direction: column; align-items: stretch; padding: 8px; gap: 2px; box-shadow: var(--shadow-hover); z-index: 60; max-height: calc(100dvh - 70px); overflow-y: auto; }
+  .admin-nav nav.open { display: flex; }
+  .admin-nav nav a { padding: 11px 13px; color: var(--ink-inv); }
+  .admin-nav nav a:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  .admin-nav nav .theme-btn { width: 100%; height: auto; min-height: 44px; margin: 6px 0 0; border-radius: 10px; padding: 10px 13px; justify-content: flex-start; gap: 10px; border-top: 1px solid rgba(255, 255, 255, 0.15); }
+  .admin-nav nav .theme-btn .theme-label { display: inline; font-size: 13.5px; font-weight: 700; }
 }
 .panel { background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 16px 17px; }
 .panel h3 { margin: 0 0 8px; font-size: 16px; display: flex; align-items: center; gap: 7px; color: var(--ink); }
@@ -436,10 +517,37 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .toolbar .search { min-width: 0; width: 100%; }
   .toolbar .count { margin-left: 0; align-self: flex-start; }
-  .sec-head { border-radius: var(--r-sm); }
+  .sec-head { border-radius: var(--r-sm); gap: 8px; padding: 10px 12px; }
   .sec-head .btn { margin-left: 0; }
   .stat-actions .btn { flex: 1 1 auto; }
   .table-actions .btn { flex: 0 0 auto; }
+  /* Admin lists: action cell stacks vertically so Edit/Delete/move never
+     force a second horizontal scroll inside the table. */
+  .admin-main { padding-bottom: 90px; }
+  .table { min-width: 560px; }
+  .table-actions { flex-wrap: wrap; row-gap: 8px; max-width: 220px; }
+  .move-col { flex-wrap: wrap; row-gap: 6px; }
+  .pos-input { width: 60px; padding: 8px 4px; font-size: 16px; }
+  .move-btn { padding: 8px 12px; min-height: 36px; }
+  .bulk-check, .bulk-all { width: 20px; height: 20px; }
+  .bulk-bar { position: sticky; top: 64px; z-index: 40; }
+  .bulk-bar .btn { flex: 1 1 auto; min-height: 40px; }
+  .form { padding: 16px 14px; }
+  .form-actions .btn { flex: 1 1 auto; min-height: 44px; }
+  .admin-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* Anchor with left/right instead of 100vw — 100vw includes the
+     scrollbar width and would itself cause sideways overflow. */
+  .reorder-bar { bottom: 12px; left: 10px; right: 10px; transform: none; width: auto; max-width: none; border-radius: 16px; padding: 10px 12px; gap: 8px; }
+  .reorder-msg { width: 100%; text-align: center; font-size: 12.5px; }
+  .reorder-bar .btn { flex: 1 1 auto; min-height: 42px; }
+  .fmt-bar { gap: 4px; padding: 6px; }
+  .fmt-btn { min-height: 36px; }
+  .rich-editor { font-size: 16px; }
+}
+@media (max-width: 420px) {
+  .admin-grid { grid-template-columns: 1fr; }
+  .container { padding: 0 12px; }
+  main.container { padding-top: 16px; }
 }
 
 /* ===== Rich content (bn-format render) ===== */
@@ -475,7 +583,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .rich-editor a { color: var(--sky-dark); }
 
 /* ===== Admin reorder bar — batch save for serial ordering ===== */
-.reorder-bar { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 200; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 24px); background: var(--card); border: 1px solid var(--sky); border-radius: 999px; box-shadow: var(--shadow-hover), 0 0 24px rgba(0, 169, 224, 0.25); padding: 10px 12px 10px 18px; }
+.reorder-bar { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 200; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 24px); background: var(--card); border: 1px solid var(--sky); border-radius: 999px; box-shadow: var(--shadow-hover), 0 0 24px rgba(0, 169, 224, 0.25); padding: 10px 12px 10px 18px; }
 .reorder-bar[hidden] { display: none; }
 .reorder-msg { font-size: 13.5px; font-weight: 700; color: var(--ink); }
 /* ===== Checklist — dark overrides (covers server + JS-rendered rows) ===== */
@@ -500,9 +608,22 @@ tr.row-selected td { background: var(--red-soft, #fdecec); }
 
 /* ===== Light theme surfaces (tokens cover most; these fix hardcoded dark paint).
    Hero + 3D book stage stay dark-cinematic on purpose (film look). */
-.theme-btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.theme-btn:hover { border-color: var(--sky); }
-html[data-theme="light"] body { background: var(--paper); background-color: var(--paper); }
+/* ===== Theme toggle — SVG icon button (sun/moon swapped by main.js).
+   Desktop: circular icon at the right end of the nav row (one side).
+   Mobile: full-width row pinned under the menu links in the dropdown. */
+.theme-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; font-family: inherit; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+.theme-btn:hover { border-color: var(--sky); color: var(--sky-dark); }
+.theme-btn .icon { width: 19px; height: 19px; }
+.theme-btn .theme-ic { display: inline-flex; }
+.theme-btn .theme-label { display: none; }
+.navbar nav .theme-btn { margin-left: 6px; align-self: center; }
+html[data-theme="light"] body {
+  background:
+    radial-gradient(900px 420px at 50% -140px, rgba(2, 132, 199, 0.1) 0%, transparent 65%),
+    radial-gradient(700px 500px at 88% 30%, rgba(124, 92, 214, 0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #e3edf7 0%, var(--paper) 320px) fixed;
+  background-color: var(--paper);
+}
 html[data-theme="light"] body::after { opacity: 0.03; }
 html[data-theme="light"] .navbar { background: rgba(255, 255, 255, 0.88); border-bottom-color: var(--line-soft); }
 html[data-theme="light"] .navbar.scrolled { background: rgba(255, 255, 255, 0.96); box-shadow: 0 8px 32px rgba(13, 27, 42, 0.1); }
@@ -516,6 +637,50 @@ html[data-theme="light"] .qa-q:hover, html[data-theme="light"] .qa-q.open { back
 html[data-theme="light"] .content tbody tr:nth-child(even) td, html[data-theme="light"] .rich-editor tbody tr:nth-child(even) td { background: rgba(13, 27, 42, 0.03); }
 html[data-theme="light"] .table tr:hover td { background: rgba(13, 27, 42, 0.03); }
 html[data-theme="light"] ::selection { background: var(--sky-pale); }
+/* Filled CTAs: dark-theme uses near-black text on bright sky; light-theme sky
+   is darker (#0284c7) so keep WHITE text for contrast. */
+html[data-theme="light"] .btn.primary { color: #fff; }
+html[data-theme="light"] .chip.active { color: #fff; }
+html[data-theme="light"] .search button { color: #fff; }
+/* Count pill on phase cards: white wash is invisible on white cards. */
+html[data-theme="light"] .phase-card .p-count { background: rgba(13, 27, 42, 0.07); }
+/* Hero keeps its dark cinematic slate in BOTH themes, so pin its inner
+   palette to dark-theme values (otherwise light tokens make badge/muted
+   unreadable on the dark gradient). */
+html[data-theme="light"] .hero p { color: #9db4c9; }
+html[data-theme="light"] .hero p b { color: #fff; }
+html[data-theme="light"] .hero-badge { color: #9be2ff; border-color: rgba(0, 169, 224, 0.4); background: rgba(0, 169, 224, 0.1); }
+html[data-theme="light"] .hero h1 { color: #fff; }
+html[data-theme="light"] .hero h1 .hl { color: #9be2ff; }
+/* The hero gradient mixes in var(--navy-deep), which flips LIGHT in light
+   mode — leaving a pale band behind pinned-white hero text. Pin the whole
+   hero slate dark so the text stays readable. */
+html[data-theme="light"] .hero {
+  background: radial-gradient(760px 300px at 50% -100px, rgba(0, 169, 224, 0.32) 0%, transparent 68%), radial-gradient(500px 300px at 85% 110%, rgba(124, 92, 214, 0.14) 0%, transparent 60%), linear-gradient(160deg, #060b14, #030509 60%, #0a2038);
+  border-color: #1c2c44;
+}
+/* Same leak in the 3D stage (dark top fading into light paper): give it a
+   fully light slate in light mode instead of a half-dark one. */
+html[data-theme="light"] .book-stage {
+  background: radial-gradient(700px 320px at 50% -80px, rgba(2, 132, 199, 0.12) 0%, transparent 65%), linear-gradient(180deg, #dbe7f3, var(--paper));
+}
+html[data-theme="light"] .navbar nav a.active { color: #fff; }
+/* Login: light theme gets a light backdrop (box stays white card). */
+html[data-theme="light"] .login-body { background: radial-gradient(700px 300px at 50% -80px, rgba(2, 132, 199, 0.18) 0%, transparent 65%), linear-gradient(160deg, #dbe7f3, #eef4fa 70%); }
+/* Mobile nav dropdown in light theme: solid white, dark text. */
+html[data-theme="light"] .navbar nav.open a { color: var(--ink); }
+html[data-theme="light"] .navbar nav.open a.active { color: #fff; }
+/* Admin top bar stays navy in both themes — keep light text readable. */
+html[data-theme="light"] .admin-nav { background: var(--navy); }
+html[data-theme="light"] .admin-nav .logo { color: #fff; }
+html[data-theme="light"] .admin-nav nav a { color: #c9dcee; }
+html[data-theme="light"] .admin-nav nav a.active { color: #fff; }
+/* Open dropdown: the generic `.navbar nav.open a` light rule is more
+   specific than the admin rules above, turning admin links dark-on-navy
+   (unreadable). These tie that specificity and come later, so they win. */
+html[data-theme="light"] .admin-nav nav.open a { color: #c9dcee; }
+html[data-theme="light"] .admin-nav nav.open a:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+html[data-theme="light"] .admin-nav nav.open a.active { color: #fff; background: rgba(0, 169, 224, 0.4); }
 @media (max-width: 900px) {
   html[data-theme="light"] .navbar nav a:hover { background: rgba(13, 27, 42, 0.06); }
 }

@@ -83,6 +83,9 @@
     n = Math.max(1, Math.min(arr.length, n));
     if (n === from + 1) {
       refreshArrows();
+      /* Order unchanged — keep draft in sync so the bar hides when the
+         user moves a row back to its saved position. */
+      storeDraft(curIds());
       syncBar();
       return;
     }
@@ -128,6 +131,9 @@
     var draft = loadDraft();
     var cur = curIds();
     if (!draft || !sameSet(draft, cur)) {
+      /* Stale draft (rows added/deleted elsewhere, e.g. bulk delete) —
+         drop it so it never resurrects a phantom order. */
+      if (draft && !sameSet(draft, cur)) dropDraft();
       bar.setAttribute('hidden', 'hidden');
       return;
     }
@@ -140,9 +146,15 @@
     bar.removeAttribute('hidden');
   }
 
+  var saving = false;
   saveBtn.addEventListener('click', function () {
+    if (saving) return;
     var draft = loadDraft();
     if (!draft) return;
+    saving = true;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'সংরক্ষণ হচ্ছে…';
+    cancelBtn.disabled = true;
     var f = document.createElement('form');
     f.method = 'POST';
     f.action = '/admin/' + path + '/reorder';

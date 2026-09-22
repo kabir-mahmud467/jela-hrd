@@ -12,6 +12,7 @@
   var delBtn = document.querySelector('[data-bulk-delete]');
   var allBox = table.querySelector('[data-bulk-all]');
   if (!bar || !delBtn) return;
+  var busy = false;
 
   function boxes() {
     return table.querySelectorAll('.bulk-check');
@@ -20,7 +21,7 @@
     var out = [];
     var list = boxes();
     for (var i = 0; i < list.length; i++) {
-      if (list[i].checked) out.push(list[i].value);
+      if (list[i].checked && list[i].value) out.push(list[i].value);
     }
     return out;
   }
@@ -41,11 +42,15 @@
       var tr = list[i];
       while (tr && tr.tagName !== 'TR') tr = tr.parentNode;
       if (tr) {
-        if (list[i].checked) tr.className += ' row-selected';
-        else tr.className = tr.className.replace(/\s*row-selected/g, '');
+        if (list[i].checked) {
+          if (tr.className.indexOf('row-selected') < 0) tr.className += ' row-selected';
+        } else {
+          tr.className = tr.className.replace(/\s*row-selected/g, '');
+        }
       }
     }
     if (allBox) allBox.checked = list.length > 0 && sel.length === list.length;
+    if (!busy) delBtn.disabled = sel.length === 0;
   }
 
   if (allBox) {
@@ -57,13 +62,17 @@
   }
   table.addEventListener('change', function (e) {
     var t = e.target;
-    if (t && t.className && t.className.indexOf('bulk-check') >= 0) sync();
+    if (t && t.className && t.className.indexOf && t.className.indexOf('bulk-check') >= 0) sync();
   });
 
   delBtn.addEventListener('click', function () {
+    if (busy) return;
     var sel = selected();
     if (!sel.length) return;
     if (!window.confirm(sel.length + 'টি আইটেম ডিলিট করবেন? এই কাজ ফেরানো যাবে না।')) return;
+    busy = true;
+    delBtn.disabled = true;
+    delBtn.textContent = 'মুছছে…';
     var f = document.createElement('form');
     f.method = 'POST';
     f.action = '/admin/' + path + '/bulk-delete';

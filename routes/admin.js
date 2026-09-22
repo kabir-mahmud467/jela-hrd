@@ -319,32 +319,11 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       next(err);
     }
   });
-  router.post(`/${path}/:id`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
-    try {
-      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
-      autoBijoy(req.body, kind);
-      const { errors, data } = validateBody(kind, req.body);
-      if (errors.length) {
-        return res.status(400).render(`admin/${viewPrefix}-form`, {
-          item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: errors.join(' ')
-        });
-      }
-      await Model.findByIdAndUpdate(req.params.id, { ...data, updatedAt: new Date() }, { runValidators: true });
-      res.redirect(`/admin/${path}`);
-    } catch (err) {
-      next(err);
-    }
-  });
-  router.post(`/${path}/:id/delete`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
-    try {
-      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
-      await Model.findByIdAndDelete(req.params.id);
-      res.redirect(`/admin/${path}`);
-    } catch (err) {
-      next(err);
-    }
-  });
   // Batch delete — admin ticks checkboxes, ONE deleteMany (max 500 ids).
+  // NOTE: specific POSTs (bulk-delete/reorder/move-to) MUST be registered
+  // BEFORE the generic `/:id` update below. Otherwise Express matches
+  // `/books/bulk-delete` as `:id = "bulk-delete"` and the batch action
+  // silently renders the form-error page instead of deleting/saving.
   router.post(`/${path}/bulk-delete`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
     try {
       const raw = req.body.ids;
@@ -383,27 +362,6 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       next(err);
     }
   });
-  router.post(`/${path}/:id/move/:dir`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
-    try {
-      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
-      const step = req.params.dir === 'down' ? 1 : -1;
-      const ids = await Model.find().sort({ order: 1, createdAt: -1 }).select('_id').lean();
-      const pos = ids.findIndex((d) => String(d._id) === req.params.id);
-      const swap = pos + step;
-      if (pos < 0 || swap < 0 || swap >= ids.length) return res.redirect(`/admin/${path}`);
-      const seq = ids.map((d) => d._id);
-      const moved = seq.splice(pos, 1)[0];
-      seq.splice(swap, 0, moved);
-      if (seq.length) {
-        await Model.bulkWrite(
-          seq.map((id, n) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: n } } } }))
-        );
-      }
-      res.redirect(`/admin/${path}`);
-    } catch (err) {
-      next(err);
-    }
-  });
   // Direct serial number: jump a row to position N (1-based). Same bulkWrite
   // pattern as move/:dir; invalid id/pos just redirects back unchanged.
   router.post(`/${path}/move-to`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
@@ -422,6 +380,56 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
       if (seq.length) {
         await Model.bulkWrite(
           seq.map((one, k) => ({ updateOne: { filter: { _id: one }, update: { $set: { order: k } } } }))
+        );
+      }
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
+  router.post(`/${path}/:id`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      // Guard: never treat reserved words as ids even if route order changes.
+      if (req.params.id === 'bulk-delete' || req.params.id === 'reorder' || req.params.id === 'move-to') {
+        return res.redirect(`/admin/${path}`);
+      }
+      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
+      autoBijoy(req.body, kind);
+      const { errors, data } = validateBody(kind, req.body);
+      if (errors.length) {
+        return res.status(400).render(`admin/${viewPrefix}-form`, {
+          item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: errors.join(' ')
+        });
+      }
+      await Model.findByIdAndUpdate(req.params.id, { ...data, updatedAt: new Date() }, { runValidators: true });
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
+  router.post(`/${path}/:id/delete`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
+      await Model.findByIdAndDelete(req.params.id);
+      res.redirect(`/admin/${path}`);
+    } catch (err) {
+      next(err);
+    }
+  });
+  router.post(`/${path}/:id/move/:dir`, requireAdmin, adminWriteLimiter, async (req, res, next) => {
+    try {
+      if (!isId(req.params.id)) return res.redirect(`/admin/${path}`);
+      const step = req.params.dir === 'down' ? 1 : -1;
+      const ids = await Model.find().sort({ order: 1, createdAt: -1 }).select('_id').lean();
+      const pos = ids.findIndex((d) => String(d._id) === req.params.id);
+      const swap = pos + step;
+      if (pos < 0 || swap < 0 || swap >= ids.length) return res.redirect(`/admin/${path}`);
+      const seq = ids.map((d) => d._id);
+      const moved = seq.splice(pos, 1)[0];
+      seq.splice(swap, 0, moved);
+      if (seq.length) {
+        await Model.bulkWrite(
+          seq.map((id, n) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: n } } } }))
         );
       }
       res.redirect(`/admin/${path}`);

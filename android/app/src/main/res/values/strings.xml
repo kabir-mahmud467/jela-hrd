@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">HRD Narayanganj</string>
+    <string name="app_name">HRD</string>
     <string name="start_url">https://hrd.kabirmahmud.xyz/</string>
     <string name="site_host">hrd.kabirmahmud.xyz</string>
     <string name="load_error">ইন্টারনেট সংযোগ পাওয়া যাচ্ছে না।\nসংযোগ চালু করে আবার চেষ্টা করুন।</string>

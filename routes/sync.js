@@ -14,6 +14,8 @@
 //   GET  /api/admin/overview?token=...       -> {counts}
 const express = require('express');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const router = express.Router();
 
 const Book = require('../models/Book');
@@ -28,6 +30,7 @@ const User = require('../models/User');
 const Admin = require('../models/Admin');
 const checklistData = require('../config/checklist');
 const userRouteMod = require('./user');
+const { validateBody } = require('../middleware/validate');
 
 // file:// origin (APK WebView) থেকে XHR আসে — CORS খোলা রাখো (public data + token auth)
 router.use((req, res, next) => {
@@ -229,6 +232,176 @@ router.get('/admin/overview', requireAdminToken, async (req, res) => {
       User.countDocuments().catch(() => 0)
     ]);
     res.json({ counts: { books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh, users } });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// ---------- App admin: full content CRUD (same power as the site panel) ----------
+// type: books|audiobooks|notes|dars|duas|ayathadith|surah|bibidh
+const CONTENT_MODELS = {
+  books: Book, audiobooks: Audiobook, notes: Note, dars: Dars,
+  duas: Dua, ayathadith: AyatHadith, surah: Surah, bibidh: Bibidh
+};
+const CONTENT_KINDS = {
+  books: 'book', audiobooks: 'audiobook', notes: 'note', dars: 'dars',
+  duas: 'dua', ayathadith: 'ayathadith', surah: 'surah', bibidh: 'bibidh'
+};
+// Site parity: new items go last for duas/surah/ayathadith, first otherwise.
+const APPEND_LAST = { duas: 1, surah: 1, ayathadith: 1 };
+
+function contentModel(type) {
+  return CONTENT_MODELS[type] || null;
+}
+function isId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+router.get('/admin/content', requireAdminToken, async (req, res) => {
+  try {
+    const type = String(req.query.type || '');
+    const Model = contentModel(type);
+    if (!Model) return res.status(400).json({ error: 'bad-type' });
+    const items = await Model.find().sort(SORT).limit(CAP).lean();
+    res.json({ type, items });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+router.post('/admin/content', requireAdminToken, async (req, res) => {
+  try {
+    const type = String((req.body || {}).type || '');
+    const Model = contentModel(type);
+    if (!Model) return res.status(400).json({ error: 'bad-type' });
+    const { errors, data } = validateBody(CONTENT_KINDS[type], (req.body || {}).data || {});
+    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
+    try {
+      const edge = await Model.findOne().sort({ order: APPEND_LAST[type] ? -1 : 1 }).select('order').lean();
+      const edgeOrder = edge && typeof edge.order === 'number' ? edge.order : 0;
+      data.order = APPEND_LAST[type] ? edgeOrder + 1 : edgeOrder - 1;
+    } catch {
+      data.order = 0;
+    }
+    const doc = await Model.create(data);
+    res.json({ ok: true, item: doc });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+router.post('/admin/content/update', requireAdminToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const type = String(body.type || '');
+    const Model = contentModel(type);
+    const id = String(body.id || '');
+    if (!Model || !isId(id)) return res.status(400).json({ error: 'bad-request' });
+    const { errors, data } = validateBody(CONTENT_KINDS[type], body.data || {});
+    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
+    await Model.findByIdAndUpdate(id, { ...data, updatedAt: new Date() }, { runValidators: true });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+router.post('/admin/content/delete', requireAdminToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const type = String(body.type || '');
+    const Model = contentModel(type);
+    if (!Model) return res.status(400).json({ error: 'bad-type' });
+    const raw = Array.isArray(body.ids) ? body.ids : [body.id];
+    const ids = [];
+    const seen = {};
+    for (let k = 0; k < raw.length && ids.length < 500; k++) {
+      const id = String(raw[k] || '').trim();
+      if (id && isId(id) && !seen[id]) { seen[id] = 1; ids.push(id); }
+    }
+    if (!ids.length) return res.status(400).json({ error: 'no-ids' });
+    await Model.deleteMany({ _id: { $in: ids } });
+    res.json({ ok: true, deleted: ids.length });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// Reorder a whole section in one save (site parity: single bulkWrite).
+router.post('/admin/content/reorder', requireAdminToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const type = String(body.type || '');
+    const Model = contentModel(type);
+    if (!Model) return res.status(400).json({ error: 'bad-type' });
+    const raw = Array.isArray(body.ids) ? body.ids : String(body.ids || '').split(',');
+    const seen = {};
+    const seq = [];
+    for (let k = 0; k < raw.length && seq.length < 500; k++) {
+      const id = String(raw[k] || '').trim();
+      if (id && isId(id) && !seen[id]) { seen[id] = 1; seq.push(id); }
+    }
+    if (seq.length) {
+      await Model.bulkWrite(
+        seq.map((one, n) => ({ updateOne: { filter: { _id: one }, update: { $set: { order: n } } } }))
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// ---------- App admin: users (create + delete; list exists above) ----------
+router.post('/admin/users', requireAdminToken, async (req, res) => {
+  try {
+    const { errors, data } = validateBody('user', (req.body || {}).data || {});
+    if (errors.length) return res.status(400).json({ error: errors.join(' ') });
+    const hashed = await bcrypt.hash(data.password, 12);
+    try {
+      const u = await User.create({ username: data.username, name: data.name, phone: data.phone, password: hashed });
+      res.json({ ok: true, user: { username: u.username, name: u.name, phone: u.phone } });
+    } catch (e) {
+      if (e.code === 11000) return res.status(400).json({ error: 'এই ইউজারনেম আগেই ব্যবহৃত হচ্ছে।' });
+      throw e;
+    }
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+router.post('/admin/users/delete', requireAdminToken, async (req, res) => {
+  try {
+    const id = String((req.body || {}).id || '');
+    if (!isId(id)) return res.status(400).json({ error: 'bad-id' });
+    await User.findByIdAndDelete(id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// ---------- App user: change own password ----------
+// Stored passwords are hashed — they can never be displayed, only changed.
+router.post('/user/password', async (req, res) => {
+  try {
+    const t = tokenOf(req);
+    if (!t) return res.status(401).json({ error: 'no-token' });
+    const user = await User.findOne({ apiToken: t });
+    if (!user) return res.status(401).json({ error: 'bad-token' });
+    const cur = ((req.body || {}).currentPassword || '').toString().slice(0, 200);
+    const next = ((req.body || {}).newPassword || '').toString().slice(0, 200);
+    if (!(await user.comparePassword(cur))) {
+      return res.status(400).json({ error: 'বর্তমান পাসওয়ার্ড ভুল!' });
+    }
+    if (next.trim().length < 4) {
+      return res.status(400).json({ error: 'নতুন পাসওয়ার্ড কমপক্ষে ৪ অক্ষর হতে হবে।' });
+    }
+    user.password = await bcrypt.hash(next.trim(), 12);
+    user.apiToken = crypto.randomBytes(32).toString('hex');
+    user.updatedAt = new Date();
+    await user.save();
+    res.json({ ok: true, token: user.apiToken });
   } catch (err) {
     res.status(503).json({ error: 'database-busy', retryAfter: 5 });
   }

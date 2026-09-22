@@ -12,10 +12,18 @@ document.documentElement.classList.add('js');
     }
   }
   function apply() {
-    if (current() === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    var light = current() === 'light';
+    if (light) document.documentElement.setAttribute('data-theme', 'light');
     else document.documentElement.removeAttribute('data-theme');
     var b = document.getElementById('themeToggle');
-    if (b) b.textContent = current() === 'light' ? 'ডার্ক' : 'লাইট';
+    if (b) {
+      /* Icon button: sun in dark mode (tap for light), moon in light mode. */
+      var svg = '<svg class="icon" aria-hidden="true"><use href="#' + (light ? 'i-moon' : 'i-sun') + '"></use></svg>';
+      var ic = b.querySelector ? b.querySelector('.theme-ic') : null;
+      if (ic) ic.innerHTML = svg;
+      else b.innerHTML = svg;
+      if (b.setAttribute) b.setAttribute('aria-label', light ? 'ডার্ক থিম চালু করুন' : 'লাইট থিম চালু করুন');
+    }
   }
   apply();
   document.addEventListener('click', function (e) {

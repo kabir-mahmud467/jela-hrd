@@ -16,11 +16,7 @@
 <%- include('icons') %>
 <header class="navbar" id="navbar">
   <div class="container nav-inner">
-    <a href="/" class="logo"><span class="logo-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3.2l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z" fill="#e93e3f"/><path d="M7 16.5c4-2.2 8-2.2 13 0 5-2.2 9-2.2 13 0V30c-4-2.2-8-2.2-13 0-5-2.2-9-2.2-13 0z" fill="#114575"/><path d="M7 16.5c4-2.2 8-2.2 13 0v13.5c-5-2.2-9-2.2-13 0z" fill="#0a2c48" opacity="0.35"/><path d="M20 16.5V30" stroke="#fff" stroke-width="1.6"/><path d="M10.5 20.2c2.4-1 4.8-1 7 0M10.5 23.4c2.4-1 4.8-1 7 0M22.5 20.2c2.2-1 4.6-1 7 0M22.5 23.4c2.2-1 4.6-1 7 0" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg></span> এইচআরডি নারায়ণগঞ্জ জেলা</a>
-    <button class="theme-btn" id="themeToggle" type="button" aria-label="ডার্ক / লাইট থিম বদলান">থিম</button>
-    <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+    <a href="/" class="logo"><span class="logo-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3.2l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z" fill="#e93e3f"/><path d="M7 16.5c4-2.2 8-2.2 13 0 5-2.2 9-2.2 13 0V30c-4-2.2-8-2.2-13 0-5-2.2-9-2.2-13 0z" fill="#114575"/><path d="M7 16.5c4-2.2 8-2.2 13 0v13.5c-5-2.2-9-2.2-13 0z" fill="#0a2c48" opacity="0.35"/><path d="M20 16.5V30" stroke="#fff" stroke-width="1.6"/><path d="M10.5 20.2c2.4-1 4.8-1 7 0M10.5 23.4c2.4-1 4.8-1 7 0M22.5 20.2c2.2-1 4.6-1 7 0M22.5 23.4c2.2-1 4.6-1 7 0" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg></span> এইচআরডি</a>
     <nav id="mainnav">
       <a href="/">হোম</a>
       <a href="/books">বই (পিডিএফ) </a>
@@ -33,7 +29,11 @@
       <a href="/bibidh">বিবিধ</a>
       <a href="/app">অ্যাপ</a>
       <a href="/login">লগিন</a>
+      <button class="theme-btn" id="themeToggle" type="button" aria-label="লাইট থিম চালু করুন"><span class="theme-ic"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="theme-label">থিম</span></button>
     </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 <main class="container">

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Fullscreen launch splash: brand navy fills the screen, HRD mark shown
+     large and centered (item width/height needs API 23+, minSdk is 23). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/navy" />
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/ic_launcher" />
-    </item>
+    <item
+        android:width="320dp"
+        android:height="320dp"
+        android:gravity="center"
+        android:drawable="@drawable/hrd_splash" />
 </layer-list>
