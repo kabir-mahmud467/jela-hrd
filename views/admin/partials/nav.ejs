@@ -22,7 +22,6 @@
       <a href="/admin/bans" class="<%= typeof active !== 'undefined' && active === 'bans' ? 'active' : '' %>">ব্যান</a>
       <a href="/admin/settings" class="<%= typeof active !== 'undefined' && active === 'settings' ? 'active' : '' %>">সেটিংস</a>
       <a href="/">সাইট</a>
-       <a href="/healthz">সার্ভার অবস্থা</a>
       <a href="/admin/logout" class="admin-btn">লগআউট<% if (typeof admin !== 'undefined' && admin && admin.username) { %> (<%= admin.username %>)<% } %></a>
     </nav>
   </div>
