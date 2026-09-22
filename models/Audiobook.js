@@ -23,7 +23,8 @@ const audiobookSchema = new mongoose.Schema({
   }, // MP3 / Drive / বাইরের অডিও লিংক
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 audiobookSchema.index({ phase: 1, createdAt: -1 });

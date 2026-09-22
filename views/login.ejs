@@ -1,0 +1,19 @@
+<%- include('partials/header', { title: 'লগিন' }) %>
+<section class="sec-book">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-lock"/></svg></span>
+    <h2>লগিন</h2>
+  </div>
+  <p class="page-sub">আপনার ইউজারনেম ও পাসওয়ার্ড দিন </p>
+  <div class="panel" style="max-width:440px">
+    <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
+    <form method="POST" action="/login">
+      <label for="username">ইউজারনেম</label>
+      <input id="username" type="text" name="username" required placeholder="আপনার ইউজারনেম" autocomplete="username" maxlength="30">
+      <label for="password">পাসওয়ার্ড</label>
+      <input id="password" type="password" name="password" required placeholder="••••••" autocomplete="current-password" maxlength="200">
+      <button type="submit" class="btn primary full">লগিন</button>
+    </form>
+  </div>
+</section>
+<%- include('partials/footer') %>

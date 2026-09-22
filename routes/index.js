@@ -26,17 +26,18 @@ router.get('/', (req, res) => {
 
 // অ্যাপ ডাউনলোড পেজ — DB লাগে না (APK ফাইলের তথ্য দেখায়)
 const APK_FILE = path.join(__dirname, '..', 'android', 'Hrd.apk');
-const APP_VER = '১.৪';
+const APP_VER = '১.৫';
+const APP_DATE = '২০ সেপ্টেম্বর ২০২৬';
 function apkInfo() {
   try {
     const st = fs.statSync(APK_FILE);
     const kb = Math.max(1, Math.round(st.size / 1024));
     return {
       size: String(kb).split('').map((c) => '০১২৩৪৫৬৭৮৯'[c] || c).join('') + ' কিলোবাইট',
-      date: st.mtime.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })
+      date: APP_DATE
     };
   } catch {
-    return { size: '', date: '' };
+    return { size: '', date: APP_DATE };
   }
 }
 router.get('/app', (req, res) => {

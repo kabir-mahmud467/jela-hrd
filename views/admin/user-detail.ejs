@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title><%= (item && item.username) || 'ইউজার' %> অগ্রগতি | এইচআরডি নারায়ণগঞ্জ জেলা Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('partials/nav', { active: 'users', admin }) %>
+<main class="container admin-main">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-check"/></svg></span>
+    <h2><%= (item && item.name) || '' %> (<%= (item && item.username) || '' %>)</h2>
+  </div>
+  <p class="page-sub">ফোন: <%= (item && item.phone) || '—' %> · শেষ আপডেট: <%= item && item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('bn-BD') : '—' %></p>
+  <% Object.keys(checklistData || {}).forEach(function(ph){ %>
+    <% var list = checklistData[ph] || []; var saved = (item && item.progress && item.progress[ph]) || {}; var done = Object.keys(saved).length; var pct = list.length ? Math.round(done * 100 / list.length) : 0; %>
+    <div class="panel" style="margin-bottom:12px">
+      <h3><%= ph === 'abedonpotrer-purbe' ? 'আবেদনপত্রের পূর্বে' : ph === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : 'শপথের পূর্বে' %>
+        <span class="badge light"><%= done %>/<%= list.length %> (<%= pct %>%)</span></h3>
+      <div class="bar" style="margin:8px 0"><i style="width:<%= pct %>%"></i></div>
+      <% var last=''; list.forEach(function(it,i){ %>
+        <% if(it.c !== last){ %><div class="check-cat"><%= it.c %></div><% last=it.c; } %>
+        <div class="check-item"><span class="badge <%= saved[i] ? '' : 'light' %>"><%= saved[i] ? 'সম্পন্ন' : 'বাকি' %></span> <span><%= it.t %></span></div>
+      <% }) %>
+    </div>
+  <% }) %>
+  <p><a href="/admin/users" class="more"><svg class="icon sm"><use href="#i-back"/></svg> ইউজার তালিকায় ফিরুন</a></p>
+</main>
+<%- include('partials/foot') %>

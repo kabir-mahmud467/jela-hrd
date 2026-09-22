@@ -10,7 +10,8 @@ const duaSchema = new mongoose.Schema({
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 duaSchema.index({ phase: 1, createdAt: -1 });

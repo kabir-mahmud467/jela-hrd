@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: 'ড্যাশবোর্ড' }) %>
+<section class="sec-star">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-check"/></svg></span>
+    <h2>আসসালামু আলাইকুম, <%= (me && me.name) || (me && me.username) || '' %>!</h2>
+    <span class="badge" id="save-state">সব সংরক্ষিত</span>
+  </div>
+  <p class="page-sub">টিক দিলে আপনার অ্যাকাউন্টে সংরক্ষিত থাকবে — অ্যাডমিন আপনার অগ্রগতি দেখতে পারবেন। অফলাইনে থাকলেও ফোনে/ব্রাউজারে থাকে, ইন্টারনেট পেলে সার্ভারে সেভ হয়। <a href="/logout">লগআউট</a></p>
+  <div class="chips" id="checklist-tabs">
+    <button type="button" class="chip active" data-check-phase="abedonpotrer-purbe">আবেদনপত্রের পূর্বে</button>
+    <button type="button" class="chip" data-check-phase="proshnopotrer-purbe">প্রশ্নপত্রের পূর্বে</button>
+    <button type="button" class="chip" data-check-phase="shopother-purbe">শপথের পূর্বে</button>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <div class="bar" style="flex:1;min-width:140px"><i id="checklist-bar" style="width:0%"></i></div>
+      <span class="muted" id="checklist-count">0/0</span>
+      <button type="button" class="btn small" id="checklist-reset">রিসেট</button>
+    </div>
+    <div id="checklist-list" class="qa-list"></div>
+  </div>
+</section>
+<script type="application/json" id="checklist-data"><%- JSON.stringify(typeof checklistData !== 'undefined' ? checklistData : {}).replace(/</g, '\\u003c') %></script>
+<script type="application/json" id="server-progress"><%- JSON.stringify(typeof progress !== 'undefined' ? progress : {}).replace(/</g, '\\u003c') %></script>
+<script src="/js/dashboard.js?v=<%= typeof assetVer !== 'undefined' ? assetVer : '1' %>"></script>
+<%- include('partials/footer') %>

@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const adminSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   password: { type: String, required: true }, // hashed
+  apiToken: { type: String, default: '', index: true }, // app admin panel token
   updatedAt: { type: Date, default: Date.now }
 });
 

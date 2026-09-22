@@ -10,7 +10,8 @@ const surahSchema = new mongoose.Schema({
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   ayahCount: { type: Number, default: 0 },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 surahSchema.index({ phase: 1, createdAt: -1 });

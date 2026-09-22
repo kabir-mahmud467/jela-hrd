@@ -110,6 +110,14 @@ function validateBody(kind, body) {
     data.reference = str(body.reference, 300);
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('বিস্তারিত আবশ্যক।');
+  } else if (kind === 'user') {
+    data.username = str(body.username, 30).replace(/\s+/g, '');
+    data.name = str(body.name, 100);
+    data.phone = str(body.phone, 20);
+    data.password = (body.password || '').toString().slice(0, 200);
+    if (!/^[A-Za-z0-9_.]{3,30}$/.test(data.username)) errors.push('ইউজারনেম ৩-৩০ অক্ষর (A-Z, 0-9, _, .) হতে হবে।');
+    if (data.name.length < 2) errors.push('নাম আবশ্যক।');
+    if (data.password.length < 4) errors.push('পাসওয়ার্ড কমপক্ষে ৪ অক্ষর হতে হবে।');
   }
   return { errors, data };
 }

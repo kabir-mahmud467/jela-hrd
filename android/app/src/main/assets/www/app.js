@@ -4,6 +4,10 @@
   'use strict';
   var DATA = null;
   var LS_CHECK = 'hrd_check_v1';
+  /* in-app panels: content offline, login/save/admin needs internet (no outside URL) */
+  var SITE = 'https://hrd.kabirmahmud.xyz';
+  var LS_AUTH = 'hrd_auth_v1';
+  var LS_THEME = 'hrd_theme_v1';
 
   var PHASES = {
     'abedonpotrer-purbe': 'আবেদনপত্রের পূর্বে',
@@ -80,7 +84,13 @@
         setSync('ডাটা পড়া যায়নি।');
       }
     },
-    setSync: function (msg) { setSync(msg); }
+    setSync: function (msg) { setSync(msg); },
+    /* update prompt: native calls setUpdate('1') when server version is newer.
+       Banner shows; tap pulls fresh content (no APK re-download). */
+    setUpdate: function (on) {
+      var bar = document.getElementById('updateBar');
+      if (bar) bar.style.display = (String(on) === '1') ? 'flex' : 'none';
+    }
   };
   function applyData(obj) {
     if (!obj || !obj.version) return;
@@ -288,6 +298,11 @@
       h += '<button class="tab" data-r="#/' + SECTIONS[i].id + '">' +
         esc(SECTIONS[i].name) + ' (' + bn(n) + ')</button>';
     }
+    /* in-app panels (built-in, no outside URL): login/account + admin */
+    var au = loadAuth();
+    h += '<button class="tab" data-r="#/' + (au && au.token ? 'account' : 'login') + '">' +
+      esc(au && au.token ? 'অ্যাকাউন্ট' : 'লগিন') + '</button>';
+    h += '<button class="tab" data-r="#/admin">' + 'অ্যাডমিন' + '</button>';
     t.innerHTML = h;
     var btns = t.querySelectorAll('button');
     for (var j = 0; j < btns.length; j++) {
@@ -528,6 +543,9 @@
   function route() {
     var hash = window.location.hash || '#/';
     markTabs(hash);
+    if (hash.indexOf('#/login') === 0) { viewLogin(); return; }
+    if (hash.indexOf('#/account') === 0) { viewAccount(); return; }
+    if (hash.indexOf('#/admin') === 0) { viewAdminPanel(); return; }
     var m = hash.match(/^#\/([a-z-]+)(?:\/([a-f0-9]+))?/);
     if (!m) { viewHome(); return; }
     var sec = secOf(m[1]);
@@ -536,8 +554,215 @@
     else viewList(sec);
   }
 
+  /* ---------- in-app auth (needs internet; content stays offline) ---------- */
+  function loadAuth() {
+    try { return JSON.parse(localStorage.getItem(LS_AUTH) || 'null'); } catch (e) { return null; }
+  }
+  function saveAuth(a) {
+    try {
+      if (a) localStorage.setItem(LS_AUTH, JSON.stringify(a));
+      else localStorage.removeItem(LS_AUTH);
+    } catch (e) {}
+  }
+  /* ES5 XHR (Android 6 WebView safe — no fetch dependency) */
+  function apiPost(path, body, cb) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', SITE + path, true);
+      xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        var obj = null;
+        try { obj = JSON.parse(xhr.responseText); } catch (e) {}
+        cb(xhr.status >= 200 && xhr.status < 300 ? null : (obj && obj.error) || ('http' + xhr.status), obj);
+      };
+      xhr.onerror = function () { cb('offline', null); };
+      xhr.timeout = 25000;
+      xhr.ontimeout = function () { cb('offline', null); };
+      xhr.send(JSON.stringify(body || {}));
+    } catch (e) {
+      cb('offline', null);
+    }
+  }
+  function apiGet(path, cb) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', SITE + path, true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        var obj = null;
+        try { obj = JSON.parse(xhr.responseText); } catch (e) {}
+        cb(xhr.status >= 200 && xhr.status < 300 ? null : (obj && obj.error) || ('http' + xhr.status), obj);
+      };
+      xhr.onerror = function () { cb('offline', null); };
+      xhr.timeout = 25000;
+      xhr.ontimeout = function () { cb('offline', null); };
+      xhr.send();
+    } catch (e) {
+      cb('offline', null);
+    }
+  }
+  function authFormHtml(title, sub, role) {
+    return '<div class="card"><h3>' + esc(title) + '</h3>' +
+      '<p class="muted">' + esc(sub) + '</p>' +
+      '<div id="authErr" class="auth-err" style="display:none"></div>' +
+      '<label class="fld">ইউজারনেম<input id="auUser" class="search" placeholder="ইউজারনেম" autocomplete="username"></label>' +
+      '<label class="fld">পাসওয়ার্ড<input id="auPass" type="password" class="search" placeholder="পাসওয়ার্ড" autocomplete="current-password"></label>' +
+      '<button id="auGo" class="btn">লগিন (' + esc(role === 'admin' ? 'অ্যাডমিন' : 'ইউজার') + ')</button>' +
+      '<p class="muted">লগিন/সেভ/অ্যাডমিনে ইন্টারনেট লাগবে — কন্টেন্ট অফলাইনেই থাকে।</p></div>';
+  }
+  function showAuthErr(m) {
+    var el = $('authErr');
+    if (el) { el.style.display = 'block'; el.textContent = m; }
+  }
+  function viewLogin() {
+    var v = $('view');
+    var au = loadAuth();
+    if (au && au.token) { window.location.hash = '#/account'; return; }
+    v.innerHTML = authFormHtml('লগিন', 'অ্যাডমিনের দেওয়া ইউজারনেম ও পাসওয়ার্ড দিন।', 'user') +
+      '<div class="card"><h3>অ্যাডমিন?</h3><p class="muted">অ্যাডমিন প্যানেল আলাদা ট্যাবে আছে।</p>' +
+      '<button class="btn ghost" id="goAdmin">অ্যাডমিন প্যানেলে যান</button></div>';
+    $('goAdmin').addEventListener('click', function () { window.location.hash = '#/admin'; });
+    $('auGo').addEventListener('click', function () {
+      var u = $('auUser').value, p = $('auPass').value;
+      if (!u || !p) { showAuthErr('ইউজারনেম ও পাসওয়ার্ড দিন।'); return; }
+      apiPost('/api/user/login', { username: u, password: p }, function (err, obj) {
+        if (err || !obj || !obj.token) {
+          showAuthErr(err === 'offline' ? 'ইন্টারনেট নেই — সংযোগ চালু করে আবার চেষ্টা করুন।' : 'ভুল ইউজারনেম বা পাসওয়ার্ড!');
+          return;
+        }
+        saveAuth({ role: 'user', token: obj.token, username: obj.user.username, name: obj.user.name || '' });
+        /* server progress merges into local checklist */
+        try {
+          var m = JSON.parse(localStorage.getItem(LS_CHECK) || '{}');
+          var sp = obj.user.progress || {};
+          for (var ph in sp) {
+            m[ph] = m[ph] || {};
+            for (var k in sp[ph]) if (sp[ph][k]) m[ph][k] = 1;
+          }
+          localStorage.setItem(LS_CHECK, JSON.stringify(m));
+        } catch (e) {}
+        renderTabs();
+        window.location.hash = '#/account';
+      });
+    });
+  }
+  function viewAccount() {
+    var v = $('view');
+    var au = loadAuth();
+    if (!au || !au.token) { window.location.hash = '#/login'; return; }
+    v.innerHTML = '<div class="card"><h3>' + esc(au.name || au.username) + '</h3>' +
+      '<p class="muted">ইউজারনেম: ' + esc(au.username) + ' · <span id="accSync">সার্ভারের সাথে যুক্ত</span></p>' +
+      '<div class="row"><button id="accPush" class="btn">অগ্রগতি সেভ করুন</button>' +
+      '<button id="accOut" class="btn ghost">লগআউট</button></div>' +
+      '<p class="muted">চেকলিস্ট টিক (হোম ট্যাব) ফোনে থাকে; “অগ্রগতি সেভ করুন” চাপলে সার্ভারে সেভ হয় — অ্যাডমিন দেখতে পারে।</p></div>';
+    $('accOut').addEventListener('click', function () {
+      saveAuth(null);
+      renderTabs();
+      window.location.hash = '#/';
+    });
+    $('accPush').addEventListener('click', function () {
+      var m = {};
+      try { m = JSON.parse(localStorage.getItem(LS_CHECK) || '{}'); } catch (e) { m = {}; }
+      apiPost('/api/user/progress', { token: au.token, progress: m }, function (err) {
+        var s = $('accSync');
+        if (s) s.textContent = err ? (err === 'offline' ? 'ইন্টারনেট নেই — ফোনে সংরক্ষিত আছে।' : 'সেভ হয়নি — আবার চেষ্টা করুন।') : 'সেভ হয়েছে।';
+      });
+    });
+  }
+  function viewAdminPanel() {
+    var v = $('view');
+    var au = loadAuth();
+    if (!au || au.role !== 'admin' || !au.token) {
+      v.innerHTML = authFormHtml('অ্যাডমিন প্যানেল', 'অ্যাডমিন ইউজারনেম ও পাসওয়ার্ড দিন (অ্যাপের ভেতরেই)।', 'admin') +
+        '<div class="card"><p class="muted">ইউজার হলে লগিন ট্যাব ব্যবহার করুন।</p></div>';
+      $('auGo').addEventListener('click', function () {
+        var u = $('auUser').value, p = $('auPass').value;
+        if (!u || !p) { showAuthErr('ইউজারনেম ও পাসওয়ার্ড দিন।'); return; }
+        apiPost('/api/admin/login', { username: u, password: p }, function (err, obj) {
+          if (err || !obj || !obj.token) {
+            showAuthErr(err === 'offline' ? 'ইন্টারনেট নেই — সংযোগ চালু করে আবার চেষ্টা করুন।' : 'ভুল ইউজারনেম বা পাসওয়ার্ড!');
+            return;
+          }
+          saveAuth({ role: 'admin', token: obj.token, username: obj.username, name: obj.username });
+          renderTabs();
+          viewAdminPanel();
+        });
+      });
+      return;
+    }
+    v.innerHTML = '<div class="card"><h3>অ্যাডমিন: ' + esc(au.username) + '</h3>' +
+      '<p class="muted" id="admSync">লোড হচ্ছে…</p>' +
+      '<div class="row"><button id="admOut" class="btn ghost">লগআউট</button></div></div>' +
+      '<div id="admBody"></div>';
+    $('admOut').addEventListener('click', function () {
+      saveAuth(null);
+      renderTabs();
+      window.location.hash = '#/';
+    });
+    apiGet('/api/admin/overview?token=' + encodeURIComponent(au.token), function (err, obj) {
+      var s = $('admSync');
+      if (err || !obj || !obj.counts) {
+        if (s) s.textContent = err === 'offline' ? 'ইন্টারনেট নেই — কন্টেন্ট অফলাইনে দেখুন।' : 'লোড হয়নি।';
+        return;
+      }
+      var c = obj.counts;
+      if (s) s.textContent = 'সার্ভারের সাথে যুক্ত।';
+      apiGet('/api/admin/users?token=' + encodeURIComponent(au.token), function (err2, obj2) {
+        var body = $('admBody');
+        if (!body) return;
+        var h = '<div class="card"><h3>কন্টেন্ট (' + bn(c.books + c.audiobooks + c.notes + c.dars + c.duas + c.ayathadith + c.surah + c.bibidh) + 'টি)</h3>' +
+          '<p class="muted">বই ' + bn(c.books) + ' · অডিও ' + bn(c.audiobooks) + ' · নোট ' + bn(c.notes) +
+          ' · দারস ' + bn(c.dars) + ' · দুআ ' + bn(c.duas) + ' · আয়াত ' + bn(c.ayathadith) +
+          ' · সূরা ' + bn(c.surah) + ' · বিবিধ ' + bn(c.bibidh) + ' · ইউজার ' + bn(c.users) + '</p></div>';
+        var users = (obj2 && obj2.users) || [];
+        h += '<div class="card"><h3>ইউজার (' + bn(users.length) + ')</h3>';
+        if (!users.length) h += '<p class="muted">কোনো ইউজার নেই।</p>';
+        for (var i = 0; i < users.length; i++) {
+          var u = users[i];
+          var done = 0;
+          try {
+            for (var ph in (u.progress || {})) for (var k in u.progress[ph]) if (u.progress[ph][k]) done++;
+          } catch (e) {}
+          h += '<div class="user-row"><b>' + esc(u.name || u.username) + '</b> <span class="muted">' +
+            esc(u.username) + (u.phone ? ' · ' + esc(u.phone) : '') + '</span> ' +
+            '<span class="badge">' + bn(done) + 'টি টিক</span></div>';
+        }
+        h += '</div>';
+        body.innerHTML = h;
+      });
+    });
+  }
+
+  /* ---------- theme (dark + light) ---------- */
+  function applyTheme() {
+    var th = 'dark';
+    try { th = localStorage.getItem(LS_THEME) || 'dark'; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');
+  }
+
   /* ---------- boot ---------- */
   window.addEventListener('hashchange', route);
+  applyTheme();
+  var themeBtn = $('themeBtn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var cur = 'dark';
+      try { cur = localStorage.getItem(LS_THEME) || 'dark'; } catch (e) {}
+      try { localStorage.setItem(LS_THEME, cur === 'light' ? 'dark' : 'light'); } catch (e2) {}
+      applyTheme();
+    });
+  }
+  var updateBtn = $('updateBtn');
+  if (updateBtn) {
+    updateBtn.addEventListener('click', function () {
+      setSync('আপডেট হচ্ছে…');
+      if (window.Android && window.Android.refresh) {
+        try { window.Android.refresh(); return; } catch (e) {}
+      }
+      setSync('অ্যাপ থেকে রিফ্রেশ করুন।');
+    });
+  }
   $('refreshBtn').addEventListener('click', function () {
     if (window.Android && window.Android.refresh) {
       try { window.Android.refresh(); return; } catch (e) {}

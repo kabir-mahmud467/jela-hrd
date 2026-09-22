@@ -23,7 +23,8 @@ const bibidhSchema = new mongoose.Schema({
   category: { type: String, enum: BIBIDH_VALUES, default: 'ilmul-quran', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 bibidhSchema.index({ category: 1, createdAt: -1 });

@@ -1,6 +1,41 @@
 /* Jela HRD main.js — CSP-safe (no inline handlers), ES5 ONLY. */
 document.documentElement.classList.add('js');
 
+// Theme: dark (default) + light, saved in localStorage (all pages incl. admin)
+(function () {
+  var KEY = 'hrd_site_theme';
+  function current() {
+    try {
+      return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  }
+  function apply() {
+    if (current() === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    var b = document.getElementById('themeToggle');
+    if (b) b.textContent = current() === 'light' ? 'ডার্ক' : 'লাইট';
+  }
+  apply();
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.closest) t = t.closest('#themeToggle');
+    else {
+      while (t && t !== document) {
+        if (t.getAttribute && t.getAttribute('id') === 'themeToggle') break;
+        t = t.parentNode;
+      }
+      if (!t || t === document) return;
+    }
+    if (!t) return;
+    try {
+      localStorage.setItem(KEY, current() === 'light' ? 'dark' : 'light');
+    } catch (e2) {}
+    apply();
+  });
+})();
+
 // PWA removed — unregister any previously installed service workers
 if ('serviceWorker' in navigator) {
   try {

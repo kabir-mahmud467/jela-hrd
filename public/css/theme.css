@@ -56,3 +56,48 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 28px rgba(0, 0, 0, 0.45);
   --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.55), 0 16px 44px rgba(0, 0, 0, 0.55);
 }
+
+/* ===== Light theme — same token NAMES, light values.
+   Toggle: <html data-theme="light"> (button in header, saved in
+   localStorage). Default (no attr) stays dark premium. */
+html[data-theme="light"] {
+  --navy: #0a2c48;
+  --blue: #1d5c96;
+  --blue-dark: #0a2c48;
+  --sky: #0284c7;
+  --sky-dark: #0369a1;
+  --paper: #f4f7fb;
+  --soft: #ffffff;
+  --card: #ffffff;
+  --ink: #0d1b2a;
+  --ink-inv: #c9dcee;
+  --muted: #4a6076;
+  --muted-inv: #9fc3dd;
+  --faint: #64748b;
+  --line: #d3dfee;
+  --line-soft: #e4ecf5;
+  --red: #d92d20;
+  --red-dark: #b42318;
+  --red-soft: #fdecec;
+  --amber: #b54708;
+  --amber-soft: #fef3e2;
+  --blue-soft: #e8f1f9;
+  --green: #12805c;
+  --green-soft: #e2f5ec;
+  --green-dark: #0e6b4d;
+  --green-border: #b7e2cd;
+  --amber-vivid: #dc6803;
+  --amber-border: #f0d9b5;
+  --red-border: #f3b8b8;
+  --red-inv: #7a271a;
+  --blue-border: #b8d2e8;
+  --blue-vivid: #1d5c96;
+  --navy-deep: #e8eef5;
+  --sky-light: #0284c7;
+  --sky-pale: #e0f2fe;
+  --violet: #7c3aed;
+  --violet-dark: #6d28d9;
+  --focus-ring: rgb(2, 132, 199) 0 0 0 2px;
+  --shadow: 0 1px 2px rgba(13, 27, 42, 0.08), 0 8px 28px rgba(13, 27, 42, 0.1);
+  --shadow-hover: 0 2px 6px rgba(13, 27, 42, 0.1), 0 16px 44px rgba(13, 27, 42, 0.12);
+}

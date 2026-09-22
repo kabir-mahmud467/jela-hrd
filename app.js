@@ -10,6 +10,7 @@ const { isDBReady, waitForDB, isDBError } = require('./config/db');
 const Admin = require('./models/Admin');
 
 const indexRoutes = require('./routes/index');
+const userRoutes = require('./routes/user');
 const darsRoutes = require('./routes/dars');
 const duaRoutes = require('./routes/dua');
 const ayatHadithRoutes = require('./routes/ayathadith');
@@ -268,7 +269,7 @@ app.use((req, res, next) => {
 // সমস্যায় request নিজেই সেরে যায়। DB-ছাড়া পেজ (/, /healthz,
 // login ফর্ম) সবসময় চলে। অজানা path DB ছাড়াই 404 হয়। সত্যিই DB
 // unreachable থাকলে DB-নির্ভর route-এ 503 + Retry-After (500 নয়)।
-const DB_FREE_GET = new Set(['/', '/admin/login']);
+const DB_FREE_GET = new Set(['/', '/login']);
 const DB_PREFIXES = [
   '/books', '/note', '/dars', '/dua', '/ayat-hadith',
   '/surah', '/bibidh', '/admin'
@@ -305,6 +306,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/', userRoutes);
 app.use('/', indexRoutes);
 app.use('/dars', darsRoutes);
 app.use('/dua', duaRoutes);

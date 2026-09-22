@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<title>ড্যাশবোর্ড | জেলা HRD Admin</title>
+<title>ড্যাশবোর্ড | এইচআরডি নারায়ণগঞ্জ জেলা Admin</title>
 <%- include('partials/head') %>
 </head>
 <body>
@@ -31,6 +31,7 @@
     <div class="card stat a-violet"><h2><%= counts.ayatHadith %></h2><p>আয়াত-হাদিস</p><div class="stat-actions"><a href="/admin/ayathadith" class="btn small">পরিচালনা</a><a href="/admin/ayathadith/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-emerald"><h2><%= counts.surah %></h2><p>সূরা</p><div class="stat-actions"><a href="/admin/surah" class="btn small">পরিচালনা</a><a href="/admin/surah/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat a-sky"><h2><%= counts.bibidh %></h2><p>বিবিধ</p><div class="stat-actions"><a href="/admin/bibidh" class="btn small">পরিচালনা</a><a href="/admin/bibidh/new" class="btn small primary">+ নতুন</a></div></div>
+    <div class="card stat"><h2><%= counts.user || 0 %></h2><p>ইউজার</p><div class="stat-actions"><a href="/admin/users" class="btn small">পরিচালনা</a><a href="/admin/users/new" class="btn small primary">+ নতুন</a></div></div>
     <div class="card stat"><h2><%= counts.ban %></h2><p>ব্যানড IP</p><div class="stat-actions"><a href="/admin/bans" class="btn small">পরিচালনা</a><a href="/admin/security" class="btn small primary">আক্রমণ দেখুন</a></div></div>
     <div class="card stat"><h2><%= events24h %></h2><p>সন্দেহজনক ঘটনা (২৪ঘ)</p><div class="stat-actions"><a href="/admin/security" class="btn small">বিস্তারিত</a><a href="/admin/export/security" class="btn small primary">এক্সপোর্ট</a></div></div>
   </div>

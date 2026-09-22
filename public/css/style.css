@@ -497,3 +497,27 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .bulk-bar .bulk-count { color: var(--muted); }
 .bulk-check, .bulk-all { width: 16px; height: 16px; accent-color: var(--red, #d33); cursor: pointer; }
 tr.row-selected td { background: var(--red-soft, #fdecec); }
+
+/* ===== Light theme surfaces (tokens cover most; these fix hardcoded dark paint).
+   Hero + 3D book stage stay dark-cinematic on purpose (film look). */
+.theme-btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.theme-btn:hover { border-color: var(--sky); }
+html[data-theme="light"] body { background: var(--paper); background-color: var(--paper); }
+html[data-theme="light"] body::after { opacity: 0.03; }
+html[data-theme="light"] .navbar { background: rgba(255, 255, 255, 0.88); border-bottom-color: var(--line-soft); }
+html[data-theme="light"] .navbar.scrolled { background: rgba(255, 255, 255, 0.96); box-shadow: 0 8px 32px rgba(13, 27, 42, 0.1); }
+html[data-theme="light"] .navbar nav a:hover { background: rgba(13, 27, 42, 0.06); color: var(--ink); }
+html[data-theme="light"] footer { background: #eaf0f7; }
+html[data-theme="light"] .foot-brand { color: var(--ink); }
+html[data-theme="light"] .foot-links a:hover { color: var(--ink); }
+html[data-theme="light"] .badge.light { background: rgba(13, 27, 42, 0.06); }
+html[data-theme="light"] .btn:hover { background: rgba(13, 27, 42, 0.05); }
+html[data-theme="light"] .qa-q:hover, html[data-theme="light"] .qa-q.open { background: rgba(13, 27, 42, 0.04); }
+html[data-theme="light"] .content tbody tr:nth-child(even) td, html[data-theme="light"] .rich-editor tbody tr:nth-child(even) td { background: rgba(13, 27, 42, 0.03); }
+html[data-theme="light"] .table tr:hover td { background: rgba(13, 27, 42, 0.03); }
+html[data-theme="light"] ::selection { background: var(--sky-pale); }
+@media (max-width: 900px) {
+  html[data-theme="light"] .navbar nav a:hover { background: rgba(13, 27, 42, 0.06); }
+}
+/* Dashboard save badge */
+#save-state { font-size: 12.5px; }

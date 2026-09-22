@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title>ইউজার | এইচআরডি নারায়ণগঞ্জ জেলা Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('partials/nav', { active: 'users', admin }) %>
+<main class="container admin-main">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-key"/></svg></span>
+    <h2>ইউজার (<%= (items || []).length %>)</h2>
+    <a href="/admin/users/new" class="btn small primary">+ নতুন ইউজার</a>
+  </div>
+  <p class="page-sub">অ্যাডমিন ইউজারনেম + নাম + ফোন + পাসওয়ার্ড দিয়ে ইউজার বানান। ইউজার সেই লগিন দিয়ে <a href="/login">/login</a> থেকে ঢুকবে।</p>
+  <% if ((items || []).length === 0) { %>
+    <div class="panel"><p class="muted">এখনো কোনো ইউজার নেই — “+ নতুন ইউজার” থেকে যোগ করুন।</p></div>
+  <% } else { %>
+  <div class="panel">
+    <table class="admin-table">
+      <thead><tr><th>ইউজারনেম</th><th>নাম</th><th>ফোন</th><th>অগ্রগতি</th><th>অ্যাকশন</th></tr></thead>
+      <tbody>
+        <% items.forEach(function(u){ %>
+          <% var prog = u.progress || {}; var done = 0; Object.keys(prog).forEach(function(ph){ Object.keys(prog[ph] || {}).forEach(function(){ done++; }); }); %>
+          <tr>
+            <td><b><%= u.username %></b></td>
+            <td><%= u.name || '' %></td>
+            <td><%= u.phone || '' %></td>
+            <td><span class="badge light"><%= done %>টি টিক</span></td>
+            <td class="row-actions">
+              <a href="/admin/users/<%= u._id %>" class="btn small">অগ্রগতি</a>
+              <a href="/admin/users/<%= u._id %>/edit" class="btn small">এডিট</a>
+              <form method="POST" action="/admin/users/<%= u._id %>/delete" class="inline-form" data-confirm="<%= u.username %> মুছবেন?">
+                <button class="btn small danger" type="submit">মুছুন</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</main>
+<%- include('partials/foot') %>

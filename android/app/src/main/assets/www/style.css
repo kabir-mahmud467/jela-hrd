@@ -1,5 +1,17 @@
 /* Hrd offline reader — file:// assets, system fonts only, ES5. */
 *{box-sizing:border-box}
+:root{
+  --bg:#05070b; --top:#0a1220; --card:#0c1420; --deep:#0a1220;
+  --ink:#eef3f8; --muted:#8fa3bd; --line:#1c2c44; --chip:#c7d5e8;
+  --accent:#00a9e0; --accent-ink:#fff; --badge-bg:#12325a; --badge-ink:#7fd4f5;
+  --input-bg:#0c1420; --arabic-bg:#0a1220;
+}
+html[data-theme="light"]{
+  --bg:#f4f7fb; --top:#ffffff; --card:#ffffff; --deep:#eef3f8;
+  --ink:#0d1b2a; --muted:#4a6076; --line:#d3dfee; --chip:#33475e;
+  --accent:#0284c7; --accent-ink:#ffffff; --badge-bg:#e0f2fe; --badge-ink:#0369a1;
+  --input-bg:#ffffff; --arabic-bg:#f1f7fd;
+}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:#05070b;color:#eef3f8;font-family:"Noto Sans Bengali","SolaimanLipi",Vrinda,"Hind Siliguri",sans-serif;font-size:15px;line-height:1.8}
 .top{position:sticky;top:0;z-index:10;background:#0a1220;border-bottom:1px solid #1c2c44}
@@ -55,3 +67,43 @@ select.sel option{background:#0c1420;color:#eef3f8}
 .empty{color:#8fa3bd;text-align:center;padding:26px 0}
 .prog{display:flex;align-items:center;gap:10px}
 .prog .bar{flex:1}
+/* update prompt (content update — no APK re-download) */
+.update-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 12px 8px;padding:8px 12px;background:var(--badge-bg);border:1px solid var(--accent);border-radius:10px;font-size:13.5px;font-weight:700;color:var(--ink)}
+.update-bar .btn{padding:5px 14px;font-size:13px}
+/* in-app auth */
+.auth-err{background:#2a1214;color:#ff8a8b;border:1px solid #5c2225;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:14px}
+html[data-theme="light"] .auth-err{background:#fdecec;color:#b42323;border-color:#f3b8b8}
+.fld{display:block;font-weight:700;font-size:14px;margin-bottom:8px}
+.fld .search{margin:4px 0 0}
+.user-row{padding:8px 0;border-top:1px solid var(--line)}
+/* light theme surfaces (dark stays default) */
+html[data-theme="light"] body{background:var(--bg);color:var(--ink)}
+html[data-theme="light"] .top{background:var(--top);border-bottom-color:var(--line)}
+html[data-theme="light"] .logo{color:var(--ink)}
+html[data-theme="light"] .sync{color:var(--muted)}
+html[data-theme="light"] .tab{color:var(--chip);border-color:var(--line)}
+html[data-theme="light"] .tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+html[data-theme="light"] .card{background:var(--card);border-color:var(--line)}
+html[data-theme="light"] .card h3,html[data-theme="light"] .card a.t{color:var(--ink)}
+html[data-theme="light"] .muted{color:var(--muted)}
+html[data-theme="light"] .badge{background:var(--badge-bg);color:var(--badge-ink)}
+html[data-theme="light"] .chip{color:var(--chip);border-color:var(--line)}
+html[data-theme="light"] .chip.on{background:var(--badge-bg);border-color:var(--accent);color:var(--badge-ink)}
+html[data-theme="light"] .search{background:var(--input-bg);color:var(--ink);border-color:var(--line)}
+html[data-theme="light"] select.sel{background:var(--input-bg);color:var(--ink);border-color:var(--line)}
+html[data-theme="light"] select.sel option{background:var(--input-bg);color:var(--ink)}
+html[data-theme="light"] .sel-label{color:var(--ink)}
+html[data-theme="light"] .ayat-card{background:var(--deep);border-color:var(--line)}
+html[data-theme="light"] .uchcharon{color:var(--muted)}
+html[data-theme="light"] .ah-item .ah-q{color:var(--ink)}
+html[data-theme="light"] .ah-item .ah-q .chev{color:var(--accent)}
+html[data-theme="light"] .btn.ghost{background:transparent;color:var(--chip);border-color:var(--line)}
+html[data-theme="light"] .arabic{background:var(--arabic-bg);border-color:var(--line);color:var(--ink)}
+html[data-theme="light"] .content blockquote{background:var(--deep)}
+html[data-theme="light"] .content a{color:var(--accent)}
+html[data-theme="light"] .back{color:var(--accent)}
+html[data-theme="light"] .bar{background:var(--line)}
+html[data-theme="light"] .check-cat{color:var(--ink)}
+html[data-theme="light"] .check-item{background:var(--card);border-color:var(--line)}
+html[data-theme="light"] .empty{color:var(--muted)}
+html[data-theme="light"] .icon-btn{background:var(--card);color:var(--badge-ink);border-color:var(--line)}

@@ -127,6 +127,35 @@
     node.parentNode.replaceChild(fresh, node);
     return fresh;
   }
+  /* Inline-style spans (Google Docs / Word / most sites mark bold/italic/
+     underline with style="", not <b>/<i>) -> semantic tags the server keeps.
+     Without this, pasted bold/italic silently unwraps to plain text. */
+  function styleWraps(el) {
+    var out = [];
+    var st = '';
+    try { st = (el.getAttribute('style') || '').toLowerCase(); } catch (e) {}
+    if (!st && !el.style) return out;
+    var css = st;
+    try {
+      if (el.style && el.style.cssText) css += ';' + String(el.style.cssText).toLowerCase();
+    } catch (e2) {}
+    if (/(^|;)[\s]*font-weight[\s]*:[\s]*(bold|[7-9]\d\d)/.test(css)) out.push('STRONG');
+    if (/(^|;)[\s]*font-style[\s]*:[\s]*(italic|oblique)/.test(css)) out.push('EM');
+    if (/text-decoration[^;]*underline/.test(css)) out.push('U');
+    if (/text-decoration[^;]*line-through/.test(css)) out.push('S');
+    return out;
+  }
+  function pasteWrapInline(node, tags) {
+    var inner = node;
+    var i, fresh;
+    for (i = tags.length - 1; i >= 0; i--) {
+      fresh = document.createElement(tags[i]);
+      while (inner.firstChild) fresh.appendChild(inner.firstChild);
+      inner.appendChild(fresh);
+      inner = fresh;
+    }
+    pasteUnwrap(node);
+  }
   function pasteUnwrap(node) {
     var parent = node.parentNode;
     while (node.firstChild) parent.insertBefore(node.firstChild, node);
@@ -167,9 +196,12 @@
         pasteClean(n);
         continue;
       }
-      /* Word spans, table cells, o:p, unknown tags: keep text, drop wrapper */
+      /* Word spans, font tags, o:p, unknown tags: convert inline styles
+         (bold/italic/underline/strike) to semantic tags, keep the text */
+      var wraps = (tag === 'SPAN' || tag === 'FONT') ? styleWraps(n) : [];
       pasteClean(n);
-      pasteUnwrap(n);
+      if (wraps.length) pasteWrapInline(n, wraps);
+      else pasteUnwrap(n);
     }
   }
   function sanitizePasteHtml(html) {

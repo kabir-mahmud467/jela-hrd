@@ -10,11 +10,12 @@
 <main class="container admin-main">
 <div class="sec-head">
   <span class="sec-ico"><svg class="icon"><use href="#i-book"/></svg></span>
-  <h2><%= item && item._id ? 'এডিট' : 'নতুন' %> আয়াত/হাদিস</h2>
+  <h2><%= item && item._id ? 'এডিট' : 'নতুন (এক বিষয়ে ২ আয়াত + ১ হাদিস)' %> আয়াত/হাদিস</h2>
   <a href="/admin/ayathadith" class="btn small">তালিকা</a>
 </div>
 <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
-<form method="POST" action="<%= item && item._id ? '/admin/ayathadith/' + item._id : '/admin/ayathadith' %>" class="form">
+<% if (item && item._id) { %>
+<form method="POST" action="<%= '/admin/ayathadith/' + item._id %>" class="form">
 <label for="f-kind">ধরন *</label><select id="f-kind" name="kind">
   <option value="ayat" <%= (!item.kind || item.kind==='ayat') ? 'selected' : '' %>>আয়াত</option>
   <option value="hadis" <%= item.kind==='hadis' ? 'selected' : '' %>>হাদিস</option>
@@ -32,5 +33,46 @@
 <label for="f-ref">রেফারেন্স</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300" placeholder="যেমন: সূরা বাকারা ২৫৫">
 <div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/ayathadith" class="btn">বাতিল</a></div>
 </form>
+<% } else { %>
+<p class="page-sub">একই বিষয়ের নিচে পরপর <b>আয়াত ১</b>, <b>আয়াত ২</b> ও <b>হাদিস ১</b> — যেটা খালি থাকবে সেটা জমা হবে না। সাইটে বিষয়ভিত্তিক গ্রুপে দেখাবে।</p>
+<form method="POST" action="/admin/ayathadith" class="form">
+<label for="f-phase">পর্ব *</label><select id="f-phase" name="phase">
+  <option value="abedonpotrer-purbe" <%= (!item.phase || item.phase === 'abedonpotrer-purbe') ? 'selected' : '' %>>আবেদনপত্রের পূর্বে</option>
+  <option value="proshnopotrer-purbe" <%= item.phase === 'proshnopotrer-purbe' ? 'selected' : '' %>>প্রশ্নপত্রের পূর্বে</option>
+  <option value="shopother-purbe" <%= item.phase === 'shopother-purbe' ? 'selected' : '' %>>শপথের পূর্বে</option>
+</select>
+<label for="f-topic">বিষয় * (একটাই — তিনটার জন্য)</label><input id="f-topic" name="topic" value="<%= item.topic || '' %>" required maxlength="100" placeholder="যেমন: ঈমান" list="topicList">
+<% if (typeof topics !== 'undefined' && topics && topics.length) { %>
+<datalist id="topicList">
+  <% topics.forEach(function(t){ %><option value="<%= t %>"><% }) %>
+</datalist>
+<% } %>
+<div class="panel" style="margin-top:12px">
+  <h3>আয়াত ১ *</h3>
+  <label for="f-title">শিরোনাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
+  <label for="f-arabic">আরবি পাঠ</label><textarea id="f-arabic" name="arabic" rows="3" dir="auto" maxlength="2000"><%= item.arabic || '' %></textarea>
+  <label for="f-trans">বাংলা উচ্চারণ</label><textarea id="f-trans" name="transliteration" rows="2" maxlength="2000"><%= item.transliteration || '' %></textarea>
+  <label for="f-content">অর্থ / ব্যাখ্যা</label><textarea id="f-content" name="translation" rows="6" required maxlength="10000"><%= item.translation || '' %></textarea>
+  <label for="f-ref">রেফারেন্স</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300" placeholder="যেমন: সূরা বাকারা ২৫৫">
+</div>
+<div class="panel" style="margin-top:12px">
+  <h3>আয়াত ২ <span class="badge light">ঐচ্ছিক</span></h3>
+  <label for="f-title2">শিরোনাম</label><input id="f-title2" name="title2" value="<%= item.title2 || '' %>" maxlength="300">
+  <label for="f-arabic2">আরবি পাঠ</label><textarea id="f-arabic2" name="arabic2" rows="3" dir="auto" maxlength="2000"><%= item.arabic2 || '' %></textarea>
+  <label for="f-trans2">বাংলা উচ্চারণ</label><textarea id="f-trans2" name="transliteration2" rows="2" maxlength="2000"><%= item.transliteration2 || '' %></textarea>
+  <label for="f-content2">অর্থ / ব্যাখ্যা</label><textarea id="f-content2" name="translation2" rows="6" maxlength="10000"><%= item.translation2 || '' %></textarea>
+  <label for="f-ref2">রেফারেন্স</label><input id="f-ref2" name="reference2" value="<%= item.reference2 || '' %>" maxlength="300">
+</div>
+<div class="panel" style="margin-top:12px">
+  <h3>হাদিস ১ <span class="badge light">ঐচ্ছিক</span></h3>
+  <label for="f-htitle">শিরোনাম</label><input id="f-htitle" name="htitle" value="<%= item.htitle || '' %>" maxlength="300">
+  <label for="f-harabic">আরবি পাঠ</label><textarea id="f-harabic" name="harabic" rows="3" dir="auto" maxlength="2000"><%= item.harabic || '' %></textarea>
+  <label for="f-htrans">বাংলা উচ্চারণ</label><textarea id="f-htrans" name="htransliteration" rows="2" maxlength="2000"><%= item.htransliteration || '' %></textarea>
+  <label for="f-hcontent">অর্থ / ব্যাখ্যা</label><textarea id="f-hcontent" name="htranslation" rows="6" maxlength="10000"><%= item.htranslation || '' %></textarea>
+  <label for="f-href">রেফারেন্স</label><input id="f-href" name="hreference" value="<%= item.hreference || '' %>" maxlength="300" placeholder="যেমন: সহিহ বুখারি">
+</div>
+<div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/ayathadith" class="btn">বাতিল</a></div>
+</form>
+<% } %>
 </main>
 <%- include('partials/foot') %>

@@ -9,8 +9,13 @@ When online, the app pulls newly added content from the site database.
 - `assets/www/snapshot.json` = content bundled at build time (first-run data)
 - Launcher icon source: `android/hrd-icon.jpg` (regenerate `mipmap-*` from it
   if the icon ever changes, then rebuild)
-- `SyncManager` = version probe (`/api/content.json?check=1`) → full pull on
-  change → saved to internal `content.json` → reader refreshes, all offline
+- `SyncManager` = version probe (`/api/content.json?check=1`) → update banner
+  (“এখনই আপডেট করুন”) → tap pulls full content → saved to internal
+  `content.json` → reader refreshes, all offline (no APK re-download).
+  `version` = `total:max(createdAt,updatedAt)`, so EDITS also trigger the banner.
+- লগিন/অ্যাকাউন্ট/অ্যাডমিন ট্যাব অ্যাপের ভেতরেই (`assets/www/app.js` → `/api/user/*`,
+  `/api/admin/*` when online). No outside URL — content stays offline, only
+  login/save/admin needs internet.
 - ⟳ button (or auto-sync on launch when online) refreshes from DB
 - External (http/https) links open in the browser; back button = app history
 

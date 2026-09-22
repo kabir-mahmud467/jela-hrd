@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<title><%= isNew ? 'নতুন ইউজার' : 'ইউজার এডিট' %> | এইচআরডি নারায়ণগঞ্জ জেলা Admin</title>
+<%- include('partials/head') %>
+</head>
+<body>
+<%- include('partials/nav', { active: 'users', admin }) %>
+<main class="container admin-main">
+  <div class="sec-head">
+    <span class="sec-ico"><svg class="icon"><use href="#i-key"/></svg></span>
+    <h2><%= isNew ? 'নতুন ইউজার' : 'ইউজার এডিট' %></h2>
+  </div>
+  <div class="panel" style="max-width:520px">
+    <% if (typeof error !== 'undefined' && error) { %><div class="alert error"><%= error %></div><% } %>
+    <form method="POST" action="<%= isNew ? '/admin/users' : '/admin/users/' + item._id %>">
+      <label for="username">ইউজারনেম (লগিন)</label>
+      <input id="username" type="text" name="username" required maxlength="30" placeholder="যেমন: rahim_01" value="<%= (item && item.username) || '' %>">
+      <label for="name">নাম</label>
+      <input id="name" type="text" name="name" required maxlength="100" placeholder="পুরো নাম" value="<%= (item && item.name) || '' %>">
+      <label for="phone">ফোন</label>
+      <input id="phone" type="text" name="phone" maxlength="20" placeholder="01XXXXXXXXX" value="<%= (item && item.phone) || '' %>">
+      <label for="password">পাসওয়ার্ড<%= isNew ? '' : ' (খালি রাখলে আগেরটাই থাকবে)' %></label>
+      <input id="password" type="text" name="password" <%= isNew ? 'required' : '' %> maxlength="200" placeholder="<%= isNew ? 'কমপক্ষে ৪ অক্ষর' : 'বদলাতে চাইলে নতুন দিন' %>" autocomplete="new-password">
+      <button type="submit" class="btn primary full"><%= isNew ? 'ইউজার তৈরি করুন' : 'সেভ করুন' %></button>
+    </form>
+    <p style="margin-top:10px"><a href="/admin/users" class="more"><svg class="icon sm"><use href="#i-back"/></svg> ইউজার তালিকায় ফিরুন</a></p>
+  </div>
+</main>
+<%- include('partials/foot') %>

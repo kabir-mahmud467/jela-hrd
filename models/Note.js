@@ -15,7 +15,8 @@ const noteSchema = new mongoose.Schema({
   category: { type: String, enum: NOTE_VALUES, default: 'alochona', index: true },
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 noteSchema.index({ category: 1, phase: 1, createdAt: -1 });

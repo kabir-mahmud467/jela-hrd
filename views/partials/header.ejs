@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="জেলা HRD — গুরুত্বপূর্ণ প্রশ্নোত্তর, সব বাংলায়। ক্লিক করলেই উত্তর।">
+<meta name="description" content="এইচআরডি নারায়ণগঞ্জ জেলা — গুরুত্বপূর্ণ প্রশ্নোত্তর, সব বাংলায়। ক্লিক করলেই উত্তর।">
 <meta name="theme-color" content="#05070b">
-<title><%= typeof title !== 'undefined' ? title + ' | জেলা HRD' : 'জেলা HRD' %></title>
+<title><%= typeof title !== 'undefined' ? title + ' | এইচআরডি নারায়ণগঞ্জ জেলা' : 'এইচআরডি নারায়ণগঞ্জ জেলা' %></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,13 +16,14 @@
 <%- include('icons') %>
 <header class="navbar" id="navbar">
   <div class="container nav-inner">
-    <a href="/" class="logo"><span class="logo-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3.2l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z" fill="#e93e3f"/><path d="M7 16.5c4-2.2 8-2.2 13 0 5-2.2 9-2.2 13 0V30c-4-2.2-8-2.2-13 0-5-2.2-9-2.2-13 0z" fill="#114575"/><path d="M7 16.5c4-2.2 8-2.2 13 0v13.5c-5-2.2-9-2.2-13 0z" fill="#0a2c48" opacity="0.35"/><path d="M20 16.5V30" stroke="#fff" stroke-width="1.6"/><path d="M10.5 20.2c2.4-1 4.8-1 7 0M10.5 23.4c2.4-1 4.8-1 7 0M22.5 20.2c2.2-1 4.6-1 7 0M22.5 23.4c2.2-1 4.6-1 7 0" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg></span> জেলা এইচআরডি</a>
+    <a href="/" class="logo"><span class="logo-emblem" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3.2l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5z" fill="#e93e3f"/><path d="M7 16.5c4-2.2 8-2.2 13 0 5-2.2 9-2.2 13 0V30c-4-2.2-8-2.2-13 0-5-2.2-9-2.2-13 0z" fill="#114575"/><path d="M7 16.5c4-2.2 8-2.2 13 0v13.5c-5-2.2-9-2.2-13 0z" fill="#0a2c48" opacity="0.35"/><path d="M20 16.5V30" stroke="#fff" stroke-width="1.6"/><path d="M10.5 20.2c2.4-1 4.8-1 7 0M10.5 23.4c2.4-1 4.8-1 7 0M22.5 20.2c2.2-1 4.6-1 7 0M22.5 23.4c2.2-1 4.6-1 7 0" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg></span> এইচআরডি নারায়ণগঞ্জ জেলা</a>
+    <button class="theme-btn" id="themeToggle" type="button" aria-label="ডার্ক / লাইট থিম বদলান">থিম</button>
     <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <nav id="mainnav">
       <a href="/">হোম</a>
-      <a href="/books">বই</a>
+      <a href="/books">বই (পিডিএফ) </a>
       <a href="/audiobooks">অডিওবুক</a>
       <a href="/note">নোট</a>
       <a href="/dars">দারস</a>
@@ -31,6 +32,7 @@
       <a href="/surah">সূরা</a>
       <a href="/bibidh">বিবিধ</a>
       <a href="/app">অ্যাপ</a>
+      <a href="/login">লগিন</a>
       <a href="/admin" class="admin-btn">অ্যাডমিন</a>
     </nav>
   </div>

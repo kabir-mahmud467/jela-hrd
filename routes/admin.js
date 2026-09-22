@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 
 const Admin = require('../models/Admin');
+const User = require('../models/User');
 const Ban = require('../models/Ban');
 const Book = require('../models/Book');
 const Audiobook = require('../models/Audiobook');
@@ -14,9 +15,9 @@ const AyatHadith = require('../models/AyatHadith');
 const Surah = require('../models/Surah');
 const Bibidh = require('../models/Bibidh');
 const { requireAdmin } = require('../middleware/auth');
-const { loginLimiter, adminWriteLimiter } = require('../middleware/security');
+const { adminWriteLimiter } = require('../middleware/security');
 const { clearBanCache, normIp } = require('../middleware/ipBan');
-const { flagEvent, getTopIps } = require('../middleware/traffic');
+const { getTopIps } = require('../middleware/traffic');
 const SecurityEvent = require('../models/SecurityEvent');
 const { validateBody } = require('../middleware/validate');
 
@@ -70,64 +71,27 @@ function isId(id) {
 }
 
 // ---------- Login / Logout ----------
+// Single login page: /login decides admin vs user dashboard.
+// These stay only for old bookmarks: GET bounces, POST forwards with body (307).
 router.get('/login', (req, res) => {
   if (req.session.admin) return res.redirect('/admin');
-  res.render('admin/login', { error: null });
+  return res.redirect('/login');
 });
 
-router.post('/login', loginLimiter, async (req, res, next) => {
-  try {
-    const username = (req.body.username || '').toString().trim().slice(0, 100);
-    const password = (req.body.password || '').toString().slice(0, 200);
-    if (!username || !password) {
-      return res.status(400).render('admin/login', { error: 'ইউজারনেম ও পাসওয়ার্ড দিন।' });
-    }
-    // 1) DB থেকে খোঁজো (Admin Panel থেকে পরিবর্তিত মান)
-    let admin = await Admin.findOne({ username });
-    let ok = false;
-    if (admin && password) {
-      ok = await admin.comparePassword(password);
-    } else if (!admin) {
-      // 2) Fallback: .env (প্রথমবার / DB খালি থাকলে)
-      if (
-        username === (process.env.ADMIN_USERNAME || 'admin') &&
-        password === (process.env.ADMIN_PASSWORD || 'admin123')
-      ) {
-        ok = true;
-        await Admin.ensureDefaultAdmin();
-        admin = await Admin.findOne({ username });
-      }
-    }
-    if (ok && admin) {
-      req.session.regenerate(err => {
-        if (err) return next(err);
-        req.session.admin = { id: admin._id, username: admin.username };
-        return req.session.save(() => res.redirect('/admin'));
-      });
-      return;
-    }
-    flagEvent({
-      ip: (req.clientIp || req.ip || '').toString().replace(/^::ffff:/i, ''),
-      kind: 'login-fail',
-      path: '/admin/login',
-      method: 'POST',
-      userAgent: req.get('user-agent') || '',
-      status: 401
-    });
-    res.status(401).render('admin/login', { error: 'ভুল ইউজারনেম বা পাসওয়ার্ড!' });
-  } catch (err) {
-    next(err);
-  }
-});
+router.post('/login', (req, res) => res.redirect(307, '/login')); /* eslint-disable-line */
 
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/admin/login'));
+  if (req.session) {
+    req.session.destroy(() => res.redirect('/login'));
+    return;
+  }
+  res.redirect('/login');
 });
 
 // ---------- Dashboard (remake: stats + recent + live attacks + system) ----------
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
-    const [cBook, cAudiobook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan] = await Promise.all([
+    const [cBook, cAudiobook, cNote, cDars, cDua, cAyatHadith, cSurah, cBibidh, cBan, cUser] = await Promise.all([
       Book.countDocuments(),
       Audiobook.countDocuments(),
       Note.countDocuments(),
@@ -136,7 +100,8 @@ router.get('/', requireAdmin, async (req, res, next) => {
       AyatHadith.countDocuments(),
       Surah.countDocuments(),
       Bibidh.countDocuments(),
-      Ban.countDocuments()
+      Ban.countDocuments(),
+      User.countDocuments().catch(() => 0)
     ]);
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const [recentB, recentAudio, recentN, recentDars, recentDua, recentAyat, recentSurah, recentBibidh, events24h] = await Promise.all([
@@ -173,7 +138,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     };
     res.render('admin/dashboard', {
       admin: req.session.admin,
-      counts: { book: cBook, audiobook: cAudiobook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan },
+      counts: { book: cBook, audiobook: cAudiobook, note: cNote, dars: cDars, dua: cDua, ayatHadith: cAyatHadith, surah: cSurah, bibidh: cBibidh, ban: cBan, user: cUser },
       recent,
       topIps,
       events24h,
@@ -364,7 +329,7 @@ function crudRoutes({ path, Model, viewPrefix, kind }) {
           item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: errors.join(' ')
         });
       }
-      await Model.findByIdAndUpdate(req.params.id, data, { runValidators: true });
+      await Model.findByIdAndUpdate(req.params.id, { ...data, updatedAt: new Date() }, { runValidators: true });
       res.redirect(`/admin/${path}`);
     } catch (err) {
       next(err);
@@ -471,9 +436,217 @@ crudRoutes({ path: 'audiobooks', Model: Audiobook, viewPrefix: 'audiobook', kind
 crudRoutes({ path: 'notes', Model: Note, viewPrefix: 'note', kind: 'note' });
 crudRoutes({ path: 'dars', Model: Dars, viewPrefix: 'dars', kind: 'dars' });
 crudRoutes({ path: 'duas', Model: Dua, viewPrefix: 'dua', kind: 'dua' });
+// NOTE: ayathadith bundle-add (এক বিষয়ে ২ আয়াত + ১ হাদিস) overrides the
+// generic crudRoutes create below — custom GET new + POST create are
+// registered FIRST so Express matches them before the generic ones.
+router.get('/ayathadith/new', requireAdmin, async (req, res, next) => {
+  try {
+    const topics = await AyatHadith.distinct('topic').catch(() => []);
+    res.render('admin/ayathadith-form', {
+      item: {}, admin: req.session.admin, error: null,
+      topics: (topics || []).filter(Boolean).sort().slice(0, 200)
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+router.post('/ayathadith', requireAdmin, adminWriteLimiter, async (req, res, next) => {
+  autoBijoy(req.body, 'ayathadith');
+  try {
+    const topic = (req.body.topic || '').toString().trim().slice(0, 100);
+    const phase = (req.body.phase || '').toString().slice(0, 50);
+    if (!topic) {
+      const topics = await AyatHadith.distinct('topic').catch(() => []);
+      return res.status(400).render('admin/ayathadith-form', {
+        item: req.body, admin: req.session.admin,
+        error: 'বিষয় দিন — একই বিষয়ে ২ আয়াত + ১ হাদিস জমা হবে।',
+        topics: (topics || []).filter(Boolean).sort().slice(0, 200)
+      });
+    }
+    // block field names: ayat1 uses bare names; ayat2 uses title2/...; hadis uses htitle/...
+    const entries = [];
+    const errs = [];
+    const b = req.body;
+    const defs = [
+      { kind: 'ayat', get: (f) => b[f] },
+      { kind: 'ayat', get: (f) => b[f + '2'] },
+      { kind: 'hadis', get: (f) => (f === 'title' ? b.htitle : f === 'translation' ? b.htranslation : f === 'transliteration' ? b.htransliteration : f === 'arabic' ? b.harabic : b.hreference) }
+    ];
+    for (let bi = 0; bi < defs.length; bi++) {
+      const d = defs[bi];
+      const raw = {
+        title: d.get('title'),
+        arabic: d.get('arabic'),
+        transliteration: d.get('transliteration'),
+        translation: d.get('translation'),
+        reference: d.get('reference'),
+        kind: d.kind, topic, phase
+      };
+      const filled = ['title', 'arabic', 'transliteration', 'translation', 'reference'].some(
+        (f) => (raw[f] || '').toString().trim().length > 0
+      );
+      if (bi === 0 || filled) {
+        const r = validateBody('ayathadith', raw);
+        if (r.errors.length) {
+          const label = bi === 0 ? 'আয়াত ১' : bi === 1 ? 'আয়াত ২' : 'হাদিস ১';
+          errs.push(label + ': ' + r.errors.join(' '));
+        } else {
+          entries.push(r.data);
+        }
+      }
+    }
+    if (errs.length || !entries.length) {
+      const topics = await AyatHadith.distinct('topic').catch(() => []);
+      return res.status(400).render('admin/ayathadith-form', {
+        item: req.body, admin: req.session.admin,
+        error: errs.join(' ') || 'কমপক্ষে আয়াত ১ পূরণ করুন।',
+        topics: (topics || []).filter(Boolean).sort().slice(0, 200)
+      });
+    }
+    try {
+      const edge = await AyatHadith.findOne().sort({ order: -1 }).select('order').lean();
+      const base = edge && typeof edge.order === 'number' ? edge.order + 1 : 0;
+      for (let ei = 0; ei < entries.length; ei++) {
+        entries[ei].order = base + ei;
+        await AyatHadith.create(entries[ei]);
+      }
+    } catch (e) {
+      const topics = await AyatHadith.distinct('topic').catch(() => []);
+      return res.status(400).render('admin/ayathadith-form', {
+        item: req.body, admin: req.session.admin, error: e.message,
+        topics: (topics || []).filter(Boolean).sort().slice(0, 200)
+      });
+    }
+    res.redirect('/admin/ayathadith');
+  } catch (err) {
+    next(err);
+  }
+});
+// Generic ayathadith routes (list/edit/update/delete/reorder) — custom
+// GET new + POST create above match first, the rest falls through here.
 crudRoutes({ path: 'ayathadith', Model: AyatHadith, viewPrefix: 'ayathadith', kind: 'ayathadith' });
 crudRoutes({ path: 'surah', Model: Surah, viewPrefix: 'surah', kind: 'surah' });
 crudRoutes({ path: 'bibidh', Model: Bibidh, viewPrefix: 'bibidh', kind: 'bibidh' });
+
+// ---------- Users (ইউজার তৈরি + চেকলিস্ট অগ্রগতি দেখা) ----------
+// Admin: username + name + phone + password দিয়ে ইউজার বানায়;
+// ইউজার সেই username/password দিয়ে /login থেকে লগিন করে।
+router.get('/users', requireAdmin, async (req, res, next) => {
+  try {
+    const items = await User.find().sort({ createdAt: -1 }).limit(500)
+      .select('username name phone progress createdAt updatedAt').lean();
+    res.render('admin/user-list', { items, admin: req.session.admin });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/users/new', requireAdmin, (req, res) => {
+  res.render('admin/user-form', { item: {}, admin: req.session.admin, error: null, isNew: true });
+});
+
+router.post('/users', requireAdmin, adminWriteLimiter, async (req, res, next) => {
+  try {
+    const { errors, data } = validateBody('user', req.body);
+    if (errors.length) {
+      return res.status(400).render('admin/user-form', {
+        item: req.body, admin: req.session.admin, error: errors.join(' '), isNew: true
+      });
+    }
+    const hashed = await bcrypt.hash(data.password, 12);
+    try {
+      await User.create({
+        username: data.username,
+        name: data.name,
+        phone: data.phone,
+        password: hashed
+      });
+    } catch (e) {
+      if (e.code === 11000) {
+        return res.status(400).render('admin/user-form', {
+          item: req.body, admin: req.session.admin, error: 'এই ইউজারনেম আগেই ব্যবহৃত হচ্ছে।', isNew: true
+        });
+      }
+      throw e;
+    }
+    res.redirect('/admin/users');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// User detail — checklist progress (admin দেখতে পারে)
+router.get('/users/:id', requireAdmin, async (req, res, next) => {
+  try {
+    if (!isId(req.params.id)) return res.redirect('/admin/users');
+    const item = await User.findById(req.params.id).lean();
+    if (!item) return res.redirect('/admin/users');
+    let checklistData = {};
+    try {
+      checklistData = require('../config/checklist');
+    } catch { checklistData = {}; }
+    res.render('admin/user-detail', { item, admin: req.session.admin, checklistData });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/users/:id/edit', requireAdmin, async (req, res, next) => {
+  try {
+    if (!isId(req.params.id)) return res.redirect('/admin/users');
+    const item = await User.findById(req.params.id).lean();
+    if (!item) return res.redirect('/admin/users');
+    res.render('admin/user-form', { item, admin: req.session.admin, error: null, isNew: false });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/users/:id', requireAdmin, adminWriteLimiter, async (req, res, next) => {
+  try {
+    if (!isId(req.params.id)) return res.redirect('/admin/users');
+    const body2 = { ...req.body };
+    if (!((body2.password || '').toString().trim())) body2.password = '____';
+    const { errors, data } = validateBody('user', body2);
+    const wantPw = ((req.body.password || '').toString().length >= 4);
+    const showErr = wantPw ? errors : errors.filter((e) => e.indexOf('পাসওয়ার্ড') < 0);
+    if (showErr.length) {
+      return res.status(400).render('admin/user-form', {
+        item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: showErr.join(' '), isNew: false
+      });
+    }
+    const user = await User.findById(req.params.id);
+    if (!user) return res.redirect('/admin/users');
+    user.username = data.username;
+    user.name = data.name;
+    user.phone = data.phone;
+    if (wantPw) user.password = await bcrypt.hash((req.body.password || '').toString(), 12);
+    user.updatedAt = new Date();
+    try {
+      await user.save();
+    } catch (e) {
+      if (e.code === 11000) {
+        return res.status(400).render('admin/user-form', {
+          item: { ...req.body, _id: req.params.id }, admin: req.session.admin, error: 'এই ইউজারনেম আগেই ব্যবহৃত হচ্ছে।', isNew: false
+        });
+      }
+      throw e;
+    }
+    res.redirect('/admin/users');
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/users/:id/delete', requireAdmin, adminWriteLimiter, async (req, res, next) => {
+  try {
+    if (!isId(req.params.id)) return res.redirect('/admin/users');
+    await User.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/users');
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ---------- IP Bans (নিরাপত্তা — IP ব্যান / মুক্ত) ----------
 
@@ -550,7 +723,7 @@ router.post('/bans/:id/delete', requireAdmin, adminWriteLimiter, async (req, res
 router.get('/settings', requireAdmin, async (req, res, next) => {
   try {
     const admin = await Admin.findById(req.session.admin.id).lean();
-    if (!admin) return res.redirect('/admin/login');
+    if (!admin) return res.redirect('/login');
     res.render('admin/settings', { admin, error: null, success: null });
   } catch (err) {
     next(err);
@@ -563,7 +736,7 @@ router.post('/settings', requireAdmin, adminWriteLimiter, async (req, res, next)
     const currentPassword = (req.body.currentPassword || '').toString().slice(0, 500);
     const newPassword = (req.body.newPassword || '').toString().slice(0, 500);
     const admin = await Admin.findById(req.session.admin.id);
-    if (!admin) return res.redirect('/admin/login');
+    if (!admin) return res.redirect('/login');
 
     const ok = await admin.comparePassword(currentPassword);
     if (!ok) {

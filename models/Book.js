@@ -25,7 +25,8 @@ const bookSchema = new mongoose.Schema({
   category: { type: String, default: 'সাধারণ', trim: true, maxlength: 100 },
   phase: { type: String, enum: PHASE_VALUES, default: 'abedonpotrer-purbe', index: true },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 bookSchema.index({ phase: 1, createdAt: -1 });

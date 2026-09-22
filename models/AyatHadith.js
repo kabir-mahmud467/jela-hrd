@@ -11,7 +11,8 @@ const ayatHadithSchema = new mongoose.Schema({
   kind: { type: String, enum: ['ayat','hadis'], required: true, index: true },
   topic: { type: String, default: '', trim: true, maxlength: 100 },
   order: { type: Number, default: 0, index: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 ayatHadithSchema.index({ phase: 1, kind: 1, createdAt: -1 });

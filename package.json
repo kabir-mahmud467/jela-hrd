@@ -1,7 +1,7 @@
 {
   "name": "jela-hrd",
   "version": "1.1.0",
-  "description": "Jela HRD - Bangla education site (EJS + MongoDB), per-question routes, admin panel, hardened + Vercel-ready",
+  "description": "HRD Narayanganj Jela - Bangla education site (EJS + MongoDB), per-question routes, admin panel, hardened + Vercel-ready",
   "main": "server.js",
   "engines": {
     "node": ">=18"

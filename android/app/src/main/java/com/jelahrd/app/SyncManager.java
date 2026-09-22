@@ -145,9 +145,14 @@ public class SyncManager {
                     if (local == null) local = readAsset(act);
                     final String localVer = versionOf(local);
                     if (serverVer.equals(localVer)) {
+                        setUpdateFlag(act, web, false);
                         post(act, l, "সব কন্টেন্ট আপডেট আছে।", null, web);
                         return;
                     }
+                    // Update prompt: tell the reader an update exists; banner
+                    // button calls Android.refresh() which lands back here and
+                    // pulls the full content (no APK re-download).
+                    setUpdateFlag(act, web, true);
                     final String full = httpGet(SITE + "/api/content.json");
                     if (!serverVer.equals(versionOf(full))) throw new Exception("version moved");
                     saveInternal(act, full);
@@ -167,7 +172,22 @@ public class SyncManager {
                 l.onStatus(msg);
                 if (b64 != null && web != null) {
                     web.evaluateJavascript("App.setData('" + b64 + "');", null);
+                    try {
+                        web.evaluateJavascript("App.setUpdate('0');", null);
+                    } catch (Exception ignored) {}
                 }
+            }
+        });
+    }
+
+    private static void setUpdateFlag(final Activity act, final WebView web, final boolean on) {
+        act.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (web == null) return;
+                try {
+                    web.evaluateJavascript("App.setUpdate('" + (on ? "1" : "0") + "');", null);
+                } catch (Exception ignored) {}
             }
         });
     }

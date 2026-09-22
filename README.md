@@ -13,7 +13,7 @@ Bangla-language education site: গুরুত্বপূর্ণ প্র�
 MongoDB-backed sessions (`connect-mongo`). No frontend framework. SVG icons only — **no emojis**
 in UI. UI strings are in Bengali.
 
-**Live on this machine (production):** http://localhost:3000 · Admin: `/admin/login` ·
+**Live on this machine (production):** http://localhost:3000 · Login: `/login` (admin+user একটাই পেজ) ·
 Health: `/healthz` → `{"ok":true,"db":"up|down"}`
 
 ---
@@ -40,7 +40,7 @@ middleware/ipBan.js    IP ban check (BANNED_IPS env + Ban collection, 60s cache)
                        Banned-hit auto-logged to SecurityEvent.
 middleware/traffic.js  In-memory 15-min per-IP counters (live top talkers) + flagEvent() logger.
                        Only suspicious events hit Mongo — normal views never do.
-middleware/auth.js     requireAdmin guard (redirects to /admin/login).
+middleware/auth.js     requireAdmin/requireUser guards (redirect to /login).
 middleware/validate.js validateBody(kind, body) — single place for all admin form validation.
 models/Question.js     question/answer/subject/chapter/phase/slug/views. Auto-slug hooks. PHASES enum.
 models/Important.js    title/description/category/isPinned (notice board).
@@ -89,7 +89,7 @@ npm run dev    # nodemon server.js
 # or: npm start
 ```
 
-- Site: http://localhost:3000 · Admin login: http://localhost:3000/admin/login (seeded from `.env`)
+- Site: http://localhost:3000 · Login: http://localhost:3000/login (admin+user একটাই পেজ, seeded from `.env`)
 - Health: http://localhost:3000/healthz
 - Requires MongoDB reachable at `MONGODB_URI` (§5). If DB is down, dynamic pages render a
   friendly 500 with a hint instead of hanging (buffer timeout is 3s).
@@ -150,15 +150,16 @@ mongorestore ~/backups/jela-<date>/
 | GET | `/dars?q=&kind=&phase=`, `/dars/dhara/:kind`, `/dars/porbo/:phase`, `/dars/:id` | দারস — ২ ধারা + ৩ পর্ব (প্রশ্নের পর্ব)। ধারা পেজে `?phase=`, পর্ব পেজে `?kind=` চলে। Max 200. |
 | GET | `/dua?q=&cat=&phase=`, `/dua/dhara/:cat`, `/dua/porbo/:phase`, `/dua/:id` | মাসনুন দুআ — SEPARATE route, ৩ ভাগ + ৩ পর্ব। ভাগ পেজে `?phase=`, পর্ব পেজে `?cat=` চলে। Max 200. |
 | GET | `/healthz` | No auth/ban/limit. `{"ok":true,"db":"up\|down"}`. |
-| GET | `/api/content.json[?check=1]` | Native APK sync feed (`routes/sync.js`): full public snapshot `{version, checklist, books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh}` (order-sorted, 500/type cap, `no-store`); `?check=1` = light `{version, counts}` probe. DB down → JSON 503 (never HTML). |
+| GET | `/api/content.json[?check=1]` | Native APK sync feed (`routes/sync.js`): full public snapshot `{version, checklist, books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh}` (order-sorted, 500/type cap, `no-store`); `?check=1` = light `{version, counts}` probe. `version` = `total:max(createdAt,updatedAt)` so EDITS bump it (never version on createdAt alone). App auth: `POST /api/user/login`, `GET /api/user/me`, `POST /api/user/progress`, `POST /api/admin/login`, `GET /api/admin/users`, `GET /api/admin/overview` (token, CORS-open for file:// WebView). DB down → JSON 503 (never HTML). |
 | GET | `/favicon.ico` | `204` (avoids 404-render + DB hit). |
 
 **Admin** (`routes/admin.js`, all except login behind `requireAdmin`):
 
 | Method | Path | Notes |
 |---|---|---|
-| GET/POST | `/admin/login` | `loginLimiter` (10/15min, skips successful). Regenerates session on success. Falls back to `.env` creds only when DB has no such user. |
-| GET | `/admin/logout` | Destroys session. |
+| GET/POST | `/login` | **একটাই লগিন পেজ** — ইউজারনেম+পাসওয়ার্ড দেখে ভাগ হয়: admin creds → `/admin`, user creds → `/dashboard`। `loginLimiter` (10/15min, skips successful)। সফল লগিনে session regenerate। পুরনো `/admin/login` বুকমার্ক: GET → `/login`-এ bounce, POST → 307 forward। |
+| GET | `/logout`, `/admin/logout` | Session destroy → `/login`। |
+| GET | `/dashboard` | User checklist (`requireUser`): DB progress + localStorage merge; `POST /dashboard/progress` (sanitized) সেভ করে। |
 | GET | `/admin` | Dashboard counts (5 parallel `countDocuments`). |
 | CRUD | `/admin/importants`, `/books`, `/notes`, `/dars`, `/duas` | List (limit 500) / `new` / POST create / `:id/edit` / POST `:id` update / POST `:id/delete`. Serial order: arrows move rows instantly in-DOM (`public/js/admin-reorder.js`, ES5, localStorage draft `jela_order_<path>`); ONE save POSTs `ids` to `/:path/reorder` (single `bulkWrite`, single reload). Per-click `:id/move/up\|down` stays as no-JS fallback. Tables need `data-reorder="<crud-path>"` + `data-id` rows or the JS stays dormant. |
 | CRUD | `/admin/questions` | Same shape; create/update go through `validateBody('question')`; updates use `doc.save()` so slug hooks run. |
@@ -242,8 +243,10 @@ Admin question updates use `doc.save()`, NOT `findByIdAndUpdate`, so hooks fire 
 
 ## 8. Auth & sessions
 
-- Login: `Admin.findOne({username})` + `bcrypt.compare`. Success → `req.session.regenerate()` +
-  `req.session.admin = {id, username}` (fixation-safe). Then `/admin/settings` changes persist to DB.
+- Login (`POST /login`, single page): `Admin.findOne` first → `req.session.admin` + redirect
+  `/admin`; else `User.findOne` → `req.session.user` + redirect `/dashboard` (fixation-safe
+  `regenerate()` both). `.env` fallback seeds first admin when DB empty.
+  Then `/admin/settings` changes persist to DB.
 - Store: `connect-mongo` `MongoStore` (`sessions` collection, 6h TTL) when `MONGODB_URI` is set;
   MemoryStore fallback otherwise (dev only — prints the well-known warning).
 - Cookie: `httpOnly`, `sameSite=lax`, 6h, name `jela_hrd_sid`. `secure` follows `COOKIE_SECURE` (§3).
@@ -332,6 +335,6 @@ After code changes: `systemctl --user restart jela-hrd.service` (sessions surviv
 
 - Vercel env: `MONGODB_URI` (Atlas), `SESSION_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`,
   `NODE_ENV=production` (leave `COOKIE_SECURE` unset → defaults to `true` on HTTPS). Then visit
-  `/admin/login` → `/admin/settings` to set a strong password.
+  `/login` → `/admin/settings` to set a strong password.
 - Git: `git init -b main && git add . && git commit -m "..." && gh repo create jela-hrd --public --source=. --push`.
   `.env` and `node_modules/` are gitignored — never commit them.
