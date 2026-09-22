@@ -2,7 +2,7 @@
    Server progress seeds from #server-progress; ticks save instantly to
    localStorage, then POST /dashboard/progress when online (best-effort). */
 (function () {
-  var KEY = 'hrd_dash_local_v1';
+  var KEY = 'hrd_dash_local_v3';
   var current = 'abedonpotrer-purbe';
   var dataEl = document.getElementById('checklist-data');
   var srvEl = document.getElementById('server-progress');
@@ -43,6 +43,12 @@
       for (var k in s) if (s[k]) out[ph][k] = 1;
       for (var k2 in l) if (l[k2]) out[ph][k2] = 1;
     }
+    /* shared cross-phase ticks live outside phases: one tick shows in all 3 */
+    out.shared = {};
+    var ss = server.shared || {};
+    var sl = local.shared || {};
+    for (var sk in ss) if (ss[sk]) out.shared[sk] = 1;
+    for (var sk2 in sl) if (sl[sk2]) out.shared[sk2] = 1;
     return out;
   }
   var store = merged();
@@ -90,6 +96,16 @@
     if (bar) bar.style.width = pct + '%';
     if (cnt) cnt.textContent = done + '/' + list.length;
   }
+  function catDone(list, cat) {
+    var tot = 0, done = 0;
+    for (var i = 0; i < list.length; i++) {
+      if ((list[i] || {}).c === cat) {
+        tot++;
+        if (store[current] && store[current][i]) done++;
+      }
+    }
+    return { tot: tot, done: done, pct: tot ? Math.round(done / tot * 100) : 0 };
+  }
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
@@ -99,26 +115,55 @@
     var list = data[current] || [];
     var html = '';
     var lastCat = '';
+    var catNum = 0;
     for (var i = 0; i < list.length; i++) {
       var it = list[i] || {};
       var checked = store[current] && store[current][i] ? 'checked' : '';
       if (it.c !== lastCat) {
-        html += '<div class="check-cat">' + esc(it.c) + '</div>';
+        catNum = 1;
+        var st = catDone(list, it.c);
+        html += '<div class="check-cat">' + esc(it.c) + ' <span class="badge light">' + st.done + '/' + st.tot + '</span></div>' +
+          '<div class="bar cat-bar"><i style="width:' + st.pct + '%"></i></div>';
         lastCat = it.c;
+      } else {
+        catNum++;
       }
-      html += '<label class="check-item"><input type="checkbox" data-i="' + i + '" ' + checked + '> <span>' + esc(it.t) + '</span></label>';
+      html += '<label class="check-item"><input type="checkbox" data-i="' + i + '" ' + checked + '> <span>' + catNum + '. ' + esc(it.t) + '</span></label>';
+    }
+    /* shared section: same list + same ticks in every phase */
+    var shared = (typeof data.shared !== 'undefined' && data.shared) || [];
+    if (shared.length) {
+      var sDone = 0;
+      for (var si = 0; si < shared.length; si++) {
+        if (store.shared && store.shared[shared[si].id]) sDone++;
+      }
+      var sPct = Math.round(sDone / shared.length * 100);
+      html += '<div class="check-cat">সাধারণ হাদিস <span class="badge light">' + sDone + '/' + shared.length + '</span></div>' +
+        '<div class="bar cat-bar"><i style="width:' + sPct + '%"></i></div>' +
+        '<p class="muted">সব পর্বে একসাথে — এক জায়গায় টিক দিলে তিন পর্বেই দেখাবে।</p>';
+      for (var sj = 0; sj < shared.length; sj++) {
+        var sChecked = store.shared && store.shared[shared[sj].id] ? 'checked' : '';
+        html += '<label class="check-item"><input type="checkbox" data-sid="' + esc(shared[sj].id) + '" ' + sChecked + '> <span>' + (sj + 1) + '. ' + esc(shared[sj].t) + '</span></label>';
+      }
     }
     listEl.innerHTML = html;
     var boxes = listEl.querySelectorAll('input[type=checkbox]');
     for (var b = 0; b < boxes.length; b++) {
       boxes[b].addEventListener('change', function () {
         var idx = this.getAttribute('data-i');
-        store[current] = store[current] || {};
-        if (this.checked) store[current][idx] = 1;
-        else delete store[current][idx];
+        var sid = this.getAttribute('data-sid');
+        if (sid) {
+          store.shared = store.shared || {};
+          if (this.checked) store.shared[sid] = 1;
+          else delete store.shared[sid];
+        } else {
+          store[current] = store[current] || {};
+          if (this.checked) store[current][idx] = 1;
+          else delete store[current][idx];
+        }
         saveLocal(store);
-        updateProgress();
         pushServer();
+        render();
       });
     }
     updateProgress();

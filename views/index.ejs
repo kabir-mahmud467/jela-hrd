@@ -73,9 +73,17 @@
     <div id="checklist-list" class="qa-list">
       <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; var _catNum=0; %>
       <% _initial.forEach(function(it,i){ %>
-        <% if(it.c !== _last){ _catNum=1; %><div class="check-cat"><%= it.c %></div><% _last=it.c; } else { _catNum++; } %>
+        <% if(it.c !== _last){ _catNum=1; var _tot = _initial.filter(function(x){ return x.c === it.c; }).length; %><div class="check-cat"><%= it.c %> <span class="badge light">0/<%= _tot %></span></div><div class="bar cat-bar"><i style="width:0%"></i></div><% _last=it.c; } else { _catNum++; } %>
         <label class="check-item"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>"> <span><%= _catNum %>. <%= it.t %></span></label>
       <% }) %>
+      <% var _shared = (typeof checklistData !== 'undefined' && checklistData.shared) ? checklistData.shared : []; %>
+      <% if (_shared.length) { %>
+        <div class="check-cat">সাধারণ হাদিস <span class="badge light">0/<%= _shared.length %></span></div><div class="bar cat-bar"><i style="width:0%"></i></div>
+        <p class="muted">সব পর্বে একসাথে — এক জায়গায় টিক দিলে তিন পর্বেই দেখাবে।</p>
+        <% _shared.forEach(function(it,j){ %>
+          <label class="check-item"><input type="checkbox" data-k="shared-<%= it.id %>"> <span><%= j+1 %>. <%= it.t %></span></label>
+        <% }) %>
+      <% } %>
     </div>
   </div>
 </section>

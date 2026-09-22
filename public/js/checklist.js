@@ -2,7 +2,7 @@
    Reads data from <script type="application/json" id="checklist-data"> in index.ejs.
    No arrows, const/let, async/await, template literals, optional chaining. */
 (function () {
-  var KEY = 'jela_checklist_v1';
+  var KEY = 'jela_checklist_v3';
   var current = 'abedonpotrer-purbe';
   var dataEl = document.getElementById('checklist-data');
   var data = {};
@@ -38,6 +38,16 @@
     if (cnt) cnt.textContent = done + '/' + list.length;
     if (prog) prog.textContent = pct + '% সম্পন্ন';
   }
+  function catDone(list, store, cat) {
+    var tot = 0, done = 0;
+    for (var i = 0; i < list.length; i++) {
+      if ((list[i] || {}).c === cat) {
+        tot++;
+        if (store[current + '-' + i]) done++;
+      }
+    }
+    return { tot: tot, done: done, pct: tot ? Math.round(done / tot * 100) : 0 };
+  }
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
@@ -55,12 +65,30 @@
       var checked = store[key] ? 'checked' : '';
       if (it.c !== lastCat) {
         catNum = 1;
-        html += '<div class="check-cat">' + esc(it.c) + '</div>';
+        var st = catDone(list, store, it.c);
+        html += '<div class="check-cat">' + esc(it.c) + ' <span class="badge light">' + st.done + '/' + st.tot + '</span></div>' +
+          '<div class="bar cat-bar"><i style="width:' + st.pct + '%"></i></div>';
         lastCat = it.c;
       } else {
         catNum++;
       }
       html += '<label class="check-item"><input type="checkbox" data-k="' + key + '" ' + checked + '> <span>' + catNum + '. ' + esc(it.t) + '</span></label>';
+    }
+    var shared = data.shared || [];
+    if (shared.length) {
+      var sDone = 0;
+      for (var si = 0; si < shared.length; si++) {
+        if (store['shared-' + shared[si].id]) sDone++;
+      }
+      var sPct = Math.round(sDone / shared.length * 100);
+      html += '<div class="check-cat">সাধারণ হাদিস <span class="badge light">' + sDone + '/' + shared.length + '</span></div>' +
+        '<div class="bar cat-bar"><i style="width:' + sPct + '%"></i></div>' +
+        '<p class="muted">সব পর্বে একসাথে — এক জায়গায় টিক দিলে তিন পর্বেই দেখাবে।</p>';
+      for (var sj = 0; sj < shared.length; sj++) {
+        var sKey = 'shared-' + shared[sj].id;
+        var sChecked = store[sKey] ? 'checked' : '';
+        html += '<label class="check-item"><input type="checkbox" data-k="' + sKey + '" ' + sChecked + '> <span>' + (sj + 1) + '. ' + esc(shared[sj].t) + '</span></label>';
+      }
     }
     listEl.innerHTML = html;
     updateProgress();
@@ -74,8 +102,7 @@
     }
   }
   try {
-    applyState();
-    updateProgress();
+    render();
   } catch (e) {}
   var tabs = document.getElementById('checklist-tabs');
   if (tabs) {
@@ -110,7 +137,7 @@
         s[k] = t.checked;
         if (!t.checked) delete s[k];
         save(s);
-        updateProgress();
+        render();
       }
     });
   }

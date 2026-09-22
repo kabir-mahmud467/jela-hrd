@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var DATA = null;
-  var LS_CHECK = 'hrd_check_v1';
+  var LS_CHECK = 'hrd_check_v2';
   /* in-app panels: content offline, login/save/admin needs internet (no outside URL) */
   var SITE = 'https://hrd.kabirmahmud.xyz';
   var LS_AUTH = 'hrd_auth_v1';
@@ -42,6 +42,30 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  /* Display-side entity decode (site parity: lib/rich-html.js). Editors save
+     big gaps as &nbsp; — esc() alone would print them as literal "&nbsp;".
+     Decode first, THEN esc: safe round-trip, gaps render as gaps. */
+  function decEnt(s) {
+    var map = { nbsp: '\u00A0', mdash: '—', ndash: '–', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', laquo: '«', raquo: '»', copy: '©', reg: '®', trade: '™', times: '×', divide: '÷', middot: '·', bull: '•', amp: '&', lt: '<', gt: '>', quot: '"' };
+    return String(s == null ? '' : s).replace(/&([a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);/g, function (m, body) {
+      if (map[body] !== undefined) return map[body];
+      if (body.charAt(0) === '#') {
+        var c = body.charAt(1).toLowerCase() === 'x' ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+        if (c > 0 && c < 0x110000) {
+          try { return String.fromCharCode(c); } catch (e) {}
+        }
+      }
+      return m;
+    });
+  }
+  /* Rich-origin fields (e.g. surah translation) carry <p>/<br> markup that
+     must not leak as literal text in escaped line views. */
+  function stripTags(s) {
+    return String(s == null ? '' : s)
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(p|h3|li|ul|ol|tr)>/gi, '\n')
+      .replace(/<[^<>]*>/g, '');
   }
   function $(id) { return document.getElementById(id); }
   function byId(list, id) {
@@ -203,14 +227,14 @@
     } else if (sec.id === 'notes' || sec.id === 'dars' || sec.id === 'bibidh') {
       if (it.content) h += '<div class="content">' + it.content + '</div>';
     } else if (sec.id === 'duas') {
-      if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
-      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      if (it.arabic) h += '<div class="arabic">' + esc(decEnt(it.arabic)) + '</div>';
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(it.transliteration)) + '</div>';
       if (it.content) h += '<div class="content"><strong>অর্থ:</strong> ' + it.content + '</div>';
     } else if (sec.id === 'surah') {
       h += surahAyatHtml(it);
     } else if (sec.id === 'ayathadith') {
-      if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
-      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      if (it.arabic) h += '<div class="arabic">' + esc(decEnt(it.arabic)) + '</div>';
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(it.transliteration)) + '</div>';
       if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
     }
     return h;
@@ -234,27 +258,27 @@
   }
   function surahAyatHtml(it) {
     var h = '';
-    var aRaw = splitLines(it.arabic);
+    var aRaw = splitLines(stripTags(it.arabic));
     var aLines = [];
     for (var i = 0; i < aRaw.length; i++) {
       if (aRaw[i].replace(/^\s+|\s+$/g, '')) aLines.push(aRaw[i]);
     }
     if (!aLines.length) {
-      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+      if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(it.transliteration)) + '</div>';
       if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
       return h;
     }
-    var tLines = splitLines(it.transliteration);
-    var mLines = splitLines(it.translation);
+    var tLines = splitLines(stripTags(it.transliteration));
+    var mLines = splitLines(stripTags(it.translation));
     for (var j = 0; j < aLines.length; j++) {
       h += '<div class="ayat-card"><div class="ayat-head"><span class="badge">' + bn(j + 1) +
         '</span> <span class="muted">আয়াত ' + bn(j + 1) + '</span></div>' +
-        '<div class="arabic">' + esc(aLines[j]) + '</div>';
+        '<div class="arabic">' + esc(decEnt(aLines[j])) + '</div>';
       if (tLines[j] && tLines[j].replace(/^\s+|\s+$/g, '')) {
-        h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(tLines[j]) + '</div>';
+        h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(tLines[j])) + '</div>';
       }
       if (mLines[j] && mLines[j].replace(/^\s+|\s+$/g, '')) {
-        h += '<div class="ayat-meaning"><strong>অর্থ:</strong> ' + esc(mLines[j]) + '</div>';
+        h += '<div class="ayat-meaning"><strong>অর্থ:</strong> ' + esc(decEnt(mLines[j])) + '</div>';
       }
       h += '</div>';
     }
@@ -283,8 +307,8 @@
       '<div id="' + tid + '" class="ah-a" style="display:none">' +
       '<div><span class="badge">' + kindLabel + '</span>' +
       (it.reference ? '<span class="muted">' + esc(it.reference) + '</span>' : '') + '</div>';
-    if (it.arabic) h += '<div class="arabic">' + esc(it.arabic) + '</div>';
-    if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(it.transliteration) + '</div>';
+    if (it.arabic) h += '<div class="arabic">' + esc(decEnt(it.arabic)) + '</div>';
+    if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(it.transliteration)) + '</div>';
     if (it.translation) h += '<div class="content"><strong>অর্থ:</strong> ' + it.translation + '</div>';
     h += '</div></div>';
     return h;
@@ -351,11 +375,38 @@
       '<div class="muted">' + bn(done) + '/' + bn(list.length) + ' সম্পন্ন</div></div>';
     h += '<div id="ckList">';
     var last = '', n = 0;
+    var ckMap = loadCheck();
+    var ckSaved = ckMap[cur] || {};
     for (var j = 0; j < list.length; j++) {
-      if (list[j].c !== last) { n = 1; h += '<div class="check-cat">' + esc(list[j].c) + '</div>'; last = list[j].c; }
+      if (list[j].c !== last) {
+        n = 1;
+        var cTot = 0, cDone = 0, cj;
+        for (cj = 0; cj < list.length; cj++) {
+          if (list[cj].c === list[j].c) { cTot++; if (ckSaved[cj]) cDone++; }
+        }
+        var cPct = cTot ? Math.round(cDone * 100 / cTot) : 0;
+        h += '<div class="check-cat">' + esc(list[j].c) + ' <span class="badge">' + bn(cDone) + '/' + bn(cTot) + '</span></div>' +
+          '<div class="prog"><div class="bar"><i style="width:' + cPct + '%"></i></div><span class="muted">' + bn(cPct) + '%</span></div>';
+        last = list[j].c;
+      }
       else n++;
       h += '<label class="check-item"><input type="checkbox" data-i="' + j + '"' +
-        (saved[j] ? ' checked' : '') + '> <span>' + bn(n) + '. ' + esc(list[j].t) + '</span></label>';
+        (ckSaved[j] ? ' checked' : '') + '> <span>' + bn(n) + '. ' + esc(list[j].t) + '</span></label>';
+    }
+    /* shared section: same ticks in every phase (stable ids, not positions) */
+    var ckShared = DATA.checklist.shared || [];
+    if (ckShared.length) {
+      var sSaved = ckMap.shared || {};
+      var sDone = 0, sk;
+      for (sk = 0; sk < ckShared.length; sk++) if (sSaved[ckShared[sk].id]) sDone++;
+      var sPct = Math.round(sDone * 100 / ckShared.length);
+      h += '<div class="check-cat">সাধারণ হাদিস <span class="badge">' + bn(sDone) + '/' + bn(ckShared.length) + '</span></div>' +
+        '<div class="prog"><div class="bar"><i style="width:' + sPct + '%"></i></div><span class="muted">' + bn(sPct) + '%</span></div>' +
+        '<p class="muted">সব পর্বে একসাথে — এক জায়গায় টিক দিলে তিন পর্বেই দেখাবে।</p>';
+      for (var sj = 0; sj < ckShared.length; sj++) {
+        h += '<label class="check-item"><input type="checkbox" data-sid="' + esc(ckShared[sj].id) + '"' +
+          (sSaved[ckShared[sj].id] ? ' checked' : '') + '> <span>' + bn(sj + 1) + '. ' + esc(ckShared[sj].t) + '</span></label>';
+      }
     }
     h += '</div>';
     v.innerHTML = h;
@@ -370,9 +421,16 @@
     for (var b = 0; b < boxes.length; b++) {
       boxes[b].addEventListener('change', function () {
         var m = loadCheck();
-        m[cur] = m[cur] || {};
-        if (this.checked) m[cur][this.getAttribute('data-i')] = 1;
-        else delete m[cur][this.getAttribute('data-i')];
+        var sid = this.getAttribute('data-sid');
+        if (sid) {
+          m.shared = m.shared || {};
+          if (this.checked) m.shared[sid] = 1;
+          else delete m.shared[sid];
+        } else {
+          m[cur] = m[cur] || {};
+          if (this.checked) m[cur][this.getAttribute('data-i')] = 1;
+          else delete m[cur][this.getAttribute('data-i')];
+        }
         saveCheck(m);
         viewHome();
       });
@@ -705,10 +763,11 @@
       var local = {};
       try { local = JSON.parse(localStorage.getItem(LS_CHECK) || '{}'); } catch (e) { local = {}; }
       var phases = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
-      var h = '<div class="card"><h3>' + esc(u.name || u.username) + '</h3>' +
-        '<p class="muted">ইউজারনেম: <b>' + esc(u.username) + '</b></p>' +
-        '<p class="muted">ফোন: <b>' + esc(u.phone || '—') + '</b></p><div class="adm-sec">';
+      var h = '<div class="u-card"><div class="u-top"><span class="u-av">' + esc(String(u.name || u.username || '?').slice(0, 1)) + '</span>' +
+        '<span class="u-id"><b>' + esc(u.name || u.username) + '</b>' +
+        '<span class="muted">@' + esc(u.username) + (u.phone ? ' · ' + esc(u.phone) : '') + '</span></span></div></div>';
       var grand = 0, grandTot = 0;
+      var rows = '';
       for (var i = 0; i < phases.length; i++) {
         var ph = phases[i];
         var sp = (u.progress && u.progress[ph]) || {};
@@ -719,12 +778,32 @@
         var tot = (DATA && DATA.checklist && DATA.checklist[ph]) ? DATA.checklist[ph].length : 0;
         grand += done; grandTot += tot;
         var pct = tot ? Math.round(done * 100 / tot) : 0;
-        h += '<div class="prog" style="margin-top:6px"><div class="bar"><i style="width:' + pct + '%"></i></div>' +
-          '<span class="muted">' + esc(PHASES[ph]) + ' ' + bn(done) + '/' + bn(tot) + '</span></div>';
+        rows += '<div class="acc-row"><span class="acc-name">' + esc(PHASES[ph]) + '</span>' +
+          '<span class="prog"><span class="bar"><i style="width:' + pct + '%"></i></span>' +
+          '<span class="acc-pct">' + bn(pct) + '%</span></span>' +
+          '<span class="badge">' + bn(done) + '/' + bn(tot) + '</span></div>';
       }
-      h += '</div><p class="muted">মোট অগ্রগতি: ' + bn(grand) + '/' + bn(grandTot) + '</p>' +
-        '<div class="row"><button id="accPush" class="btn">অগ্রগতি সেভ করুন</button>' +
-        '<button id="accOut" class="btn ghost">লগআউট</button></div>' +
+      /* shared cross-phase hadith (same ticks in all phases) */
+      var shList = (DATA && DATA.checklist && DATA.checklist.shared) || [];
+      if (shList.length) {
+        var ssp = (u.progress && u.progress.shared) || {};
+        var slp = local.shared || {};
+        var sDone = 0, sk;
+        for (sk = 0; sk < shList.length; sk++) {
+          if (ssp[shList[sk].id] || slp[shList[sk].id]) sDone++;
+        }
+        var sPct = Math.round(sDone * 100 / shList.length);
+        rows += '<div class="acc-row"><span class="acc-name">সাধারণ হাদিস</span>' +
+          '<span class="prog"><span class="bar"><i style="width:' + sPct + '%"></i></span>' +
+          '<span class="acc-pct">' + bn(sPct) + '%</span></span>' +
+          '<span class="badge">' + bn(sDone) + '/' + bn(shList.length) + '</span></div>';
+      }
+      var gPct = grandTot ? Math.round(grand * 100 / grandTot) : 0;
+      h += '<div class="adm-hero"><div><div class="adm-hero-t">মোট অগ্রগতি ' + bn(gPct) + '%</div>' +
+        '<div class="adm-hero-n">' + bn(grand) + '/' + bn(grandTot) + ' সম্পন্ন</div></div>' +
+        '<button id="accPush" class="btn small">সেভ করুন</button></div>' +
+        '<div class="card acc-list">' + rows +
+        '<div class="row" style="margin:8px 0 0"><button id="accOut" class="btn small ghost">লগআউট</button></div>' +
         '<p class="muted" id="accSync2">চেকলিস্ট টিক ফোনে থাকে; সেভ চাপলে সার্ভারে যায়।</p></div>';
       h += '<div class="card"><h3>পাসওয়ার্ড বদলান</h3>' +
         '<p class="muted">নিরাপত্তার জন্য পাসওয়ার্ড দেখানো হয় না — শুধু বদলানো যায়।</p>' +
@@ -827,7 +906,7 @@
       { k: 'link', label: 'লিংক (http/https)', t: 'text', req: 1 },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P3' },
       { k: 'category', label: 'ক্যাটাগরি', t: 'text' },
-      { k: 'description', label: 'বিস্তারিত', t: 'area' }
+      { k: 'description', label: 'বিস্তারিত', t: 'area', rich: 1 }
     ],
     audiobooks: [
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
@@ -839,11 +918,11 @@
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
       { k: 'category', label: 'ধরন', t: 'sel', opts: 'NC' },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P2' },
-      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1 }
+      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1, rich: 1 }
     ],
     dars: [
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
-      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1 },
+      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P3' }
     ],
@@ -851,7 +930,7 @@
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
       { k: 'arabic', label: 'আরবি', t: 'area' },
       { k: 'transliteration', label: 'উচ্চারণ', t: 'area' },
-      { k: 'content', label: 'অর্থ/ব্যাখ্যা', t: 'area', req: 1 },
+      { k: 'content', label: 'অর্থ/ব্যাখ্যা', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P3' }
     ],
@@ -861,7 +940,7 @@
       { k: 'topic', label: 'বিষয়', t: 'text' },
       { k: 'arabic', label: 'আরবি', t: 'area' },
       { k: 'transliteration', label: 'উচ্চারণ', t: 'area' },
-      { k: 'translation', label: 'অর্থ', t: 'area', req: 1 },
+      { k: 'translation', label: 'অর্থ', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P3' }
     ],
@@ -869,14 +948,14 @@
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
       { k: 'arabic', label: 'আরবি', t: 'area' },
       { k: 'transliteration', label: 'উচ্চারণ', t: 'area' },
-      { k: 'translation', label: 'অর্থ', t: 'area', req: 1 },
+      { k: 'translation', label: 'অর্থ', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' },
       { k: 'phase', label: 'পর্ব', t: 'sel', opts: 'P3' }
     ],
     bibidh: [
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
       { k: 'category', label: 'বিষয়', t: 'sel', opts: 'BC' },
-      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1 },
+      { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' }
     ]
   };
@@ -1128,6 +1207,308 @@
       }
     });
   }
+  /* ---------- rich-text editor (site parity: fmt-bar + formatted paste) ----
+     content/description/translation fields edit as HTML like the site panel.
+     Toolbar: B I U S H P lists table link clear (+indent). Paste keeps
+     bold/lists/headings/links via the same tag allowlist the server render
+     (lib/rich-html.js) keeps; scripts/frames/objects are dropped. ES5 only.
+     window.prompt is unreliable in WebView, so link/table use inline rows. */
+  var RICH_BTNS = [
+    { act: 'bold', label: 'B', title: 'গাঢ়', cls: 'fmt-b' },
+    { act: 'italic', label: 'I', title: 'তির্যক', cls: 'fmt-i' },
+    { act: 'underline', label: 'U', title: 'নিচে দাগ', cls: 'fmt-u' },
+    { act: 'strike', label: 'S', title: 'কাটা দাগ', cls: 'fmt-s' },
+    { act: 'heading', label: 'H', title: 'শিরোনাম' },
+    { act: 'para', label: 'P', title: 'সাধারণ প্যারা' },
+    { act: 'list', label: '•', title: 'বুলেট তালিকা' },
+    { act: 'ordered', label: '1.', title: 'নম্বর তালিকা' },
+    { act: 'table', label: '▦', title: 'টেবিল' },
+    { act: 'indent', label: '⇥', title: 'ভেতরে' },
+    { act: 'outdent', label: '⇤', title: 'বাইরে' },
+    { act: 'link', label: 'লিংক', title: 'লিংক' },
+    { act: 'clear', label: '✕', title: 'ফরম্যাট মুছুন' }
+  ];
+  var richSavedRange = null;
+  function richExec(name, val) {
+    try { return document.execCommand(name, false, (val === undefined || val === null) ? null : val); }
+    catch (e) { return false; }
+  }
+  function richSaveRange() {
+    try {
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount) richSavedRange = sel.getRangeAt(0).cloneRange();
+    } catch (e) {}
+  }
+  function richRestore(ed) {
+    try {
+      ed.focus();
+      if (richSavedRange) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(richSavedRange);
+      }
+    } catch (e) { try { ed.focus(); } catch (e2) {} }
+  }
+  function richNormalizeUrl(u) {
+    u = String(u == null ? '' : u).replace(/^\s+|\s+$/g, '');
+    if (!u) return null;
+    if (/^(https?:\/\/|mailto:|tel:|#)/i.test(u)) return u;
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(u)) return 'https://' + u;
+    if (/^\//.test(u)) return u;
+    return null;
+  }
+  function richHasHtml(s) {
+    return /<\/?[a-zA-Z][^<>]*>/.test(String(s == null ? '' : s));
+  }
+  function richSeedHtml(raw) {
+    raw = String(raw == null ? '' : raw);
+    if (richHasHtml(raw)) return raw;
+    return esc(raw).replace(/\n/g, '<br>');
+  }
+  function richText(el) {
+    try { return (el.textContent || '').replace(/^\s+|\s+$/g, ''); }
+    catch (e) { return ''; }
+  }
+  var RICH_KEEP = { P: 1, H3: 1, BR: 1, STRONG: 1, EM: 1, U: 1, S: 1, STRIKE: 1, DEL: 1, UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, A: 1, TABLE: 1, CAPTION: 1, THEAD: 1, TBODY: 1, TFOOT: 1, TR: 1, TH: 1, TD: 1 };
+  var RICH_TOP = { DIV: 'P', SECTION: 'P', ARTICLE: 'P', HEADER: 'P', FOOTER: 'P', MAIN: 'P', NAV: 'P', ASIDE: 'P', H1: 'H3', H2: 'H3', H4: 'H3', H5: 'H3', H6: 'H3', B: 'STRONG', I: 'EM' };
+  var RICH_DROP = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, FORM: 1, INPUT: 1, BUTTON: 1, SELECT: 1, TEXTAREA: 1, IMG: 1, VIDEO: 1, AUDIO: 1, META: 1, LINK: 1 };
+  function richPasteRename(node, tag) {
+    var fresh = document.createElement(tag);
+    while (node.firstChild) fresh.appendChild(node.firstChild);
+    node.parentNode.replaceChild(fresh, node);
+    return fresh;
+  }
+  function richStyleWraps(el) {
+    var out = [];
+    var css = '';
+    try { css = (el.getAttribute('style') || '').toLowerCase(); } catch (e) {}
+    try { if (el.style && el.style.cssText) css += ';' + String(el.style.cssText).toLowerCase(); } catch (e2) {}
+    if (!css) return out;
+    if (/(^|;)[\s]*font-weight[\s]*:[\s]*(bold|[7-9]\d\d)/.test(css)) out.push('STRONG');
+    if (/(^|;)[\s]*font-style[\s]*:[\s]*(italic|oblique)/.test(css)) out.push('EM');
+    if (/text-decoration[^;]*underline/.test(css)) out.push('U');
+    if (/text-decoration[^;]*line-through/.test(css)) out.push('S');
+    return out;
+  }
+  function richPasteUnwrap(node) {
+    var parent = node.parentNode;
+    while (node.firstChild) parent.insertBefore(node.firstChild, node);
+    parent.removeChild(node);
+  }
+  function richPasteWrapInline(node, tags) {
+    var inner = node;
+    var i, fresh;
+    for (i = tags.length - 1; i >= 0; i--) {
+      fresh = document.createElement(tags[i]);
+      while (inner.firstChild) fresh.appendChild(inner.firstChild);
+      inner.appendChild(fresh);
+      inner = fresh;
+    }
+    richPasteUnwrap(node);
+  }
+  function richPasteClean(node) {
+    var kids = node.childNodes;
+    var i, n, tag, href;
+    for (i = kids.length - 1; i >= 0; i--) {
+      n = kids[i];
+      if (n.nodeType === 8) { node.removeChild(n); continue; }
+      if (n.nodeType !== 1) continue;
+      tag = n.tagName;
+      if (RICH_DROP[tag]) { node.removeChild(n); continue; }
+      if (tag === 'A') {
+        try { href = n.getAttribute('href'); } catch (e) { href = null; }
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        href = richNormalizeUrl(href);
+        if (href && !/^https?:\/\//i.test(href)) href = null;
+        if (href) n.setAttribute('href', href);
+        else { richPasteClean(n); richPasteUnwrap(n); continue; }
+        richPasteClean(n);
+        continue;
+      }
+      if (RICH_KEEP[tag]) {
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        richPasteClean(n);
+        continue;
+      }
+      if (RICH_TOP[tag]) {
+        while (n.attributes.length) n.removeAttribute(n.attributes[0].name);
+        n = richPasteRename(n, RICH_TOP[tag]);
+        richPasteClean(n);
+        continue;
+      }
+      var wraps = (tag === 'SPAN' || tag === 'FONT') ? richStyleWraps(n) : [];
+      richPasteClean(n);
+      if (wraps.length) richPasteWrapInline(n, wraps);
+      else richPasteUnwrap(n);
+    }
+  }
+  function richSanitizePaste(html) {
+    try {
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      richPasteClean(tmp);
+      return tmp.innerHTML.replace(/^\s+|\s+$/g, '');
+    } catch (e) {
+      return '';
+    }
+  }
+  function richInsertHtml(html) {
+    try { if (document.execCommand('insertHTML', false, html)) return; } catch (e) {}
+    try {
+      var sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        var r = sel.getRangeAt(0);
+        r.deleteContents();
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        r.insertNode(frag);
+        r.collapse(false);
+      }
+    } catch (e2) {}
+  }
+  function richWrapFallback(tag) {
+    try {
+      var sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return false;
+      var r = sel.getRangeAt(0);
+      if (r.collapsed) return false;
+      var el = document.createElement(tag);
+      el.appendChild(r.extractContents());
+      r.insertNode(el);
+      r.setStartAfter(el);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      return true;
+    } catch (e) { return false; }
+  }
+  function richFire(ed, act) {
+    richRestore(ed);
+    if (act === 'bold') { if (!richExec('bold')) richWrapFallback('strong'); }
+    else if (act === 'italic') { if (!richExec('italic')) richWrapFallback('em'); }
+    else if (act === 'underline') { if (!richExec('underline')) richWrapFallback('u'); }
+    else if (act === 'strike') { if (!richExec('strikeThrough')) richWrapFallback('s'); }
+    else if (act === 'heading') { richExec('formatBlock', 'h3'); }
+    else if (act === 'para') { richExec('formatBlock', 'p'); }
+    else if (act === 'list') { richExec('insertUnorderedList'); }
+    else if (act === 'ordered') { richExec('insertOrderedList'); }
+    else if (act === 'indent') { richExec('indent'); }
+    else if (act === 'outdent') { richExec('outdent'); }
+    else if (act === 'clear') { richExec('removeFormat'); }
+    richSaveRange();
+    try { ed.focus(); } catch (e) {}
+  }
+  function richBarHtml(key) {
+    var h = '';
+    for (var i = 0; i < RICH_BTNS.length; i++) {
+      var b = RICH_BTNS[i];
+      h += '<button type="button" class="fmt-btn' + (b.cls ? ' ' + b.cls : '') + '" data-act="' + b.act + '" title="' + b.title + '">' + b.label + '</button>';
+    }
+    return h;
+  }
+  function richWireBar(bar, ed, key) {
+    var btns = bar.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+      btns[i].addEventListener('click', function (ev) {
+        ev.preventDefault();
+        var act = this.getAttribute('data-act');
+        if (act === 'link' || act === 'table') { richToggleRow(key, act); try { ed.focus(); } catch (e) {} return; }
+        richFire(ed, act);
+      });
+    }
+  }
+  function richToggleRow(key, act) {
+    var lr = document.getElementById('ae-' + key + '-link');
+    var tr = document.getElementById('ae-' + key + '-table');
+    if (act === 'link') {
+      if (lr) lr.style.display = (lr.style.display === 'none') ? 'block' : 'none';
+      if (tr) tr.style.display = 'none';
+    } else {
+      if (tr) tr.style.display = (tr.style.display === 'none') ? 'block' : 'none';
+      if (lr) lr.style.display = 'none';
+    }
+  }
+  function richApplyLink(key) {
+    var ed = document.getElementById('ae-' + key);
+    var inp = document.getElementById('ae-' + key + '-url');
+    if (!ed || !inp) return;
+    var u = richNormalizeUrl(inp.value);
+    if (!u) return;
+    richRestore(ed);
+    if (!richExec('createLink', u)) {
+      try {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+          var r = sel.getRangeAt(0);
+          var a = document.createElement('a');
+          a.setAttribute('href', u);
+          a.appendChild(r.extractContents());
+          r.insertNode(a);
+        }
+      } catch (e) {}
+    }
+    var lr = document.getElementById('ae-' + key + '-link');
+    if (lr) lr.style.display = 'none';
+    try { ed.focus(); } catch (e2) {}
+  }
+  function richApplyTable(key) {
+    var ed = document.getElementById('ae-' + key);
+    var rr = document.getElementById('ae-' + key + '-rows');
+    var cc = document.getElementById('ae-' + key + '-cols');
+    if (!ed || !rr || !cc) return;
+    var rows = Math.max(1, Math.min(10, parseInt(rr.value, 10) || 0));
+    var cols = Math.max(1, Math.min(6, parseInt(cc.value, 10) || 0));
+    if (!rows || !cols) return;
+    var h = '<table><thead><tr>';
+    var r, c;
+    for (c = 0; c < cols; c++) h += '<th>শিরোনাম</th>';
+    h += '</tr></thead><tbody>';
+    for (r = 1; r < rows; r++) {
+      h += '<tr>';
+      for (c = 0; c < cols; c++) h += '<td></td>';
+      h += '</tr>';
+    }
+    h += '</tbody></table><p><br></p>';
+    richRestore(ed);
+    richInsertHtml(h);
+    var tr = document.getElementById('ae-' + key + '-table');
+    if (tr) tr.style.display = 'none';
+    try { ed.focus(); } catch (e) {}
+  }
+  function richWirePaste(ed) {
+    ed.addEventListener('paste', function (e) {
+      var cd = null;
+      try { cd = e.clipboardData || window.clipboardData; } catch (err) {}
+      if (!cd || !cd.getData) return;
+      var html = '';
+      try { html = cd.getData('text/html'); } catch (err1) {}
+      if (html) {
+        var clean = richSanitizePaste(html);
+        if (clean) { e.preventDefault(); richInsertHtml(clean); return; }
+      }
+      var text = '';
+      try { text = cd.getData('text/plain'); } catch (err3) {}
+      if (!text) return;
+      e.preventDefault();
+      try { if (document.execCommand('insertText', false, text)) return; } catch (err4) {}
+      try {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+          var r = sel.getRangeAt(0);
+          r.deleteContents();
+          r.insertNode(document.createTextNode(text));
+          r.collapse(false);
+        } else {
+          ed.appendChild(document.createTextNode(text));
+        }
+      } catch (err5) {}
+    });
+    ed.addEventListener('keyup', richSaveRange);
+    ed.addEventListener('mouseup', richSaveRange);
+  }
   function admForm(type, item) {
     var body = $('admBody');
     var defs = FIELD_DEFS[type] || [];
@@ -1137,7 +1518,18 @@
     for (var f = 0; f < defs.length; f++) {
       var d = defs[f];
       var val = item ? (item[d.k] || '') : '';
-      if (d.t === 'area') {
+      if (d.t === 'area' && d.rich) {
+        h += '<label class="fld" for="ae-' + d.k + '">' + esc(d.label) + '</label>' +
+          '<div class="fmt-bar" data-bar="' + d.k + '" role="toolbar" aria-label="পাঠ ফরম্যাট">' + richBarHtml(d.k) + '</div>' +
+          '<div class="rich-editor" id="ae-' + d.k + '" contenteditable="true" spellcheck="true">' + richSeedHtml(val) + '</div>' +
+          '<div class="fmt-row" id="ae-' + d.k + '-link" style="display:none">' +
+          '<input id="ae-' + d.k + '-url" placeholder="https://…" inputmode="url" autocomplete="off">' +
+          '<button type="button" class="btn small" data-linkgo="' + d.k + '">লিংক যোগ করুন</button></div>' +
+          '<div class="fmt-row" id="ae-' + d.k + '-table" style="display:none">' +
+          '<input id="ae-' + d.k + '-rows" inputmode="numeric" placeholder="সারি" autocomplete="off">' +
+          '<input id="ae-' + d.k + '-cols" inputmode="numeric" placeholder="কলাম" autocomplete="off">' +
+          '<button type="button" class="btn small" data-tablego="' + d.k + '">টেবিল যোগ করুন</button></div>';
+      } else if (d.t === 'area') {
         h += '<label class="fld">' + esc(d.label) + '<textarea id="af-' + d.k + '">' + esc(val) + '</textarea></label>';
       } else if (d.t === 'sel') {
         var opts = admOpts(d.opts);
@@ -1155,6 +1547,27 @@
       '<button id="afCancel" class="btn ghost">বাতিল</button></div>' +
       '<p class="muted">সেভ হলে স্বয়ংক্রিয় সিংক চলবে — ফোনের অফলাইন কপি আপডেট হবে।</p></div>';
     body.innerHTML = h;
+    (function wireRich() {
+      var keys = [];
+      for (var w = 0; w < defs.length; w++) if (defs[w].t === 'area' && defs[w].rich) keys.push(defs[w].k);
+      for (var w2 = 0; w2 < keys.length; w2++) {
+        (function (key) {
+          var ed = document.getElementById('ae-' + key);
+          if (!ed) return;
+          var bar = body.querySelector('[data-bar="' + key + '"]');
+          if (bar) richWireBar(bar, ed, key);
+          richWirePaste(ed);
+        })(keys[w2]);
+      }
+      var lgs = body.querySelectorAll('[data-linkgo]');
+      for (var l = 0; l < lgs.length; l++) {
+        lgs[l].addEventListener('click', function () { richApplyLink(this.getAttribute('data-linkgo')); });
+      }
+      var tgs = body.querySelectorAll('[data-tablego]');
+      for (var t = 0; t < tgs.length; t++) {
+        tgs[t].addEventListener('click', function () { richApplyTable(this.getAttribute('data-tablego')); });
+      }
+    })();
     $('afBack').addEventListener('click', function () {
       admEdit = null;
       admRenderSec();
@@ -1166,6 +1579,17 @@
     $('afSave').addEventListener('click', function () {
       var data = {};
       for (var i = 0; i < defs.length; i++) {
+        if (defs[i].t === 'area' && defs[i].rich) {
+          var ed2 = document.getElementById('ae-' + defs[i].k);
+          data[defs[i].k] = ed2 ? ed2.innerHTML : '';
+          if (defs[i].req && !richText(ed2)) {
+            var eR = $('admErr');
+            eR.style.display = 'block';
+            eR.textContent = '“' + defs[i].label + '” আবশ্যক।';
+            return;
+          }
+          continue;
+        }
         var el = document.getElementById('af-' + defs[i].k);
         data[defs[i].k] = el ? el.value : '';
         if (defs[i].req && !String(data[defs[i].k] || '').replace(/^\s+|\s+$/g, '')) {
@@ -1222,6 +1646,11 @@
       tot += t;
       per[ph] = { done: d, total: t, pct: t ? Math.round(d * 100 / t) : 0 };
     }
+    var shL = (DATA && DATA.checklist && DATA.checklist.shared) || [];
+    var shS = (u.progress && u.progress.shared) || {};
+    var shD = 0, shI;
+    for (shI = 0; shI < shL.length; shI++) if (shS[shL[shI].id]) shD++;
+    per.shared = { done: shD, total: shL.length, pct: shL.length ? Math.round(shD * 100 / shL.length) : 0 };
     return { done: done, total: tot, per: per, pct: tot ? Math.round(done * 100 / tot) : 0 };
   }
   function admUsers() {
@@ -1281,7 +1710,8 @@
         '<span class="muted">' + bn(st.pct) + '%</span></div>' +
         '<div class="u-phases"><span class="muted">আবেদন ' + bn(st.per['abedonpotrer-purbe'].done) + '/' + bn(st.per['abedonpotrer-purbe'].total) +
         ' · প্রশ্ন ' + bn(st.per['proshnopotrer-purbe'].done) + '/' + bn(st.per['proshnopotrer-purbe'].total) +
-        ' · শপথ ' + bn(st.per['shopother-purbe'].done) + '/' + bn(st.per['shopother-purbe'].total) + '</span></div>' +
+        ' · শপথ ' + bn(st.per['shopother-purbe'].done) + '/' + bn(st.per['shopother-purbe'].total) +
+        ' · হাদিস ' + bn(st.per.shared.done) + '/' + bn(st.per.shared.total) + '</span></div>' +
         '<div class="u-acts"><button class="btn small" data-u="detail" data-id="' + esc(u._id) + '">অগ্রগতি</button>' +
         '<button class="btn small ghost" data-u="edit" data-id="' + esc(u._id) + '">এডিট</button>' +
         '<button class="btn small danger" data-u="del" data-id="' + esc(u._id) + '" data-uname="' + esc(u.username) + '">ডিলিট</button></div></div>';
@@ -1317,13 +1747,40 @@
         '<div class="prog"><div class="bar"><i style="width:' + p.pct + '%"></i></div><span class="muted">' + bn(p.pct) + '%</span></div>';
       var list = (DATA && DATA.checklist && DATA.checklist[ph]) || [];
       var saved = (u.progress && u.progress[ph]) || {};
-      var last = '';
+      var last = '', cn = 0;
       for (var j = 0; j < list.length; j++) {
-        if (list[j].c !== last) { h += '<div class="check-cat">' + esc(list[j].c) + '</div>'; last = list[j].c; }
+        if (list[j].c !== last) {
+          cn = 1;
+          var ct = 0, cd = 0, ck;
+          for (ck = 0; ck < list.length; ck++) {
+            if (list[ck].c === list[j].c) { ct++; if (saved[ck]) cd++; }
+          }
+          var cp = ct ? Math.round(cd * 100 / ct) : 0;
+          h += '<div class="check-cat">' + esc(list[j].c) + ' <span class="badge">' + bn(cd) + '/' + bn(ct) + '</span></div>' +
+            '<div class="prog"><div class="bar"><i style="width:' + cp + '%"></i></div><span class="muted">' + bn(cp) + '%</span></div>';
+          last = list[j].c;
+        }
+        else cn++;
         var doneIt = !!saved[j];
-        h += '<div class="check-item"><span class="badge' + (doneIt ? '' : ' dim') + '">' + (doneIt ? 'সম্পন্ন' : 'বাকি') + '</span><span>' + esc(list[j].t) + '</span></div>';
+        h += '<div class="check-item"><span class="badge' + (doneIt ? '' : ' dim') + '">' + (doneIt ? 'সম্পন্ন' : 'বাকি') + '</span><span>' + bn(cn) + '. ' + esc(list[j].t) + '</span></div>';
       }
-      if (!list.length) h += '<p class="muted">চেকলিস্ট সিংক হয়নি — ⟳ সিংক করে আবার দেখুন।</p>';
+      if (!list.length) h += '<p class="muted">চেকলিস্ট সিংক হয়নি — সিংক করে আবার দেখুন।</p>';
+      h += '</div>';
+    }
+    /* shared cross-phase hadith (same ticks in all phases) */
+    var shList = (DATA && DATA.checklist && DATA.checklist.shared) || [];
+    if (shList.length) {
+      var shSaved = (u.progress && u.progress.shared) || {};
+      var shDone = 0, shx;
+      for (shx = 0; shx < shList.length; shx++) if (shSaved[shList[shx].id]) shDone++;
+      var shPct = Math.round(shDone * 100 / shList.length);
+      h += '<div class="card"><h3>সাধারণ হাদিস (সব পর্বে একসাথে) <span class="badge">' + bn(shDone) + '/' + bn(shList.length) + '</span></h3>' +
+        '<div class="prog"><div class="bar"><i style="width:' + shPct + '%"></i></div><span class="muted">' + bn(shPct) + '%</span></div>' +
+        '<p class="muted">এক পর্বে টিক দিলে তিন পর্বেই দেখায়।</p>';
+      for (var shy = 0; shy < shList.length; shy++) {
+        var shIt = !!shSaved[shList[shy].id];
+        h += '<div class="check-item"><span class="badge' + (shIt ? '' : ' dim') + '">' + (shIt ? 'সম্পন্ন' : 'বাকি') + '</span><span>' + bn(shy + 1) + '. ' + esc(shList[shy].t) + '</span></div>';
+      }
       h += '</div>';
     }
     return h;

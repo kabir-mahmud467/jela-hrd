@@ -13,7 +13,7 @@ const { flagEvent } = require('../middleware/traffic');
 function sanitizeProgress(p) {
   const out = {};
   if (!p || typeof p !== 'object') return out;
-  const phases = Object.keys(checklistData);
+  const phases = Object.keys(checklistData).filter((k) => k !== 'shared');
   phases.forEach((ph) => {
     const src = p[ph];
     if (!src || typeof src !== 'object') return;
@@ -25,6 +25,20 @@ function sanitizeProgress(p) {
     });
     if (Object.keys(dst).length) out[ph] = dst;
   });
+  // Shared cross-phase items: stable ids (progress.shared), so a tick in one
+  // phase shows in all three. Unknown ids are dropped.
+  const sharedList = checklistData.shared || [];
+  const ssrc = p.shared;
+  if (ssrc && typeof ssrc === 'object') {
+    const known = {};
+    sharedList.forEach((it) => { if (it && it.id) known[String(it.id).slice(0, 100)] = 1; });
+    const sdst = {};
+    Object.keys(ssrc).forEach((k) => {
+      const id = String(k).slice(0, 100);
+      if (known[id] && ssrc[k]) sdst[id] = 1;
+    });
+    if (Object.keys(sdst).length) out.shared = sdst;
+  }
   return out;
 }
 

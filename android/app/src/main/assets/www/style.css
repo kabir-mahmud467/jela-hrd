@@ -122,6 +122,27 @@ select.sel option{background:var(--input-bg);color:var(--ink)}
 .adm-list{padding:8px 14px}
 .adm-form textarea{min-height:110px}
 .adm-err{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-line);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:14px}
+/* rich-text editor (site parity: same fmt-bar system) */
+.fmt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.fmt-btn{min-width:34px;min-height:36px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;line-height:1.4}
+.fmt-btn:active{border-color:var(--accent)}
+.fmt-btn.fmt-b{font-weight:800}
+.fmt-btn.fmt-i{font-style:italic}
+.fmt-btn.fmt-u{text-decoration:underline}
+.fmt-btn.fmt-s{text-decoration:line-through}
+.rich-editor{min-height:140px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:15px;line-height:1.9;overflow-wrap:anywhere}
+.rich-editor:focus{outline:none;border-color:var(--accent)}
+.rich-editor:empty:before{content:'এখানে লিখুন…';opacity:.55}
+.rich-editor p{margin:0 0 8px}
+.rich-editor h3{font-size:16.5px;margin:10px 0 6px}
+.rich-editor ul,.rich-editor ol{margin:0 0 8px;padding-left:22px}
+.rich-editor blockquote{margin:0 0 8px;padding:4px 10px;border-left:3px solid var(--accent);background:var(--deep)}
+.rich-editor a{color:var(--badge-ink)}
+.rich-editor table{display:block;width:100%;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:8px 0;font-size:14px;-webkit-overflow-scrolling:touch}
+.rich-editor th,.rich-editor td{border:1px solid var(--line);padding:8px 10px;text-align:left;min-width:70px}
+.rich-editor td:focus,.rich-editor th:focus{outline:2px solid var(--accent);outline-offset:-2px}
+.fmt-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.fmt-row input{flex:1 1 120px;min-width:0;background:var(--input-bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:16px}
 /* user cards + progress detail */
 .u-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;min-width:0}
 .u-top{display:flex;align-items:center;gap:10px;min-width:0}
@@ -132,6 +153,15 @@ select.sel option{background:var(--input-bg);color:var(--ink)}
 .u-acts{display:flex;gap:8px;flex-wrap:wrap}
 .u-acts .btn{flex:1 1 100px}
 .badge.dim{opacity:.65;font-weight:600}
+/* account progress rows: name + bar + % beside the bar + count */
+.acc-list{padding:8px 14px}
+.acc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.acc-row:first-child{border-top:none}
+.acc-name{flex:0 0 118px;font-weight:700;font-size:13.5px;color:var(--ink)}
+.acc-row .prog{flex:1 1 auto;display:flex;align-items:center;gap:8px;margin:0}
+.acc-row .bar{flex:1;margin:0}
+.acc-pct{flex:0 0 auto;font-weight:800;font-size:13.5px;color:var(--badge-ink);min-width:44px;text-align:right}
+.acc-row .badge{flex:0 0 auto;margin:0}
 /* small phones */
 @media (max-width:480px){
   body{font-size:14.5px}

@@ -88,9 +88,20 @@ async function snapshot() {
   });
   const counts = {};
   Object.keys(cols).forEach((k) => { counts[k] = (cols[k] || []).length; });
+  // Checklist shape feeds the app's progress screens — fold its size into the
+  // version so checklist edits (new sections, splits, shared items) also
+  // trigger the app's "update available" banner (content-only version missed
+  // them). Old apps compare versions as opaque strings, so this is safe.
+  let checkTotal = 0;
+  try {
+    Object.keys(checklistData || {}).forEach((k) => {
+      const arr = checklistData[k];
+      if (Array.isArray(arr)) checkTotal += arr.length;
+    });
+  } catch { checkTotal = 0; }
   return {
     v: 1,
-    version: total + ':' + latest,
+    version: total + ':' + latest + ':c' + checkTotal,
     exportedAt: new Date().toISOString(),
     counts,
     checklist: checklistData,

@@ -12,18 +12,31 @@
     <h2><%= (item && item.name) || '' %> (<%= (item && item.username) || '' %>)</h2>
   </div>
   <p class="page-sub">ফোন: <%= (item && item.phone) || '—' %> · শেষ আপডেট: <%= item && item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('bn-BD') : '—' %></p>
-  <% Object.keys(checklistData || {}).forEach(function(ph){ %>
+  <% Object.keys(checklistData || {}).filter(function(k){ return k !== 'shared'; }).forEach(function(ph){ %>
     <% var list = checklistData[ph] || []; var saved = (item && item.progress && item.progress[ph]) || {}; var done = Object.keys(saved).length; var pct = list.length ? Math.round(done * 100 / list.length) : 0; %>
     <div class="panel" style="margin-bottom:12px">
       <h3><%= ph === 'abedonpotrer-purbe' ? 'আবেদনপত্রের পূর্বে' : ph === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : 'শপথের পূর্বে' %>
         <span class="badge light"><%= done %>/<%= list.length %> (<%= pct %>%)</span></h3>
       <div class="bar" style="margin:8px 0"><i style="width:<%= pct %>%"></i></div>
-      <% var last=''; list.forEach(function(it,i){ %>
-        <% if(it.c !== last){ %><div class="check-cat"><%= it.c %></div><% last=it.c; } %>
-        <div class="check-item"><span class="badge <%= saved[i] ? '' : 'light' %>"><%= saved[i] ? 'সম্পন্ন' : 'বাকি' %></span> <span><%= it.t %></span></div>
+      <% var last=''; var catNum=0; list.forEach(function(it,i){ %>
+        <% if(it.c !== last){ catNum=1; var cTot = list.filter(function(x){ return x.c === it.c; }).length; var cDone = 0; for (var ci=0; ci<list.length; ci++){ if (list[ci].c === it.c && saved[ci]) cDone++; } var cPct = cTot ? Math.round(cDone * 100 / cTot) : 0; %><div class="check-cat"><%= it.c %> <span class="badge light"><%= cDone %>/<%= cTot %></span></div><div class="bar cat-bar"><i style="width:<%= cPct %>%"></i></div><% last=it.c; } else { catNum++; } %>
+        <div class="check-item"><span class="badge <%= saved[i] ? '' : 'light' %>"><%= saved[i] ? 'সম্পন্ন' : 'বাকি' %></span> <span><%= catNum %>. <%= it.t %></span></div>
       <% }) %>
     </div>
   <% }) %>
+  <% var _shared = (checklistData && checklistData.shared) || []; var _ssaved = (item && item.progress && item.progress.shared) || {}; %>
+  <% if (_shared.length) { %>
+    <% var _sd = 0; _shared.forEach(function(s){ if (_ssaved[s.id]) _sd++; }); var _sp = Math.round(_sd * 100 / _shared.length); %>
+    <div class="panel" style="margin-bottom:12px">
+      <h3>সাধারণ হাদিস (সব পর্বে একসাথে)
+        <span class="badge light"><%= _sd %>/<%= _shared.length %> (<%= _sp %>%)</span></h3>
+      <div class="bar" style="margin:8px 0"><i style="width:<%= _sp %>%"></i></div>
+      <p class="page-sub">এক পর্বে টিক দিলে তিন পর্বেই auto দেখায় — নিচে পূর্ণ বিবরণ।</p>
+      <% _shared.forEach(function(s,j){ %>
+        <div class="check-item"><span class="badge <%= _ssaved[s.id] ? '' : 'light' %>"><%= _ssaved[s.id] ? 'সম্পন্ন' : 'বাকি' %></span> <span><%= j+1 %>. <%= s.t %></span></div>
+      <% }) %>
+    </div>
+  <% } %>
   <p><a href="/admin/users" class="more"><svg class="icon sm"><use href="#i-back"/></svg> ইউজার তালিকায় ফিরুন</a></p>
 </main>
 <%- include('partials/foot') %>
