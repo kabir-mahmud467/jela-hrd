@@ -26,15 +26,33 @@ router.get('/', (req, res) => {
 
 // অ্যাপ ডাউনলোড পেজ — DB লাগে না (APK ফাইলের তথ্য দেখায়)
 const APK_FILE = path.join(__dirname, '..', 'android', 'Hrd.apk');
-const APP_VER = '১.৫';
-const APP_DATE = '২০ সেপ্টেম্বর ২০২৬';
+const GRADLE_FILE = path.join(__dirname, '..', 'android', 'app', 'build.gradle');
+const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+function toBn(s) {
+  return String(s == null ? '' : s).split('').map((c) => {
+    const i = '0123456789'.indexOf(c);
+    return i >= 0 ? BN_DIGITS[i] : c;
+  }).join('');
+}
+// versionName সরাসরি build.gradle থেকে — APK rebuild হলেই /app পেজে নতুন
+// সংস্করণ দেখাবে, হাতে বদলাতে হয় না।
+function appVersion() {
+  try {
+    const g = fs.readFileSync(GRADLE_FILE, 'utf8');
+    const m = g.match(/versionName\s+'([^']+)'/);
+    if (m) return toBn(m[1]);
+  } catch { /* fallback below */ }
+  return '১.১১';
+}
 function apkInfo() {
   try {
     const st = fs.statSync(APK_FILE);
     const kb = Math.max(1, Math.round(st.size / 1024));
+    const d = new Date(st.mtimeMs);
+    const months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
     return {
-      size: String(kb).split('').map((c) => '০১২৩৪৫৬৭৮৯'[c] || c).join('') + ' কিলোবাইট',
-      date: APP_DATE
+      size: toBn(kb) + ' কিলোবাইট',
+      date: toBn(d.getDate()) + ' ' + months[d.getMonth()] + ' ' + toBn(d.getFullYear())
     };
   } catch {
     return { size: '', date: APP_DATE };
@@ -42,7 +60,7 @@ function apkInfo() {
 }
 router.get('/app', (req, res) => {
   const info = apkInfo();
-  res.render('app', { appVer: APP_VER, appSize: info.size, appDate: info.date });
+  res.render('app', { appVer: appVersion(), appSize: info.size, appDate: info.date });
 });
 // APK ডাউনলোড — সরাসরি ফাইল (শুধু সাইটে; অ্যাপের ভেতরে এই পেজ নেই)
 router.get('/app/download', (req, res, next) => {

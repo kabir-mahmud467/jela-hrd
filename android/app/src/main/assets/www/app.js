@@ -6,7 +6,7 @@
   var LS_CHECK = 'hrd_check_v3';
   /* section rollup (site parity): 'আয়াত-হাদিস/ঈমান' groups per-topic but
      rolls into one whole-section bar. No-prefix categories untouched. */
-  function secOf(cat) {
+  function secName(cat) {
     var s = String(cat == null ? '' : cat);
     var i = s.indexOf('/');
     return i < 0 ? '' : s.slice(0, i);
@@ -391,13 +391,13 @@
     var ckSaved = ckMap[cur] || {};
     var ckSecTot = {}, ckSecDone = {}, cx;
     for (cx = 0; cx < list.length; cx++) {
-      var cs0 = secOf(list[cx].c);
+      var cs0 = secName(list[cx].c);
       if (!cs0) continue;
       ckSecTot[cs0] = (ckSecTot[cs0] || 0) + 1;
       if (ckSaved[cx]) ckSecDone[cs0] = (ckSecDone[cs0] || 0) + 1;
     }
     for (var j = 0; j < list.length; j++) {
-      var cs = secOf(list[j].c);
+      var cs = secName(list[j].c);
       if (cs !== lastSec) {
         if (cs) {
           var sT = ckSecTot[cs] || 0, sD = ckSecDone[cs] || 0;
@@ -1564,7 +1564,11 @@
         var opts = admOpts(d.opts);
         if (!val && opts.length) val = opts[0][0];
         h += '<label class="fld">' + esc(d.label) + '<select id="af-' + d.k + '">';
+        var seenOpt = {};
         for (var o = 0; o < opts.length; o++) {
+          var ov = String(opts[o][0]);
+          if (seenOpt[ov]) continue;
+          seenOpt[ov] = 1;
           h += '<option value="' + esc(opts[o][0]) + '"' + (val === opts[o][0] ? ' selected' : '') + '>' + esc(opts[o][1]) + '</option>';
         }
         h += '</select></label>';
@@ -1778,14 +1782,14 @@
       var saved = (u.progress && u.progress[ph]) || {};
       var aSecTot = {}, aSecDone = {}, ax;
       for (ax = 0; ax < list.length; ax++) {
-        var as0 = secOf(list[ax].c);
+        var as0 = secName(list[ax].c);
         if (!as0) continue;
         aSecTot[as0] = (aSecTot[as0] || 0) + 1;
         if (saved[ax]) aSecDone[as0] = (aSecDone[as0] || 0) + 1;
       }
       var last = '', lastASec = '', cn = 0;
       for (var j = 0; j < list.length; j++) {
-        var asc = secOf(list[j].c);
+        var asc = secName(list[j].c);
         if (asc !== lastASec) {
           if (asc) {
             var aT = aSecTot[asc] || 0, aD = aSecDone[asc] || 0;
