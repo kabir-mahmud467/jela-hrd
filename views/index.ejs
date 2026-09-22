@@ -71,9 +71,12 @@
       <button type="button" class="btn small" id="checklist-reset">রিসেট</button>
     </div>
     <div id="checklist-list" class="qa-list">
-      <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; var _catNum=0; %>
+      <% var _initial = (typeof checklistData !== 'undefined' && checklistData['abedonpotrer-purbe']) ? checklistData['abedonpotrer-purbe'] : []; var _last=''; var _lastSec=''; var _catNum=0; %>
+      <% var _secTot = {}; _initial.forEach(function(x){ var _ci = String(x.c || '').indexOf('/'); if (_ci >= 0) { var _sk = String(x.c).slice(0, _ci); _secTot[_sk] = (_secTot[_sk] || 0) + 1; } }); %>
       <% _initial.forEach(function(it,i){ %>
-        <% if(it.c !== _last){ _catNum=1; var _tot = _initial.filter(function(x){ return x.c === it.c; }).length; %><div class="check-cat"><%= it.c %> <span class="badge light">0/<%= _tot %></span></div><div class="bar cat-bar"><i style="width:0%"></i></div><% _last=it.c; } else { _catNum++; } %>
+        <% var _sc = String(it.c || ''); var _sci = _sc.indexOf('/'); var _sec = _sci < 0 ? '' : _sc.slice(0, _sci); var _ct = _sci < 0 ? _sc : _sc.slice(_sci + 1); %>
+        <% if(_sec !== _lastSec){ %><% if(_sec){ %><div class="check-cat sec"><%= _sec %> <span class="badge light">0/<%= _secTot[_sec] || 0 %></span></div><div class="bar cat-bar"><i style="width:0%"></i></div><% } %><% _lastSec = _sec; } %>
+        <% if(it.c !== _last){ _catNum=1; var _tot = _initial.filter(function(x){ return x.c === it.c; }).length; %><div class="check-cat"><%= _ct %> <span class="badge light">0/<%= _tot %></span></div><div class="bar cat-bar"><i style="width:0%"></i></div><% _last=it.c; } else { _catNum++; } %>
         <label class="check-item"><input type="checkbox" data-k="abedonpotrer-purbe-<%= i %>"> <span><%= _catNum %>. <%= it.t %></span></label>
       <% }) %>
       <% var _shared = (typeof checklistData !== 'undefined' && checklistData.shared) ? checklistData.shared : []; %>

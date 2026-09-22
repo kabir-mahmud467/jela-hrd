@@ -18,8 +18,10 @@
       <h3><%= ph === 'abedonpotrer-purbe' ? 'আবেদনপত্রের পূর্বে' : ph === 'proshnopotrer-purbe' ? 'প্রশ্নপত্রের পূর্বে' : 'শপথের পূর্বে' %>
         <span class="badge light"><%= done %>/<%= list.length %> (<%= pct %>%)</span></h3>
       <div class="bar" style="margin:8px 0"><i style="width:<%= pct %>%"></i></div>
-      <% var last=''; var catNum=0; list.forEach(function(it,i){ %>
-        <% if(it.c !== last){ catNum=1; var cTot = list.filter(function(x){ return x.c === it.c; }).length; var cDone = 0; for (var ci=0; ci<list.length; ci++){ if (list[ci].c === it.c && saved[ci]) cDone++; } var cPct = cTot ? Math.round(cDone * 100 / cTot) : 0; %><div class="check-cat"><%= it.c %> <span class="badge light"><%= cDone %>/<%= cTot %></span></div><div class="bar cat-bar"><i style="width:<%= cPct %>%"></i></div><% last=it.c; } else { catNum++; } %>
+      <% var last=''; var lastSec=''; var catNum=0; list.forEach(function(it,i){ %>
+        <% var _sc = String(it.c || ''); var _sci = _sc.indexOf('/'); var _sec = _sci < 0 ? '' : _sc.slice(0, _sci); var _ct = _sci < 0 ? _sc : _sc.slice(_sci + 1); %>
+        <% if(_sec !== lastSec){ %><% if(_sec){ var _sT = 0, _sD = 0; for (var _sk=0; _sk<list.length; _sk++){ var _sc2 = String(list[_sk].c || ''); if (_sc2.indexOf('/') >= 0 && _sc2.slice(0, _sc2.indexOf('/')) === _sec) { _sT++; if (saved[_sk]) _sD++; } } var _sP = _sT ? Math.round(_sD * 100 / _sT) : 0; %><div class="check-cat sec"><%= _sec %> <span class="badge light"><%= _sD %>/<%= _sT %></span></div><div class="bar cat-bar"><i style="width:<%= _sP %>%"></i></div><% } %><% lastSec = _sec; } %>
+        <% if(it.c !== last){ catNum=1; var cTot = list.filter(function(x){ return x.c === it.c; }).length; var cDone = 0; for (var ci=0; ci<list.length; ci++){ if (list[ci].c === it.c && saved[ci]) cDone++; } var cPct = cTot ? Math.round(cDone * 100 / cTot) : 0; %><div class="check-cat"><%= _ct %> <span class="badge light"><%= cDone %>/<%= cTot %></span></div><div class="bar cat-bar"><i style="width:<%= cPct %>%"></i></div><% last=it.c; } else { catNum++; } %>
         <div class="check-item"><span class="badge <%= saved[i] ? '' : 'light' %>"><%= saved[i] ? 'সম্পন্ন' : 'বাকি' %></span> <span><%= catNum %>. <%= it.t %></span></div>
       <% }) %>
     </div>

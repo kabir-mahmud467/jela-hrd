@@ -502,6 +502,7 @@ h1 .icon, h2 .icon { vertical-align: -0.15em; }
 .bar { height: 7px; border-radius: 999px; background: var(--line-soft); overflow: hidden; min-width: 70px; }
 .bar i { display: block; height: 100%; background: var(--sky); border-radius: 999px; }
 .bar.cat-bar { height: 6px; margin: 2px 0 10px; }
+.check-cat.sec { font-size: 15px; border-left-color: var(--amber-vivid); background: var(--card); border-radius: 0 8px 8px 0; padding-top: 4px; padding-bottom: 4px; }
 .bar.hot i { background: var(--red); }
 .bar.warm i { background: var(--amber-vivid); }
 .table td code { overflow-wrap: anywhere; word-break: break-word; }

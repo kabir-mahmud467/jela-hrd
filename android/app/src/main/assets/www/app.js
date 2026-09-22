@@ -3,7 +3,19 @@
 (function () {
   'use strict';
   var DATA = null;
-  var LS_CHECK = 'hrd_check_v2';
+  var LS_CHECK = 'hrd_check_v3';
+  /* section rollup (site parity): 'আয়াত-হাদিস/ঈমান' groups per-topic but
+     rolls into one whole-section bar. No-prefix categories untouched. */
+  function secOf(cat) {
+    var s = String(cat == null ? '' : cat);
+    var i = s.indexOf('/');
+    return i < 0 ? '' : s.slice(0, i);
+  }
+  function catTitle(cat) {
+    var s = String(cat == null ? '' : cat);
+    var i = s.indexOf('/');
+    return i < 0 ? s : s.slice(i + 1);
+  }
   /* in-app panels: content offline, login/save/admin needs internet (no outside URL) */
   var SITE = 'https://hrd.kabirmahmud.xyz';
   var LS_AUTH = 'hrd_auth_v1';
@@ -374,10 +386,27 @@
       '<button class="btn ghost" id="ckReset" style="padding:4px 12px;font-size:12.5px">রিসেট</button></div>' +
       '<div class="muted">' + bn(done) + '/' + bn(list.length) + ' সম্পন্ন</div></div>';
     h += '<div id="ckList">';
-    var last = '', n = 0;
+    var last = '', lastSec = '', n = 0;
     var ckMap = loadCheck();
     var ckSaved = ckMap[cur] || {};
+    var ckSecTot = {}, ckSecDone = {}, cx;
+    for (cx = 0; cx < list.length; cx++) {
+      var cs0 = secOf(list[cx].c);
+      if (!cs0) continue;
+      ckSecTot[cs0] = (ckSecTot[cs0] || 0) + 1;
+      if (ckSaved[cx]) ckSecDone[cs0] = (ckSecDone[cs0] || 0) + 1;
+    }
     for (var j = 0; j < list.length; j++) {
+      var cs = secOf(list[j].c);
+      if (cs !== lastSec) {
+        if (cs) {
+          var sT = ckSecTot[cs] || 0, sD = ckSecDone[cs] || 0;
+          var sP = sT ? Math.round(sD * 100 / sT) : 0;
+          h += '<div class="check-cat sec">' + esc(cs) + ' <span class="badge">' + bn(sD) + '/' + bn(sT) + '</span></div>' +
+            '<div class="prog"><div class="bar"><i style="width:' + sP + '%"></i></div><span class="muted">' + bn(sP) + '%</span></div>';
+        }
+        lastSec = cs;
+      }
       if (list[j].c !== last) {
         n = 1;
         var cTot = 0, cDone = 0, cj;
@@ -385,7 +414,7 @@
           if (list[cj].c === list[j].c) { cTot++; if (ckSaved[cj]) cDone++; }
         }
         var cPct = cTot ? Math.round(cDone * 100 / cTot) : 0;
-        h += '<div class="check-cat">' + esc(list[j].c) + ' <span class="badge">' + bn(cDone) + '/' + bn(cTot) + '</span></div>' +
+        h += '<div class="check-cat">' + esc(catTitle(list[j].c)) + ' <span class="badge">' + bn(cDone) + '/' + bn(cTot) + '</span></div>' +
           '<div class="prog"><div class="bar"><i style="width:' + cPct + '%"></i></div><span class="muted">' + bn(cPct) + '%</span></div>';
         last = list[j].c;
       }
@@ -1747,8 +1776,25 @@
         '<div class="prog"><div class="bar"><i style="width:' + p.pct + '%"></i></div><span class="muted">' + bn(p.pct) + '%</span></div>';
       var list = (DATA && DATA.checklist && DATA.checklist[ph]) || [];
       var saved = (u.progress && u.progress[ph]) || {};
-      var last = '', cn = 0;
+      var aSecTot = {}, aSecDone = {}, ax;
+      for (ax = 0; ax < list.length; ax++) {
+        var as0 = secOf(list[ax].c);
+        if (!as0) continue;
+        aSecTot[as0] = (aSecTot[as0] || 0) + 1;
+        if (saved[ax]) aSecDone[as0] = (aSecDone[as0] || 0) + 1;
+      }
+      var last = '', lastASec = '', cn = 0;
       for (var j = 0; j < list.length; j++) {
+        var asc = secOf(list[j].c);
+        if (asc !== lastASec) {
+          if (asc) {
+            var aT = aSecTot[asc] || 0, aD = aSecDone[asc] || 0;
+            var aP = aT ? Math.round(aD * 100 / aT) : 0;
+            h += '<div class="check-cat sec">' + esc(asc) + ' <span class="badge">' + bn(aD) + '/' + bn(aT) + '</span></div>' +
+              '<div class="prog"><div class="bar"><i style="width:' + aP + '%"></i></div><span class="muted">' + bn(aP) + '%</span></div>';
+          }
+          lastASec = asc;
+        }
         if (list[j].c !== last) {
           cn = 1;
           var ct = 0, cd = 0, ck;
@@ -1756,7 +1802,7 @@
             if (list[ck].c === list[j].c) { ct++; if (saved[ck]) cd++; }
           }
           var cp = ct ? Math.round(cd * 100 / ct) : 0;
-          h += '<div class="check-cat">' + esc(list[j].c) + ' <span class="badge">' + bn(cd) + '/' + bn(ct) + '</span></div>' +
+          h += '<div class="check-cat">' + esc(catTitle(list[j].c)) + ' <span class="badge">' + bn(cd) + '/' + bn(ct) + '</span></div>' +
             '<div class="prog"><div class="bar"><i style="width:' + cp + '%"></i></div><span class="muted">' + bn(cp) + '%</span></div>';
           last = list[j].c;
         }

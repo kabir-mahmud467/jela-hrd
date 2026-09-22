@@ -78,6 +78,7 @@ select.sel option{background:var(--input-bg);color:var(--ink)}
 .bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
 .check-cat{margin:12px 0 4px;font-weight:700;font-size:13.5px;border-left:3px solid var(--accent);padding-left:8px;color:var(--ink)}
+.check-cat.sec{font-size:15px;border-left-color:var(--danger);background:var(--card);border-radius:0 8px 8px 0;padding-top:4px;padding-bottom:4px}
 .check-item{display:flex;gap:9px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:var(--card);cursor:pointer}
 .check-item input{margin-top:5px;width:17px;height:17px;flex:0 0 auto;accent-color:var(--accent)}
 .check-item span{font-size:14px;color:var(--ink)}

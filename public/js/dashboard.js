@@ -2,7 +2,7 @@
    Server progress seeds from #server-progress; ticks save instantly to
    localStorage, then POST /dashboard/progress when online (best-effort). */
 (function () {
-  var KEY = 'hrd_dash_local_v3';
+  var KEY = 'hrd_dash_local_v5';
   var current = 'abedonpotrer-purbe';
   var dataEl = document.getElementById('checklist-data');
   var srvEl = document.getElementById('server-progress');
@@ -109,20 +109,51 @@
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* section rollup: categories like 'আয়াত-হাদিস/ঈমান' group per-topic but
+     also roll into one whole-section bar ('আয়াত-হাদিস'). Plain categories
+     (no '/') are untouched. Shared 'সাধারণ হাদিস' has no prefix — excluded. */
+  function secOf(cat) {
+    var s = String(cat == null ? '' : cat);
+    var i = s.indexOf('/');
+    return i < 0 ? '' : s.slice(0, i);
+  }
+  function catTitle(cat) {
+    var s = String(cat == null ? '' : cat);
+    var i = s.indexOf('/');
+    return i < 0 ? s : s.slice(i + 1);
+  }
   function render() {
     var listEl = document.getElementById('checklist-list');
     if (!listEl) return;
     var list = data[current] || [];
+    var secTot = {}, secDone = {};
+    for (var s0 = 0; s0 < list.length; s0++) {
+      var sc0 = secOf((list[s0] || {}).c);
+      if (!sc0) continue;
+      secTot[sc0] = (secTot[sc0] || 0) + 1;
+      if (store[current] && store[current][s0]) secDone[sc0] = (secDone[sc0] || 0) + 1;
+    }
     var html = '';
     var lastCat = '';
+    var lastSec = '';
     var catNum = 0;
     for (var i = 0; i < list.length; i++) {
       var it = list[i] || {};
       var checked = store[current] && store[current][i] ? 'checked' : '';
+      var sc = secOf(it.c || '');
+      if (sc !== lastSec) {
+        if (sc) {
+          var sT = secTot[sc] || 0, sD = secDone[sc] || 0;
+          var sP = sT ? Math.round(sD / sT * 100) : 0;
+          html += '<div class="check-cat sec">' + esc(sc) + ' <span class="badge light">' + sD + '/' + sT + '</span></div>' +
+            '<div class="bar cat-bar"><i style="width:' + sP + '%"></i></div>';
+        }
+        lastSec = sc;
+      }
       if (it.c !== lastCat) {
         catNum = 1;
         var st = catDone(list, it.c);
-        html += '<div class="check-cat">' + esc(it.c) + ' <span class="badge light">' + st.done + '/' + st.tot + '</span></div>' +
+        html += '<div class="check-cat">' + esc(catTitle(it.c)) + ' <span class="badge light">' + st.done + '/' + st.tot + '</span></div>' +
           '<div class="bar cat-bar"><i style="width:' + st.pct + '%"></i></div>';
         lastCat = it.c;
       } else {
