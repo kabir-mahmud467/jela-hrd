@@ -211,8 +211,23 @@ async function requireAdminToken(req, res, next) {
 router.get('/admin/users', requireAdminToken, async (req, res) => {
   try {
     const users = await User.find().sort({ createdAt: -1 }).limit(500)
-      .select('username name phone progress updatedAt').lean();
+      .select('username name phone progress createdAt updatedAt').lean();
     res.json({ users });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// Single user detail — full progress for the admin detail view.
+// Progress shape: { phase: { index: 1 } }; client maps it against checklist.
+router.get('/admin/users/detail', requireAdminToken, async (req, res) => {
+  try {
+    const id = String(req.query.id || '');
+    if (!isId(id)) return res.status(400).json({ error: 'bad-id' });
+    const user = await User.findById(id)
+      .select('username name phone progress createdAt updatedAt').lean();
+    if (!user) return res.status(404).json({ error: 'not-found' });
+    res.json({ user });
   } catch (err) {
     res.status(503).json({ error: 'database-busy', retryAfter: 5 });
   }
@@ -375,6 +390,70 @@ router.post('/admin/users/delete', requireAdminToken, async (req, res) => {
     const id = String((req.body || {}).id || '');
     if (!isId(id)) return res.status(400).json({ error: 'bad-id' });
     await User.findByIdAndDelete(id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// Admin edits a user: username/name/phone always, password only when given.
+// Sync-safe: only the user doc changes (content version untouched — the
+// ⟳ sync option pulls /api/content.json which is content-only, so user
+// edits never trigger a false "update available" banner).
+router.post('/admin/users/update', requireAdminToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const id = String(body.id || '');
+    if (!isId(id)) return res.status(400).json({ error: 'bad-id' });
+    const incoming = (body.data || {});
+    const wantPw = ((incoming.password || '').toString().length >= 1);
+    const probe = {
+      username: incoming.username,
+      name: incoming.name,
+      phone: incoming.phone,
+      password: wantPw ? incoming.password : '____'
+    };
+    const { errors, data } = validateBody('user', probe);
+    const showErr = wantPw ? errors : errors.filter(function (e) { return e.indexOf('পাসওয়ার্ড') < 0; });
+    if (showErr.length) return res.status(400).json({ error: showErr.join(' ') });
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'not-found' });
+    user.username = data.username;
+    user.name = data.name;
+    user.phone = data.phone;
+    if (wantPw) {
+      if ((incoming.password || '').toString().length < 4) {
+        return res.status(400).json({ error: 'পাসওয়ার্ড কমপক্ষে ৪ অক্ষর হতে হবে।' });
+      }
+      user.password = await bcrypt.hash((incoming.password || '').toString(), 12);
+      user.apiToken = '';
+    }
+    user.updatedAt = new Date();
+    try {
+      await user.save();
+    } catch (e) {
+      if (e.code === 11000) return res.status(400).json({ error: 'এই ইউজারনেম আগেই ব্যবহৃত হচ্ছে।' });
+      throw e;
+    }
+    res.json({
+      ok: true,
+      user: { _id: user._id, username: user.username, name: user.name, phone: user.phone, progress: user.progress || {}, updatedAt: user.updatedAt }
+    });
+  } catch (err) {
+    res.status(503).json({ error: 'database-busy', retryAfter: 5 });
+  }
+});
+
+// Admin clears one user's checklist progress (asks confirm in-app first).
+router.post('/admin/users/reset-progress', requireAdminToken, async (req, res) => {
+  try {
+    const id = String((req.body || {}).id || '');
+    if (!isId(id)) return res.status(400).json({ error: 'bad-id' });
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'not-found' });
+    user.progress = {};
+    user.updatedAt = new Date();
+    await user.save();
     res.json({ ok: true });
   } catch (err) {
     res.status(503).json({ error: 'database-busy', retryAfter: 5 });

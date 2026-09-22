@@ -778,15 +778,22 @@
     }
     admSec = '__home';
     admEdit = null;
-    v.innerHTML = '<div class="card"><h3>অ্যাডমিন: ' + esc(au.username) + '</h3>' +
-      '<p class="muted" id="admSync">সার্ভারের সাথে যুক্ত।</p>' +
-      '<div class="row"><button id="admOut" class="btn ghost">লগআউট</button></div></div>' +
-      '<div id="admNav" class="row"></div><div id="admBody"></div>';
+    admListQuery = '';
+    admUserCache = null;
+    admUserSel = null;
+    admUserQ = '';
+    v.innerHTML = '<div class="adm-head"><div><div class="adm-head-t">অ্যাডমিন প্যানেল</div>' +
+      '<div class="muted">' + esc(au.username) + ' · <span id="admSync">সার্ভারের সাথে যুক্ত</span></div></div>' +
+      '<span class="row" style="margin:0"><button id="admSyncBtn" class="btn small">সিংক</button>' +
+      '<button id="admOut" class="btn small ghost">লগআউট</button></span></div>' +
+      '<div id="admNav" class="adm-nav"></div><div id="admBody"></div>';
     $('admOut').addEventListener('click', function () {
       saveAuth(null);
       renderTabs();
       window.location.hash = '#/';
     });
+    var sb = $('admSyncBtn');
+    if (sb) sb.addEventListener('click', function () { refreshContent(); });
     admRenderNav();
     admRenderSec();
   }
@@ -908,6 +915,8 @@
       btns[j].addEventListener('click', function () {
         admSec = this.getAttribute('data-as');
         admEdit = null;
+        admListQuery = '';
+        if (admSec !== '__users') admUserSel = null;
         admRenderNav();
         admRenderSec();
       });
@@ -928,15 +937,50 @@
       if (!b) return;
       if (err || !obj || !obj.counts) {
         b.innerHTML = '<div class="card"><p class="muted">' +
-          (err === 'offline' ? 'ইন্টারনেট নেই — কন্টেন্ট অফলাইনে দেখুন।' : 'লোড হয়নি।') + '</p></div>';
+          (err === 'offline' ? 'ইন্টারনেট নেই — কন্টেন্ট অফলাইনে দেখুন।' : 'লোড হয়নি।') + '</p>' +
+          '<div class="row"><button id="admRetry" class="btn">আবার চেষ্টা করুন</button></div></div>';
+        var rt = $('admRetry');
+        if (rt) rt.addEventListener('click', function () { admRenderSec(); });
         return;
       }
       var c = obj.counts;
-      b.innerHTML = '<div class="card"><h3>কন্টেন্ট (' + bn(c.books + c.audiobooks + c.notes + c.dars + c.duas + c.ayathadith + c.surah + c.bibidh) + 'টি)</h3>' +
-        '<p class="muted">বই ' + bn(c.books) + ' · অডিও ' + bn(c.audiobooks) + ' · নোট ' + bn(c.notes) +
-        ' · দারস ' + bn(c.dars) + ' · দুআ ' + bn(c.duas) + ' · আয়াত ' + bn(c.ayathadith) +
-        ' · সূরা ' + bn(c.surah) + ' · বিবিধ ' + bn(c.bibidh) + ' · ইউজার ' + bn(c.users) + '</p>' +
-        '<p class="muted">উপরের ট্যাব থেকে প্রতিটি বিভাগে নতুন যোগ, এডিট, ডিলিট ও ক্রম বদলানো যাবে — সাইটের মতোই।</p></div>';
+      var total = c.books + c.audiobooks + c.notes + c.dars + c.duas + c.ayathadith + c.surah + c.bibidh;
+      var cards = [
+        ['books', 'বই', c.books], ['audiobooks', 'অডিও', c.audiobooks],
+        ['notes', 'নোট', c.notes], ['dars', 'দারস', c.dars],
+        ['duas', 'দুআ', c.duas], ['ayathadith', 'আয়াত', c.ayathadith],
+        ['surah', 'সূরা', c.surah], ['bibidh', 'বিবিধ', c.bibidh]
+      ];
+      var h = '<div class="adm-hero"><div><div class="adm-hero-t">সারসংক্ষেপ</div>' +
+        '<div class="adm-hero-n">' + bn(total) + 'টি কন্টেন্ট · ' + bn(c.users) + ' জন ইউজার</div></div>' +
+        '<button id="admSyncNow" class="btn small">সিংক করুন</button></div>';
+      h += '<div class="adm-grid">';
+      for (var i = 0; i < cards.length; i++) {
+        h += '<button class="adm-stat" data-go="' + cards[i][0] + '">' +
+          '<span class="adm-stat-n">' + bn(cards[i][2]) + '</span>' +
+          '<span class="adm-stat-l">' + esc(cards[i][1]) + '</span>' +
+          '<span class="adm-stat-go">খুলুন ›</span></button>';
+      }
+      h += '<button class="adm-stat users" data-go="__users">' +
+        '<span class="adm-stat-n">' + bn(c.users) + '</span>' +
+        '<span class="adm-stat-l">ইউজার</span><span class="adm-stat-go">অগ্রগতি ›</span></button></div>';
+      h += '<div class="card"><h3>দ্রুত কাজ</h3><div class="row">' +
+        '<button class="btn small" data-go="__users">ইউজার দেখুন</button>' +
+        '<button class="btn small ghost" data-go="books">বই যোগ করুন</button>' +
+        '<button class="btn small ghost" data-go="notes">নোট যোগ করুন</button></div>' +
+        '<p class="muted">কন্টেন্ট যোগ/এডিট/ডিলিট করলে সিংক চাপুন — ফোনের অফলাইন কপি আপডেট হবে। ইউজার এডিটে সিংকের দরকার নেই।</p></div>';
+      b.innerHTML = h;
+      var go = b.querySelectorAll('[data-go]');
+      for (var j = 0; j < go.length; j++) {
+        go[j].addEventListener('click', function () {
+          admSec = this.getAttribute('data-go');
+          admEdit = null;
+          admRenderNav();
+          admRenderSec();
+        });
+      }
+      var sn = $('admSyncNow');
+      if (sn) sn.addEventListener('click', function () { refreshContent(); });
     });
   }
   function admSection(type) {
@@ -962,24 +1006,56 @@
       admWireList(type);
     });
   }
-  function admListHtml(type, items) {
-    var h = '<div class="adm-bar"><span>' + bn(items.length) + 'টি</span>' +
-      '<button class="btn small danger" data-ab="bulk">সিলেক্ট ডিলিট</button>' +
-      '<button class="btn small" data-ab="add">+ নতুন</button></div><div class="card">';
+  var admListQuery = '';
+  function admFilteredItems(type) {
+    var items = admCache[type] || [];
+    var q = (admListQuery || '').toLowerCase();
+    if (!q) return items;
+    var out = [];
     for (var i = 0; i < items.length; i++) {
       var it = items[i];
-      h += '<div class="adm-row"><input type="checkbox" class="adm-check" value="' + esc(it._id) + '" aria-label="সিলেক্ট">' +
-        '<span class="adm-title">' + esc(it.title || '(শিরোনাম নেই)') + '</span>' +
-        '<button class="btn small ghost" data-ab="up" data-i="' + i + '" title="উপরে">▲</button>' +
-        '<button class="btn small ghost" data-ab="down" data-i="' + i + '" title="নিচে">▼</button>' +
-        '<button class="btn small" data-ab="edit" data-i="' + i + '">এডিট</button>' +
-        '<button class="btn small danger" data-ab="del" data-i="' + i + '">ডিলিট</button></div>';
+      var hay = String(it.title || '') + ' ' + String(it.author || '') + ' ' +
+        String(it.topic || '') + ' ' + String(it.reference || '');
+      if (hay.toLowerCase().indexOf(q) >= 0) out.push(it);
     }
-    if (!items.length) h += '<p class="muted">এখনো কিছু নেই — “+ নতুন” চাপুন।</p>';
+    return out;
+  }
+  function admListHtml(type, items) {
+    var shown = admFilteredItems(type);
+    var h = '<div class="adm-bar"><span class="adm-count">' + bn(shown.length) + '/' + bn(items.length) + 'টি</span>' +
+      '<input id="admSearch" class="adm-search" placeholder="খুঁজুন…" value="' + esc(admListQuery || '') + '">' +
+      '<button class="btn small danger" data-ab="bulk">সিলেক্ট ডিলিট</button>' +
+      '<button class="btn small" data-ab="add">+ নতুন</button></div><div class="card adm-list">';
+    for (var i = 0; i < shown.length; i++) {
+      var it = shown[i];
+      var realIdx = (admCache[type] || []).indexOf(it);
+      h += '<div class="adm-row"><input type="checkbox" class="adm-check" value="' + esc(it._id) + '" aria-label="সিলেক্ট">' +
+        '<span class="adm-title">' + esc(it.title || '(শিরোনাম নেই)') +
+        (it.author ? ' <span class="muted">· ' + esc(it.author) + '</span>' : '') + '</span>' +
+        '<span class="adm-acts">' +
+        '<button class="btn small ghost" data-ab="up" data-i="' + realIdx + '" title="উপরে">▲</button>' +
+        '<button class="btn small ghost" data-ab="down" data-i="' + realIdx + '" title="নিচে">▼</button>' +
+        '<button class="btn small" data-ab="edit" data-i="' + realIdx + '">এডিট</button>' +
+        '<button class="btn small danger" data-ab="del" data-i="' + realIdx + '">ডিলিট</button></span></div>';
+    }
+    if (!shown.length) h += '<p class="muted">' + (items.length ? 'খুঁজে কিছু পাওয়া যায়নি।' : 'এখনো কিছু নেই — “+ নতুন” চাপুন।') + '</p>';
     return h + '</div>';
   }
   function admWireList(type) {
     var body = $('admBody');
+    var s = $('admSearch');
+    if (s) {
+      s.addEventListener('input', function () {
+        admListQuery = this.value;
+        var pos = this.selectionStart;
+        body.innerHTML = admListHtml(type, admCache[type] || []);
+        admWireList(type);
+        var s2 = $('admSearch');
+        if (s2) {
+          try { s2.focus(); s2.setSelectionRange(pos, pos); } catch (e) {}
+        }
+      });
+    }
     var btns = body.querySelectorAll('[data-ab]');
     for (var i = 0; i < btns.length; i++) {
       btns[i].addEventListener('click', function () {
@@ -1055,7 +1131,8 @@
   function admForm(type, item) {
     var body = $('admBody');
     var defs = FIELD_DEFS[type] || [];
-    var h = '<div class="card"><h3>' + (item ? 'এডিট' : '+ নতুন') + ' — ' + esc(admSecName(type)) + '</h3>' +
+    var h = '<button class="btn small ghost" id="afBack">‹ ' + esc(admSecName(type)) + ' তালিকা</button>' +
+      '<div class="card adm-form"><h3>' + (item ? 'এডিট' : '+ নতুন') + ' — ' + esc(admSecName(type)) + '</h3>' +
       '<div id="admErr" class="adm-err" style="display:none"></div>';
     for (var f = 0; f < defs.length; f++) {
       var d = defs[f];
@@ -1075,8 +1152,13 @@
       }
     }
     h += '<div class="row"><button id="afSave" class="btn">সংরক্ষণ করুন</button>' +
-      '<button id="afCancel" class="btn ghost">বাতিল</button></div></div>';
+      '<button id="afCancel" class="btn ghost">বাতিল</button></div>' +
+      '<p class="muted">সেভ হলে স্বয়ংক্রিয় সিংক চলবে — ফোনের অফলাইন কপি আপডেট হবে।</p></div>';
     body.innerHTML = h;
+    $('afBack').addEventListener('click', function () {
+      admEdit = null;
+      admRenderSec();
+    });
     $('afCancel').addEventListener('click', function () {
       admEdit = null;
       admRenderSec();
@@ -1115,68 +1197,235 @@
       });
     });
   }
+  var admUserCache = null;
+  var admUserQ = '';
+  var admUserSel = null;
+  function admFindUser(id) {
+    var list = admUserCache || [];
+    for (var i = 0; i < list.length; i++) if (String(list[i]._id) === String(id)) return list[i];
+    return null;
+  }
+  function admUserStats(u) {
+    var done = 0, k, k2;
+    try {
+      for (k in (u.progress || {})) for (k2 in u.progress[k]) if (u.progress[k][k2]) done++;
+    } catch (e) {}
+    var tot = 0;
+    var per = {};
+    var phases = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
+    for (var i = 0; i < phases.length; i++) {
+      var ph = phases[i];
+      var sp = (u.progress && u.progress[ph]) || {};
+      var d = 0;
+      for (k2 in sp) if (sp[k2]) d++;
+      var t = (DATA && DATA.checklist && DATA.checklist[ph]) ? DATA.checklist[ph].length : 0;
+      tot += t;
+      per[ph] = { done: d, total: t, pct: t ? Math.round(d * 100 / t) : 0 };
+    }
+    return { done: done, total: tot, per: per, pct: tot ? Math.round(done * 100 / tot) : 0 };
+  }
   function admUsers() {
     var body = $('admBody');
+    if (admUserCache) {
+      body.innerHTML = admUsersHtml(admUserCache);
+      admWireUsers();
+      return;
+    }
     body.innerHTML = '<div class="card"><p class="muted">লোড হচ্ছে…</p></div>';
     apiGet('/api/admin/users?token=' + encodeURIComponent(admToken()), function (err, obj) {
       var b = $('admBody');
       if (!b) return;
       if (err || !obj || !obj.users) {
-        b.innerHTML = '<div class="card"><p class="muted">' + (err === 'offline' ? 'ইন্টারনেট নেই।' : 'লোড হয়নি।') + '</p></div>';
+        b.innerHTML = '<div class="card"><p class="muted">' + (err === 'offline' ? 'ইন্টারনেট নেই।' : 'লোড হয়নি।') + '</p>' +
+          '<div class="row"><button id="admRetry" class="btn">আবার চেষ্টা করুন</button></div></div>';
+        var rt = $('admRetry');
+        if (rt) rt.addEventListener('click', function () { admUserCache = null; admRenderSec(); });
         return;
       }
-      var users = obj.users || [];
-      var h = '<div class="card"><h3>ইউজার (' + bn(users.length) + ')</h3>';
-      if (!users.length) h += '<p class="muted">কোনো ইউজার নেই।</p>';
-      for (var i = 0; i < users.length; i++) {
-        var u = users[i];
-        var done = 0, k;
-        try {
-          for (k in (u.progress || {})) for (var k2 in u.progress[k]) if (u.progress[k][k2]) done++;
-        } catch (e) {}
-        h += '<div class="adm-row"><span class="adm-title"><b>' + esc(u.name || u.username) + '</b> <span class="muted">' +
-          esc(u.username) + (u.phone ? ' · ' + esc(u.phone) : '') + '</span> ' +
-          '<span class="badge">' + bn(done) + 'টি টিক</span></span>' +
-          '<button class="btn small danger" data-uid="' + esc(u._id) + '" data-uname="' + esc(u.username) + '">ডিলিট</button></div>';
+      admUserCache = obj.users || [];
+      b.innerHTML = admUsersHtml(admUserCache);
+      admWireUsers();
+    });
+  }
+  function admUsersHtml(users) {
+    /* detail / edit sub-view first (back preserves list + search) */
+    if (admUserSel && (admUserSel.mode === 'detail' || admUserSel.mode === 'edit')) {
+      var sel = admFindUser(admUserSel.id);
+      if (!sel) { admUserSel = null; }
+      else if (admUserSel.mode === 'detail') return admUserDetailHtml(sel);
+      else return admUserEditHtml(sel);
+    }
+    var q = (admUserQ || '').toLowerCase();
+    var kept = [];
+    for (var i = 0; i < users.length; i++) {
+      var u0 = users[i];
+      if (!q || (String(u0.username || '') + ' ' + String(u0.name || '') + ' ' + String(u0.phone || '')).toLowerCase().indexOf(q) >= 0) kept.push(u0);
+    }
+    var grand = 0;
+    for (var g = 0; g < users.length; g++) grand += admUserStats(users[g]).done;
+    var h = '<div class="adm-hero"><div><div class="adm-hero-t">ইউজার</div>' +
+      '<div class="adm-hero-n">' + bn(users.length) + ' জন · মোট ' + bn(grand) + 'টি টিক</div></div>' +
+      '<button class="btn small" data-u="new">+ নতুন ইউজার</button></div>';
+    h += '<div class="adm-bar"><input id="admUserSearch" class="adm-search" placeholder="নাম / ইউজারনেম / ফোন খুঁজুন…" value="' + esc(admUserQ || '') + '">' +
+      '<span class="adm-count">' + bn(kept.length) + '/' + bn(users.length) + '</span></div>';
+    if (!kept.length) h += '<div class="card"><p class="muted">' + (users.length ? 'খুঁজে কেউ পাওয়া যায়নি।' : 'কোনো ইউজার নেই — নিচে থেকে তৈরি করুন।') + '</p></div>';
+    for (var j = 0; j < kept.length; j++) {
+      var u = kept[j];
+      var st = admUserStats(u);
+      var initial = esc(String(u.name || u.username || '?').slice(0, 1));
+      h += '<div class="u-card"><div class="u-top"><span class="u-av">' + initial + '</span>' +
+        '<span class="u-id"><b>' + esc(u.name || u.username) + '</b>' +
+        '<span class="muted">@' + esc(u.username) + (u.phone ? ' · ' + esc(u.phone) : '') + '</span></span>' +
+        '<span class="badge">' + bn(st.done) + '/' + bn(st.total) + '</span></div>' +
+        '<div class="prog"><div class="bar"><i style="width:' + st.pct + '%"></i></div>' +
+        '<span class="muted">' + bn(st.pct) + '%</span></div>' +
+        '<div class="u-phases"><span class="muted">আবেদন ' + bn(st.per['abedonpotrer-purbe'].done) + '/' + bn(st.per['abedonpotrer-purbe'].total) +
+        ' · প্রশ্ন ' + bn(st.per['proshnopotrer-purbe'].done) + '/' + bn(st.per['proshnopotrer-purbe'].total) +
+        ' · শপথ ' + bn(st.per['shopother-purbe'].done) + '/' + bn(st.per['shopother-purbe'].total) + '</span></div>' +
+        '<div class="u-acts"><button class="btn small" data-u="detail" data-id="' + esc(u._id) + '">অগ্রগতি</button>' +
+        '<button class="btn small ghost" data-u="edit" data-id="' + esc(u._id) + '">এডিট</button>' +
+        '<button class="btn small danger" data-u="del" data-id="' + esc(u._id) + '" data-uname="' + esc(u.username) + '">ডিলিট</button></div></div>';
+    }
+    h += '<div class="card"><h3>+ নতুন ইউজার</h3>' +
+      '<div id="auErr" class="adm-err" style="display:none"></div>' +
+      '<label class="fld">ইউজারনেম<input id="nuUser" autocomplete="off" placeholder="যেমন: rahim_01"></label>' +
+      '<label class="fld">নাম<input id="nuName" autocomplete="off" placeholder="পুরো নাম"></label>' +
+      '<label class="fld">ফোন<input id="nuPhone" autocomplete="off" placeholder="01XXXXXXXXX"></label>' +
+      '<label class="fld">পাসওয়ার্ড (কমপক্ষে ৪ অক্ষর)<input id="nuPass" type="password" autocomplete="new-password"></label>' +
+      '<button id="nuGo" class="btn">ইউজার তৈরি করুন</button></div>';
+    return h;
+  }
+  function admUserDetailHtml(u) {
+    var st = admUserStats(u);
+    var phases = [
+      ['abedonpotrer-purbe', 'আবেদনপত্রের পূর্বে'],
+      ['proshnopotrer-purbe', 'প্রশ্নপত্রের পূর্বে'],
+      ['shopother-purbe', 'শপথের পূর্বে']
+    ];
+    var h = '<button class="btn small ghost" data-u="back">‹ সব ইউজার</button>' +
+      '<div class="u-card"><div class="u-top"><span class="u-av">' + esc(String(u.name || u.username || '?').slice(0, 1)) + '</span>' +
+      '<span class="u-id"><b>' + esc(u.name || u.username) + '</b>' +
+      '<span class="muted">@' + esc(u.username) + (u.phone ? ' · ' + esc(u.phone) : '') + '</span></span>' +
+      '<span class="badge">' + bn(st.done) + '/' + bn(st.total) + ' · ' + bn(st.pct) + '%</span></div>' +
+      '<div class="prog"><div class="bar"><i style="width:' + st.pct + '%"></i></div></div>' +
+      '<div class="u-acts"><button class="btn small ghost" data-u="edit" data-id="' + esc(u._id) + '">এডিট</button>' +
+      '<button class="btn small danger" data-u="reset" data-id="' + esc(u._id) + '">অগ্রগতি রিসেট</button></div></div>';
+    for (var i = 0; i < phases.length; i++) {
+      var ph = phases[i][0];
+      var p = st.per[ph];
+      h += '<div class="card"><h3>' + esc(phases[i][1]) + ' <span class="badge">' + bn(p.done) + '/' + bn(p.total) + '</span></h3>' +
+        '<div class="prog"><div class="bar"><i style="width:' + p.pct + '%"></i></div><span class="muted">' + bn(p.pct) + '%</span></div>';
+      var list = (DATA && DATA.checklist && DATA.checklist[ph]) || [];
+      var saved = (u.progress && u.progress[ph]) || {};
+      var last = '';
+      for (var j = 0; j < list.length; j++) {
+        if (list[j].c !== last) { h += '<div class="check-cat">' + esc(list[j].c) + '</div>'; last = list[j].c; }
+        var doneIt = !!saved[j];
+        h += '<div class="check-item"><span class="badge' + (doneIt ? '' : ' dim') + '">' + (doneIt ? 'সম্পন্ন' : 'বাকি') + '</span><span>' + esc(list[j].t) + '</span></div>';
       }
-      h += '</div><div class="card"><h3>+ নতুন ইউজার</h3>' +
-        '<div id="auErr" class="adm-err" style="display:none"></div>' +
-        '<label class="fld">ইউজারনেম<input id="nuUser" autocomplete="off"></label>' +
-        '<label class="fld">নাম<input id="nuName" autocomplete="off"></label>' +
-        '<label class="fld">ফোন<input id="nuPhone" autocomplete="off"></label>' +
-        '<label class="fld">পাসওয়ার্ড (কমপক্ষে ৪ অক্ষর)<input id="nuPass" type="password" autocomplete="new-password"></label>' +
-        '<button id="nuGo" class="btn">ইউজার তৈরি করুন</button></div>';
-      b.innerHTML = h;
-      var dels = b.querySelectorAll('[data-uid]');
-      for (var d = 0; d < dels.length; d++) {
-        dels[d].addEventListener('click', function () {
-          var id = this.getAttribute('data-uid');
-          if (!window.confirm('"' + this.getAttribute('data-uname') + '" মুছবেন?')) return;
+      if (!list.length) h += '<p class="muted">চেকলিস্ট সিংক হয়নি — ⟳ সিংক করে আবার দেখুন।</p>';
+      h += '</div>';
+    }
+    return h;
+  }
+  function admUserEditHtml(u) {
+    var h = '<button class="btn small ghost" data-u="back">‹ সব ইউজার</button>' +
+      '<div class="card"><h3>এডিট — ' + esc(u.username) + '</h3>' +
+      '<div id="ueErr" class="adm-err" style="display:none"></div>' +
+      '<label class="fld">ইউজারনেম<input id="euUser" value="' + esc(u.username || '') + '" autocomplete="off"></label>' +
+      '<label class="fld">নাম<input id="euName" value="' + esc(u.name || '') + '" autocomplete="off"></label>' +
+      '<label class="fld">ফোন<input id="euPhone" value="' + esc(u.phone || '') + '" autocomplete="off"></label>' +
+      '<label class="fld">নতুন পাসওয়ার্ড (খালি রাখলে আগেরটাই থাকবে)<input id="euPass" type="password" autocomplete="new-password" placeholder="বদলাতে চাইলে লিখুন"></label>' +
+      '<div class="row"><button id="euGo" class="btn">সেভ করুন</button>' +
+      '<button class="btn ghost" data-u="detail" data-id="' + esc(u._id) + '">অগ্রগতি দেখুন</button></div>' +
+      '<p class="muted">পাসওয়ার্ড হ্যাশ থাকে — দেখা যায় না, শুধু বদলানো যায়।</p></div>';
+    return h;
+  }
+  function admWireUsers() {
+    var body = $('admBody');
+    var s = $('admUserSearch');
+    if (s) {
+      s.addEventListener('input', function () {
+        admUserQ = this.value;
+        var pos = this.selectionStart;
+        body.innerHTML = admUsersHtml(admUserCache || []);
+        admWireUsers();
+        var s2 = $('admUserSearch');
+        if (s2) { try { s2.focus(); s2.setSelectionRange(pos, pos); } catch (e) {} }
+      });
+    }
+    var btns = body.querySelectorAll('[data-u]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () {
+        var act = this.getAttribute('data-u');
+        var id = this.getAttribute('data-id');
+        if (act === 'back' || act === 'new') {
+          if (act === 'back') admUserSel = null;
+          body.innerHTML = admUsersHtml(admUserCache || []);
+          admWireUsers();
+          if (act === 'new') {
+            var nu = $('nuUser');
+            if (nu) { try { nu.focus(); } catch (e) {} }
+          }
+          return;
+        }
+        if (act === 'detail') { admUserSel = { mode: 'detail', id: id }; body.innerHTML = admUsersHtml(admUserCache || []); admWireUsers(); return; }
+        if (act === 'edit') { admUserSel = { mode: 'edit', id: id }; body.innerHTML = admUsersHtml(admUserCache || []); admWireUsers(); return; }
+        if (act === 'del') {
+          var uname = this.getAttribute('data-uname') || '';
+          if (!window.confirm('"' + uname + '" মুছবেন?')) return;
           apiPost('/api/admin/users/delete', { token: admToken(), id: id }, function (err2) {
-            if (!err2) admRenderSec();
-            else setSync('মোছা হয়নি।');
+            if (!err2) { admUserCache = null; admUserSel = null; admRenderSec(); }
+            else setSync(err2 === 'offline' ? 'ইন্টারনেট নেই।' : 'মোছা হয়নি।');
           });
-        });
-      }
-      $('nuGo').addEventListener('click', function () {
-        var data = {
-          username: $('nuUser').value, name: $('nuName').value,
-          phone: $('nuPhone').value, password: $('nuPass').value
-        };
-        $('nuGo').disabled = true;
-        apiPost('/api/admin/users', { token: admToken(), data: data }, function (err3) {
-          $('nuGo').disabled = false;
-          if (err3) {
+          return;
+        }
+        if (act === 'reset') {
+          if (!window.confirm('এই ইউজারের সব টিক মুছে যাবে — রিসেট করবেন?')) return;
+          apiPost('/api/admin/users/reset-progress', { token: admToken(), id: id }, function (err3, obj3) {
+            if (!err3) {
+              admUserCache = null; admRenderSec();
+            } else setSync(err3 === 'offline' ? 'ইন্টারনেট নেই।' : 'রিসেট হয়নি।');
+          });
+          return;
+        }
+      });
+    }
+    var nuGo = $('nuGo');
+    if (nuGo) {
+      nuGo.addEventListener('click', function () {
+        var data = { username: $('nuUser').value, name: $('nuName').value, phone: $('nuPhone').value, password: $('nuPass').value };
+        nuGo.disabled = true;
+        apiPost('/api/admin/users', { token: admToken(), data: data }, function (err4) {
+          nuGo.disabled = false;
+          if (err4) {
             var e = $('auErr');
-            e.style.display = 'block';
-            e.textContent = err3 === 'offline' ? 'ইন্টারনেট নেই।'
-              : (typeof err3 === 'string' && err3.slice(0, 4) === 'http' ? 'তৈরি হয়নি।' : err3);
+            if (e) { e.style.display = 'block'; e.textContent = err4 === 'offline' ? 'ইন্টারনেট নেই।' : (typeof err4 === 'string' && err4.slice(0, 4) === 'http' ? 'তৈরি হয়নি।' : err4); }
             return;
           }
+          admUserCache = null; admUserSel = null; admRenderSec();
+        });
+      });
+    }
+    var euGo = $('euGo');
+    if (euGo) {
+      euGo.addEventListener('click', function () {
+        var id2 = (admUserSel && admUserSel.id) || '';
+        var data2 = { username: $('euUser').value, name: $('euName').value, phone: $('euPhone').value, password: $('euPass').value };
+        euGo.disabled = true;
+        apiPost('/api/admin/users/update', { token: admToken(), id: id2, data: data2 }, function (err5, obj5) {
+          euGo.disabled = false;
+          if (err5) {
+            var e2 = $('ueErr');
+            if (e2) { e2.style.display = 'block'; e2.textContent = err5 === 'offline' ? 'ইন্টারনেট নেই।' : (typeof err5 === 'string' && err5.slice(0, 4) === 'http' ? 'সেভ হয়নি।' : err5); }
+            return;
+          }
+          admUserCache = null;
+          admUserSel = { mode: 'detail', id: id2 };
           admRenderSec();
         });
       });
-    });
+    }
   }
 
   /* ---------- theme (dark + light, SVG icon like the site) ---------- */
