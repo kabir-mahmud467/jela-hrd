@@ -23,6 +23,7 @@
 </select>
 <label for="f-title">শিরোনাম</label><input id="f-title" name="title" value="<%= item.title || '' %>" required maxlength="300">
 <label for="f-ref">রেফারেন্স</label><input id="f-ref" name="reference" value="<%= item.reference || '' %>" maxlength="300">
+<label for="f-video">ভিডিও লিংক (ঐচ্ছিক — অন্যান্য প্রশ্নে দেখাবে)</label><input id="f-video" name="videoLink" value="<%= item.videoLink || '' %>" placeholder="https://..." inputmode="url" maxlength="2000">
 <label for="f-content">বিস্তারিত</label><textarea id="f-content" name="content" rows="8" required maxlength="10000"><%= item.content || '' %></textarea>
 <div class="form-actions"><button class="btn primary" type="submit">সেভ করুন</button><a href="/admin/bibidh" class="btn">বাতিল</a></div>
 </form>

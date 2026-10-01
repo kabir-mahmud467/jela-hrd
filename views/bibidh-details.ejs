@@ -5,5 +5,10 @@
   <h1><%= item.title %></h1>
   <div class="content"><%- bnHtml(item.content) %></div>
   <% if(item.reference){ %><p class="muted">রেফারেন্স: <%= item.reference %></p><% } %>
+  <% if(item.videoLink && (item.videoLink.startsWith('http://') || item.videoLink.startsWith('https://'))){ %>
+  <div style="margin-top:12px">
+    <a href="<%= item.videoLink %>" target="_blank" rel="noopener" class="btn small primary">ভিডিও দেখুন</a>
+  </div>
+  <% } %>
 </article>
 <%- include('partials/footer') %>

@@ -10,6 +10,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
@@ -64,6 +65,13 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
         s.setMediaPlaybackRequiresUserGesture(false);
+        s.setAllowFileAccessFromFileURLs(true);
+        s.setAllowUniversalAccessFromFileURLs(true);
+        s.setAllowFileAccess(true);
+        s.setAllowContentAccess(true);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            s.setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
 
         web.addJavascriptInterface(new JsApi(), "Android");
 
@@ -118,6 +126,12 @@ public class MainActivity extends Activity {
                         .show();
                 return true;
             }
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                android.util.Log.d("HrdWebView", consoleMessage.message() + " (" + consoleMessage.sourceId() + ":" + consoleMessage.lineNumber() + ")");
+                return true;
+            }
         });
 
         web.setWebViewClient(new WebViewClient() {
@@ -139,10 +153,12 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPageFinished(WebView view, String url) {
+                // Always push local data — after process-death restore the JS
+                // state is gone, so gating on firstPage left a blank page.
+                SyncManager.pushLocal(MainActivity.this, web, syncListener);
                 if (firstPage) {
                     firstPage = false;
-                    // 1) instant offline paint  2) sync when online
-                    SyncManager.pushLocal(MainActivity.this, web, syncListener);
+                    // 2) sync when online
                     if (isOnline()) {
                         SyncManager.sync(MainActivity.this, web, syncListener);
                     } else {
@@ -183,14 +199,16 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
-            firstPage = false;
+            // Keep firstPage true so the restored page re-pushes local
+            // content and re-syncs (JS state is lost on process death).
+            firstPage = true;
         } else {
             web.loadUrl("file:///android_asset/www/index.html");
         }
     }
 
     private boolean handleUrl(String url) {
-        if (url == null) return false;
+        if (url == null || url.isEmpty()) return false;
         if (url.startsWith("file://") || url.charAt(0) == '#') return false;
         Uri uri = Uri.parse(url);
         String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
@@ -220,6 +238,14 @@ public class MainActivity extends Activity {
             ConnectivityManager cm =
                     (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             if (cm == null) return true;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                android.net.Network net = cm.getActiveNetwork();
+                if (net == null) return false;
+                android.net.NetworkCapabilities cap = cm.getNetworkCapabilities(net);
+                return cap != null
+                        && cap.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET);
+            }
+            @SuppressWarnings("deprecation")
             NetworkInfo ni = cm.getActiveNetworkInfo();
             return ni != null && ni.isConnected();
         } catch (Exception e) {

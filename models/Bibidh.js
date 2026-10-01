@@ -22,6 +22,7 @@ const bibidhSchema = new mongoose.Schema({
   content: { type: String, required: true, trim: true, maxlength: 10000 },
   category: { type: String, enum: BIBIDH_VALUES, default: 'ilmul-quran', index: true },
   reference: { type: String, default: '', trim: true, maxlength: 300 },
+  videoLink: { type: String, default: '', trim: true, maxlength: 2000 },
   order: { type: Number, default: 0, index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

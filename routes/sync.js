@@ -75,7 +75,7 @@ async function snapshot() {
     Surah.find().sort(SORT).limit(CAP)
       .select('title arabic transliteration translation reference phase ayahCount order createdAt updatedAt').lean(),
     Bibidh.find().sort(SORT).limit(CAP)
-      .select('title content category reference order createdAt updatedAt').lean()
+      .select('title content category reference videoLink order createdAt updatedAt').lean()
   ]);
   const cols = { books, audiobooks, notes, dars, duas, ayathadith, surah, bibidh };
   let total = 0;

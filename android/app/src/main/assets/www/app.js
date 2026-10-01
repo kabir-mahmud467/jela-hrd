@@ -236,8 +236,12 @@
       h += '<div class="row" style="margin-top:10px">' +
         (extLink(it.audioLink) ? '<a class="btn" href="' + esc(it.audioLink) + '">অডিও শুনুন</a>'
           : '<span class="muted">লিংক নেই</span>') + '</div>';
-    } else if (sec.id === 'notes' || sec.id === 'dars' || sec.id === 'bibidh') {
+    } else if (sec.id === 'notes' || sec.id === 'dars') {
       if (it.content) h += '<div class="content">' + it.content + '</div>';
+    } else if (sec.id === 'bibidh') {
+      if (it.content) h += '<div class="content">' + it.content + '</div>';
+      if (extLink(it.videoLink)) h += '<div class="row" style="margin-top:10px">' +
+        '<a class="btn" href="' + esc(it.videoLink) + '">ভিডিও দেখুন</a></div>';
     } else if (sec.id === 'duas') {
       if (it.arabic) h += '<div class="arabic">' + esc(decEnt(it.arabic)) + '</div>';
       if (it.transliteration) h += '<div class="uchcharon"><strong>উচ্চারণ:</strong> ' + esc(decEnt(it.transliteration)) + '</div>';
@@ -984,6 +988,7 @@
     bibidh: [
       { k: 'title', label: 'শিরোনাম', t: 'text', req: 1 },
       { k: 'category', label: 'বিষয়', t: 'sel', opts: 'BC' },
+      { k: 'videoLink', label: 'ভিডিও লিংক (ঐচ্ছিক)', t: 'text' },
       { k: 'content', label: 'বিস্তারিত', t: 'area', req: 1, rich: 1 },
       { k: 'reference', label: 'রেফারেন্স', t: 'text' }
     ]
@@ -1139,7 +1144,8 @@
       var realIdx = (admCache[type] || []).indexOf(it);
       h += '<div class="adm-row"><input type="checkbox" class="adm-check" value="' + esc(it._id) + '" aria-label="সিলেক্ট">' +
         '<span class="adm-title">' + esc(it.title || '(শিরোনাম নেই)') +
-        (it.author ? ' <span class="muted">· ' + esc(it.author) + '</span>' : '') + '</span>' +
+        (it.author ? ' <span class="muted">· ' + esc(it.author) + '</span>' : '') +
+        (it.videoLink ? ' <span class="badge">ভিডিও</span>' : '') + '</span>' +
         '<span class="adm-acts">' +
         '<button class="btn small ghost" data-ab="up" data-i="' + realIdx + '" title="উপরে">▲</button>' +
         '<button class="btn small ghost" data-ab="down" data-i="' + realIdx + '" title="নিচে">▼</button>' +

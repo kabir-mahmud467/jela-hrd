@@ -108,6 +108,8 @@ function validateBody(kind, body) {
     data.category = str(body.category, 50) || 'ilmul-quran';
     if (!BIBIDH_VALUES.includes(data.category)) data.category = 'ilmul-quran';
     data.reference = str(body.reference, 300);
+    data.videoLink = str(body.videoLink, 2000);
+    if (data.videoLink && !isValidUrl(data.videoLink)) errors.push('সঠিক ভিডিও লিংক দিন (http/https)।');
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.content.length < 3) errors.push('বিস্তারিত আবশ্যক।');
   } else if (kind === 'user') {
