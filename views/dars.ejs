@@ -9,7 +9,7 @@
 
   <div class="chips">
     <a href="/dars" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
-    <% Object.entries(phases).forEach(([val, label]) => { %>
+    <% var _seenPhase = {}; var _seenLabel = {}; Object.entries(phases || {}).forEach(([val, label]) => { val = String(val || '').trim(); label = String(label || '').trim(); if (!val || !label || _seenPhase[val] || _seenLabel[label]) return; _seenPhase[val] = 1; _seenLabel[label] = 1; %>
       <a href="/dars/porbo/<%= val %>" class="chip <%= phase === val ? 'active' : '' %>"><%= label %></a>
     <% }) %>
   </div>

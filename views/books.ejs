@@ -9,9 +9,9 @@
 
   <div class="chips">
     <a href="/books" class="chip <%= !phase ? 'active' : '' %>">সব পর্ব</a>
-    <a href="/books/phase/abedonpotrer-purbe" class="chip <%= phase === 'abedonpotrer-purbe' ? 'active' : '' %>">আবেদনপত্রের পূর্বে</a>
-    <a href="/books/phase/proshnopotrer-purbe" class="chip <%= phase === 'proshnopotrer-purbe' ? 'active' : '' %>">প্রশ্নপত্রের পূর্বে</a>
-    <a href="/books/phase/shopother-purbe" class="chip <%= phase === 'shopother-purbe' ? 'active' : '' %>">শপথের পূর্বে</a>
+    <% var _seenPhase = {}; var _seenLabel = {}; Object.entries(phases || {}).forEach(([val, label]) => { val = String(val || '').trim(); label = String(label || '').trim(); if (!val || !label || _seenPhase[val] || _seenLabel[label]) return; _seenPhase[val] = 1; _seenLabel[label] = 1; %>
+      <a href="/books/phase/<%= val %>" class="chip <%= phase === val ? 'active' : '' %>"><%= label %></a>
+    <% }) %>
   </div>
 
   <form method="GET" action="/books" class="search">

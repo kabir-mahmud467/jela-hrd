@@ -375,7 +375,10 @@
     var phases = ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
     var cur = state.f.home || 'abedonpotrer-purbe';
     var h = '<div class="row">';
+    var seenHp = {};
     for (var p = 0; p < phases.length; p++) {
+      if (seenHp[phases[p]]) continue;
+      seenHp[phases[p]] = 1;
       h += '<button class="chip' + (cur === phases[p] ? ' on' : '') + '" data-p="' + phases[p] + '">' +
         esc(PHASES[phases[p]]) + '</button>';
     }
@@ -482,7 +485,14 @@
     var phases = sec.phases || ['abedonpotrer-purbe', 'proshnopotrer-purbe', 'shopother-purbe'];
     if (sec.id !== 'bibidh') {
       h += '<div class="row"><button class="chip' + (!f.p ? ' on' : '') + '" data-fp="">সব পর্ব</button>';
+      var seenPh = {}, seenLb = {};
       for (var i = 0; i < phases.length; i++) {
+        var pv = String(phases[i] == null ? '' : phases[i]).replace(/^\s+|\s+$/g, '');
+        if (!pv || seenPh[pv]) continue;
+        var lb = PHASES[pv] ? String(PHASES[pv]).replace(/^\s+|\s+$/g, '') : '';
+        if (!lb || seenLb[lb]) continue;
+        seenPh[pv] = 1;
+        seenLb[lb] = 1;
         h += '<button class="chip' + (f.p === phases[i] ? ' on' : '') + '" data-fp="' + phases[i] + '">' +
           esc(PHASES[phases[i]]) + '</button>';
       }
