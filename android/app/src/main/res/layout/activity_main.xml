@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/navy">
+    android:background="@color/paper">
 
     <WebView
         android:id="@+id/webview"
@@ -23,14 +23,14 @@
         android:orientation="vertical"
         android:padding="32dp"
         android:visibility="gone"
-        android:background="@color/navy">
+        android:background="@color/paper">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/load_error"
-            android:textColor="@color/white"
+            android:textColor="@color/ink"
             android:textSize="16sp" />
 
         <Button

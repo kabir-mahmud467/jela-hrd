@@ -59,7 +59,8 @@
 
 /* ===== Light theme — same token NAMES, light values.
    Toggle: <html data-theme="light"> (button in header, saved in
-   localStorage). Default (no attr) stays dark premium. */
+   localStorage). Default (with attr) is light premium; removing the
+   attr (dark choice) falls back to dark premium. */
 html[data-theme="light"] {
   --navy: #0a2c48;
   --blue: #1d5c96;

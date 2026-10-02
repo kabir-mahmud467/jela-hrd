@@ -1,14 +1,14 @@
 /* Jela HRD main.js — CSP-safe (no inline handlers), ES5 ONLY. */
 document.documentElement.classList.add('js');
 
-// Theme: dark (default) + light, saved in localStorage (all pages incl. admin)
+// Theme: light (default) + dark, saved in localStorage (all pages incl. admin)
 (function () {
   var KEY = 'hrd_site_theme';
   function current() {
     try {
-      return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark';
+      return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light';
     } catch (e) {
-      return 'dark';
+      return 'light';
     }
   }
   function apply() {

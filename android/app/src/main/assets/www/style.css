@@ -1,5 +1,5 @@
 /* Hrd offline reader — file:// assets, system fonts only, ES5.
-   All colors come from tokens below (dark default + light override) so the
+   All colors come from tokens below (light default + dark override) so the
    theme toggle repaints EVERYTHING — no hardcoded hex in components. */
 *{box-sizing:border-box}
 :root{

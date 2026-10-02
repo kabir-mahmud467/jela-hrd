@@ -19,7 +19,7 @@
       <a href="/admin/settings" class="<%= typeof active !== 'undefined' && active === 'settings' ? 'active' : '' %>">সেটিংস</a>
       <a href="/">সাইট</a>
       <a href="/admin/logout" class="admin-btn">লগআউট<% if (typeof admin !== 'undefined' && admin && admin.username) { %> (<%= admin.username %>)<% } %></a>
-      <button class="theme-btn" id="themeToggle" type="button" aria-label="লাইট থিম চালু করুন"><span class="theme-ic"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span><span class="theme-label">থিম</span></button>
+      <button class="theme-btn" id="themeToggle" type="button" aria-label="ডার্ক থিম চালু করুন"><span class="theme-ic"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span><span class="theme-label">থিম</span></button>
     </nav>
     <button class="nav-toggle" id="navToggle" aria-label="মেনু খুলুন" aria-expanded="false">
       <span></span><span></span><span></span>

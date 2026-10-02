@@ -3,4 +3,6 @@
     <color name="navy">#05070B</color>
     <color name="sky">#00A9E0</color>
     <color name="white">#FFFFFF</color>
+    <color name="paper">#F4F7FB</color>
+    <color name="ink">#0D1B2A</color>
 </resources>
