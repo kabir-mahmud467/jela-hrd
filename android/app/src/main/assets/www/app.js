@@ -18,6 +18,10 @@
   }
   /* in-app panels: content offline, login/save/admin needs internet (no outside URL) */
   var SITE = 'https://hrd.kabirmahmud.xyz';
+  /* Bundled app version (keep in sync with versionName in app/build.gradle).
+     Shown at the bottom of the home tab so duplicate-filter / button reports
+     can be matched to the installed build. */
+  var APP_VER = '1.18';
   var LS_AUTH = 'hrd_auth_v1';
   var LS_THEME = 'hrd_theme_v1';
 
@@ -452,6 +456,7 @@
       }
     }
     h += '</div>';
+    h += '<p class="muted" style="text-align:center;margin:14px 0 6px">অ্যাপ সংস্করণ ' + esc(APP_VER) + '</p>';
     v.innerHTML = h;
     var chips = v.querySelectorAll('[data-p]');
     for (var c = 0; c < chips.length; c++) {
