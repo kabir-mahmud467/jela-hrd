@@ -225,6 +225,13 @@
   function extLink(url) {
     return /^https?:\/\//i.test(url || '');
   }
+  /* Real audio = http(s) link that is not a placeholder (example.com). */
+  function hasAudio(url) {
+    var u = String(url || '');
+    if (!/^https?:\/\//i.test(u)) return false;
+    if (/example\.com/i.test(u)) return false;
+    return true;
+  }
   function fullBody(sec, it) {
     var h = '';
     if (sec.id === 'books') {
@@ -234,8 +241,8 @@
           : '<span class="muted">লিংক নেই</span>') + '</div>';
     } else if (sec.id === 'audiobooks') {
       h += '<div class="row" style="margin-top:10px">' +
-        (extLink(it.audioLink) ? '<a class="btn" href="' + esc(it.audioLink) + '">অডিও শুনুন</a>'
-          : '<span class="muted">লিংক নেই</span>') + '</div>';
+        (hasAudio(it.audioLink) ? '<a class="btn" href="' + esc(it.audioLink) + '">অডিও শুনুন</a>'
+          : '<button class="btn" disabled>অডিওবুক পাওয়া যায়নি</button>') + '</div>';
     } else if (sec.id === 'notes' || sec.id === 'dars') {
       if (it.content) h += '<div class="content">' + it.content + '</div>';
     } else if (sec.id === 'bibidh') {

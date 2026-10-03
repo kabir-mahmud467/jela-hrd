@@ -34,11 +34,14 @@
             <% if (b.phase === 'proshnopotrer-purbe') { %><span class="badge light">প্রশ্নপত্রের পূর্বে</span><% } %>
             <% if (b.phase === 'shopother-purbe') { %><span class="badge light">শপথের পূর্বে</span><% } %>
           </div>
-          <% if (b.audioLink && (b.audioLink.startsWith('http://') || b.audioLink.startsWith('https://'))) { %>
+          <% var _al = (b.audioLink || '').toString(); var _hasAudio = (_al.indexOf('http://') === 0 || _al.indexOf('https://') === 0) && _al.toLowerCase().indexOf('example.com') === -1; %>
           <div style="margin-top:10px">
+            <% if (_hasAudio) { %>
             <a href="<%= b.audioLink %>" target="_blank" rel="noopener" class="btn small primary"><svg class="icon sm"><use href="#i-star"/></svg> অডিও শুনুন</a>
+            <% } else { %>
+            <button type="button" class="btn small" disabled>অডিওবুক পাওয়া যায়নি</button>
+            <% } %>
           </div>
-          <% } %>
         </div>
       </div>
     <% }) %>
