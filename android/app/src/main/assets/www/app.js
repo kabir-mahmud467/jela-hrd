@@ -21,7 +21,7 @@
   /* Bundled app version (keep in sync with versionName in app/build.gradle).
      Shown at the bottom of the home tab so duplicate-filter / button reports
      can be matched to the installed build. */
-  var APP_VER = '1.19';
+  var APP_VER = '1.20';
   var LS_AUTH = 'hrd_auth_v1';
   var LS_THEME = 'hrd_theme_v1';
 
@@ -32,6 +32,7 @@
   };
   var NOTE_CATS = { 'alochona': 'আলোচনা নোট', 'boi': 'বই নোট' };
   var BIBIDH_CATS = {
+    'songothoner-itihas': 'সংগঠনের ইতিহাস',
     'ilmul-quran': 'ইলমূল কুরআন', 'ilmul-hadis': 'ইলমূল হাদিস',
     'ilmut-tajbid': 'ইলমুত তাজবীদ', 'masala-masayel': 'মাসআলা-মাসায়েল',
     'shane-nuzul': 'শানে নুযুল', 'jiboni': 'জীবনী', 'dibosh': 'দিবস',

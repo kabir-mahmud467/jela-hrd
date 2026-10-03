@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const BIBIDH_CATS = {
+  'songothoner-itihas': 'সংগঠনের ইতিহাস',
   'ilmul-quran': 'ইলমূল কুরআন',
   'ilmul-hadis': 'ইলমূল হাদিস',
   'ilmut-tajbid': 'ইলমুত তাজবীদ',
@@ -13,8 +14,7 @@ const BIBIDH_CATS = {
   'jatiyo-antorjatik': 'জাতীয় ও আন্তর্জাতিক',
   'onnanno-proshno': 'অন্যান্য প্রশ্ন',
   'samprotik-proshno': 'সাম্প্রতিক প্রশ্ন',
-  'likhito-porikkhar-proshno': 'লিখিত পরীক্ষার প্রশ্ন',
-  'songothoner-itihas': 'সংগঠনের ইতিহাস'
+  'likhito-porikkhar-proshno': 'লিখিত পরীক্ষার প্রশ্ন'
 };
 const BIBIDH_VALUES = Object.keys(BIBIDH_CATS);
 
