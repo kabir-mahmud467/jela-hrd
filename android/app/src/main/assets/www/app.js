@@ -21,7 +21,7 @@
   /* Bundled app version (keep in sync with versionName in app/build.gradle).
      Shown at the bottom of the home tab so duplicate-filter / button reports
      can be matched to the installed build. */
-  var APP_VER = '1.18';
+  var APP_VER = '1.19';
   var LS_AUTH = 'hrd_auth_v1';
   var LS_THEME = 'hrd_theme_v1';
 
@@ -38,7 +38,8 @@
     'motobad': 'মতবাদ', 'guruttopurno-ghotonaboli': 'গুরুত্বপূর্ণ ঘটনাবলী',
     'jatiyo-antorjatik': 'জাতীয় ও আন্তর্জাতিক', 'onnanno-proshno': 'অন্যান্য প্রশ্ন',
     'samprotik-proshno': 'সাম্প্রতিক প্রশ্ন',
-    'likhito-porikkhar-proshno': 'লিখিত পরীক্ষার প্রশ্ন'
+    'likhito-porikkhar-proshno': 'লিখিত পরীক্ষার প্রশ্ন',
+    'songothoner-itihas': 'সংগঠনের ইতিহাস'
   };
   var SECTIONS = [
     { id: 'books', name: 'বই', fields: ['title', 'author', 'description'] },

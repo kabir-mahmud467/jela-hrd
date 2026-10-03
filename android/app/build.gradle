@@ -10,8 +10,8 @@ android {
         applicationId 'com.jelahrd.app'
         minSdk 23
         targetSdk 34
-        versionCode 19
-        versionName '1.18'
+        versionCode 20
+        versionName '1.19'
     }
 
     def keyProps = new Properties()

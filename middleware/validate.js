@@ -102,7 +102,7 @@ function validateBody(kind, body) {
     if (data.title.length < 2) errors.push('শিরোনাম আবশ্যক।');
     if (data.translation.length < 3) errors.push('অর্থ আবশ্যক।');
   } else if (kind === 'bibidh') {
-    const BIBIDH_VALUES = ['ilmul-quran','ilmul-hadis','ilmut-tajbid','masala-masayel','shane-nuzul','jiboni','dibosh','motobad','guruttopurno-ghotonaboli','jatiyo-antorjatik','onnanno-proshno','samprotik-proshno','likhito-porikkhar-proshno'];
+    const BIBIDH_VALUES = ['ilmul-quran','ilmul-hadis','ilmut-tajbid','masala-masayel','shane-nuzul','jiboni','dibosh','motobad','guruttopurno-ghotonaboli','jatiyo-antorjatik','onnanno-proshno','samprotik-proshno','likhito-porikkhar-proshno','songothoner-itihas'];
     data.title = str(body.title, 300);
     data.content = str(body.content, 10000);
     data.category = str(body.category, 50) || 'ilmul-quran';
