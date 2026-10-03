@@ -943,6 +943,17 @@
   var admSec = '__home';
   var admCache = {};
   var admEdit = null;
+  /* Last-used dropdown picks per section (category/phase/kind) — new "+ নতুন"
+     forms start where the previous add left off instead of jumping back to
+     the first option every time. ES5 only. */
+  var admLastSel = {};
+  function admRememberSel(type, data) {
+    var keep = {};
+    if (data && data.phase) keep.phase = String(data.phase);
+    if (data && data.category) keep.category = String(data.category);
+    if (data && data.kind) keep.kind = String(data.kind);
+    if (keep.phase || keep.category || keep.kind) admLastSel[type] = keep;
+  }
   var ADM_PHASE3 = [['abedonpotrer-purbe', 'আবেদনপত্রের পূর্বে'], ['proshnopotrer-purbe', 'প্রশ্নপত্রের পূর্বে'], ['shopother-purbe', 'শপথের পূর্বে']];
   var ADM_PHASE2 = [['abedonpotrer-purbe', 'আবেদনপত্রের পূর্বে'], ['proshnopotrer-purbe', 'প্রশ্নপত্রের পূর্বে']];
   var ADM_NOTE_CATS = [['alochona', 'আলোচনা নোট'], ['boi', 'বই নোট']];
@@ -1585,6 +1596,12 @@
         h += '<label class="fld">' + esc(d.label) + '<textarea id="af-' + d.k + '">' + esc(val) + '</textarea></label>';
       } else if (d.t === 'sel') {
         var opts = admOpts(d.opts);
+        if (!val && !item && admLastSel[type] && admLastSel[type][d.k]) {
+          var rv = String(admLastSel[type][d.k]);
+          for (var ov2 = 0; ov2 < opts.length; ov2++) {
+            if (String(opts[ov2][0]) === rv) { val = rv; break; }
+          }
+        }
         if (!val && opts.length) val = opts[0][0];
         h += '<label class="fld">' + esc(d.label) + '<select id="af-' + d.k + '">';
         var seenOpt = {};
@@ -1600,6 +1617,7 @@
       }
     }
     h += '<div class="row"><button id="afSave" class="btn">সংরক্ষণ করুন</button>' +
+      (!item ? '<button id="afSaveNext" class="btn ghost">সংরক্ষণ + আরেকটি</button>' : '') +
       '<button id="afCancel" class="btn ghost">বাতিল</button></div>' +
       '<p class="muted">সেভ হলে স্বয়ংক্রিয় সিংক চলবে — ফোনের অফলাইন কপি আপডেট হবে।</p></div>';
     body.innerHTML = h;
@@ -1632,7 +1650,10 @@
       admEdit = null;
       admRenderSec();
     });
-    $('afSave').addEventListener('click', function () {
+    /* Shared create/update submit: collects + validates the form, posts it,
+       remembers dropdown picks for the next "+ নতুন" form. andNew=1 keeps a
+       fresh add-form open (same section + picks) instead of the list. */
+    function admSubmitForm(type, item, andNew) {
       var data = {};
       for (var i = 0; i < defs.length; i++) {
         if (defs[i].t === 'area' && defs[i].rich) {
@@ -1660,22 +1681,36 @@
         ? { token: admToken(), type: type, id: item._id, data: data }
         : { token: admToken(), type: type, data: data };
       var path = isEdit ? '/api/admin/content/update' : '/api/admin/content';
-      $('afSave').disabled = true;
+      var saveBtn = $(andNew ? 'afSaveNext' : 'afSave');
+      if (saveBtn) saveBtn.disabled = true;
       apiPost(path, payload, function (err2) {
         if (err2) {
           var e = $('admErr');
-          e.style.display = 'block';
-          e.textContent = err2 === 'offline' ? 'ইন্টারনেট নেই।'
-            : (typeof err2 === 'string' && err2.slice(0, 4) === 'http' ? 'সেভ হয়নি।' : err2);
-          $('afSave').disabled = false;
+          if (e) {
+            e.style.display = 'block';
+            e.textContent = err2 === 'offline' ? 'ইন্টারনেট নেই।'
+              : (typeof err2 === 'string' && err2.slice(0, 4) === 'http' ? 'সেভ হয়নি।' : err2);
+          }
+          if (saveBtn) saveBtn.disabled = false;
           return;
         }
+        if (!isEdit) admRememberSel(type, data);
         delete admCache[type];
-        admEdit = null;
+        if (andNew && !isEdit) admEdit = { type: type, id: null, item: null };
+        else admEdit = null;
         admRenderSec();
         refreshContent();
       });
+    }
+    $('afSave').addEventListener('click', function () {
+      admSubmitForm(type, item, 0);
     });
+    var saveNextBtn = $('afSaveNext');
+    if (saveNextBtn) {
+      saveNextBtn.addEventListener('click', function () {
+        admSubmitForm(type, item, 1);
+      });
+    }
   }
   var admUserCache = null;
   var admUserQ = '';
